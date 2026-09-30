@@ -78,7 +78,42 @@ class _LoginScreenState extends State<LoginScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textSecondary),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
+                Material(
+                  color: AppColors.red.withAlpha(25),
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => Navigator.pushNamed(context, '/leak-check'),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.red.withAlpha(90)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.password, color: AppColors.red),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Has your password already leaked?',
+                                    style: TextStyle(fontWeight: FontWeight.w600)),
+                                SizedBox(height: 2),
+                                Text('Check it now. No account needed.',
+                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.chevron_right, color: AppColors.red),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 if (auth.error != null) ...[
                   Container(
                     padding: const EdgeInsets.all(12),

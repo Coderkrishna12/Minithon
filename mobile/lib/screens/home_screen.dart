@@ -178,6 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+                    _moreNavItem(Icons.password, 'Password Leak Check', AppColors.red, '/leak-check'),
                     _moreItem(Icons.smart_toy, 'PrivacyBot', AppColors.blue, 4),
                     _moreItem(Icons.link, 'Blockchain', AppColors.purple, 5),
                     _moreItem(Icons.military_tech, 'Badges & Features', AppColors.pink, 6),

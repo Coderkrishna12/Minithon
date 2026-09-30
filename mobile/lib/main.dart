@@ -18,6 +18,7 @@ import 'screens/darkweb_screen.dart';
 import 'screens/smart_import_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/ar_scanner_screen.dart';
+import 'screens/leak_check_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +59,7 @@ class PrivacyShieldApp extends StatelessWidget {
           '/smart-import': (_) => const SmartImportScreen(),
           '/reminders': (_) => const RemindersScreen(),
           '/ar-scanner': (_) => const ARScannerScreen(),
+          '/leak-check': (_) => const LeakCheckScreen(),
         },
       ),
     );
