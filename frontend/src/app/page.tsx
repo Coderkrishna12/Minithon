@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import PasswordLeakCheck from "@/components/PasswordLeakCheck";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F172A] -ml-64 px-6">
-      <div className="text-center max-w-3xl animate-slide-up">
+    <div className="fixed inset-0 z-10 overflow-y-auto flex bg-[#0F172A] px-4 py-16">
+      <div className="text-center max-w-3xl w-full m-auto animate-slide-up">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] text-sm mb-8">
           <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
           AI-Powered &middot; Blockchain-Verified
@@ -26,6 +27,10 @@ export default function Home() {
           Discover which breach could unlock everything.
           AI finds the risks. You fix them. Blockchain proves it.
         </p>
+
+        <div className="mb-10">
+          <PasswordLeakCheck />
+        </div>
 
         <div className="flex gap-4 justify-center">
           <Link

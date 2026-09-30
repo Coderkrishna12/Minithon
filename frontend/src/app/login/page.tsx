@@ -28,8 +28,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0F172A] -ml-64 px-6">
-      <div className="w-full max-w-md">
+    <div className="fixed inset-0 z-10 overflow-y-auto flex bg-[#0F172A] px-4 py-10">
+      <div className="w-full max-w-md m-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] bg-clip-text text-transparent">
             PrivacyShield
