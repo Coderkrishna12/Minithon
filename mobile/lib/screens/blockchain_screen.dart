@@ -61,9 +61,7 @@ class _BlockchainScreenState extends State<BlockchainScreen> with SingleTickerPr
   Future<void> _generateZkp() async {
     setState(() => _generatingZkp = true);
     try {
-      final data = await _api.post('/blockchain/zkp-certificate', body: {
-        'threshold': _zkpThreshold.toInt(),
-      });
+      final data = await _api.post('/blockchain/zkp-certificate?threshold=${_zkpThreshold.toInt()}');
       setState(() {
         _zkpCert = data;
         _generatingZkp = false;
@@ -282,7 +280,7 @@ class _BlockchainScreenState extends State<BlockchainScreen> with SingleTickerPr
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _zkpCert!['verified'] == true ? 'Proof Valid' : 'Score Below Threshold',
+                        _zkpCert!['verified'] == true ? 'Threshold met' : 'Score below threshold',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: _zkpCert!['verified'] == true ? AppColors.green : AppColors.red,
@@ -291,9 +289,8 @@ class _BlockchainScreenState extends State<BlockchainScreen> with SingleTickerPr
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _zkpField('Commitment', _zkpCert!['commitment']),
-                  _zkpField('Challenge', _zkpCert!['challenge']),
-                  _zkpField('Response', _zkpCert!['response']),
+                  _zkpField('Issuer', _zkpCert!['statement']?['issuer']),
+                  _zkpField('Ed25519 signature', _zkpCert!['proof']?['proofValue']),
                 ],
               ),
             ),

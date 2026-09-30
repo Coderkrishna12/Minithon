@@ -50,68 +50,31 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.background, Color(0xFF1a1a3e)],
+      body: Center(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) => Opacity(
+            opacity: _fadeIn.value,
+            child: Transform.scale(scale: _scale.value, child: child),
           ),
-        ),
-        child: Center(
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Opacity(
-                opacity: _fadeIn.value,
-                child: Transform.scale(
-                  scale: _scale.value,
-                  child: child,
-                ),
-              );
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [AppColors.blue, AppColors.purple],
-                    ),
-                  ),
-                  child: const Icon(Icons.shield, size: 64, color: Colors.white),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'PrivacyShield',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.blue,
-                    letterSpacing: 1,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Digital Footprint & Privacy Risk Auditor',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(AppColors.blue),
-                  ),
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(width: 18, height: 18, color: AppColors.red),
+                  const SizedBox(width: 12),
+                  Text.rich(TextSpan(children: [
+                    TextSpan(text: 'Privacy', style: AppText.serif(size: 44)),
+                    TextSpan(text: 'Shield', style: AppText.serif(size: 44, style: FontStyle.italic)),
+                  ])),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text('EXPOSURE AUDIT', style: AppText.eyebrow()),
+            ],
           ),
         ),
       ),

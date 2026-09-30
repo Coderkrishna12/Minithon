@@ -53,18 +53,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
-                const Icon(Icons.shield, size: 56, color: AppColors.blue),
-                const SizedBox(height: 16),
-                const Text(
-                  'Create Account',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
+                const SizedBox(height: 24),
+                Row(children: [
+                  Container(width: 12, height: 12, color: AppColors.red),
+                  const SizedBox(width: 10),
+                  Text.rich(TextSpan(children: [
+                    TextSpan(text: 'Privacy', style: AppText.serif(size: 26)),
+                    TextSpan(text: 'Shield', style: AppText.serif(size: 26, style: FontStyle.italic)),
+                  ])),
+                ]),
+                const SizedBox(height: 36),
+                Text('Open your file.', style: AppText.serif(size: 44)),
                 const SizedBox(height: 8),
                 const Text(
                   'Start protecting your digital footprint',
-                  textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 32),

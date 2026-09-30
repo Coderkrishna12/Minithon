@@ -10,6 +10,7 @@ import 'breaches_screen.dart';
 import 'ai_chat_screen.dart';
 import 'blockchain_screen.dart';
 import 'badges_screen.dart';
+import 'device_audit_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,22 +26,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final _screens = const [
     DashboardScreen(),
+    DeviceAuditScreen(embedded: true),
     AccountsScreen(),
-    GraphScreen(),
     BreachesScreen(),
     AiChatScreen(),
     BlockchainScreen(),
     BadgesScreen(),
+    GraphScreen(),
   ];
 
   final _titles = [
-    'Dashboard',
+    'Overview',
+    'This phone',
     'Accounts',
-    'Account Graph',
     'Breaches',
     'PrivacyBot',
-    'Blockchain',
-    'Features',
+    'Audit log',
+    'Badges',
+    'Risk graph',
   ];
 
   @override
@@ -61,15 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
-        leading: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Container(
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(colors: [AppColors.blue, AppColors.purple]),
-            ),
-            child: const Icon(Icons.shield, size: 20, color: Colors.white),
-          ),
+        leadingWidth: 36,
+        leading: Center(
+          child: Container(width: 12, height: 12, margin: const EdgeInsets.only(left: 16), color: AppColors.red),
         ),
         actions: [
           Stack(
@@ -136,10 +133,10 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.apps), label: 'Accounts'),
-          BottomNavigationBarItem(icon: Icon(Icons.hub), label: 'Graph'),
-          BottomNavigationBarItem(icon: Icon(Icons.radar), label: 'Breaches'),
+          BottomNavigationBarItem(icon: Icon(Icons.space_dashboard_outlined), label: 'Overview'),
+          BottomNavigationBarItem(icon: Icon(Icons.phone_android), label: 'This phone'),
+          BottomNavigationBarItem(icon: Icon(Icons.alternate_email), label: 'Accounts'),
+          BottomNavigationBarItem(icon: Icon(Icons.gpp_maybe_outlined), label: 'Breaches'),
           BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'More'),
         ],
       ),
@@ -179,9 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     _moreNavItem(Icons.password, 'Password Leak Check', AppColors.red, '/leak-check'),
+                    _moreItem(Icons.hub, 'Risk graph', AppColors.red, 7),
                     _moreItem(Icons.smart_toy, 'PrivacyBot', AppColors.blue, 4),
-                    _moreItem(Icons.link, 'Blockchain', AppColors.purple, 5),
-                    _moreItem(Icons.military_tech, 'Badges & Features', AppColors.pink, 6),
+                    _moreItem(Icons.link, 'Audit log', AppColors.purple, 5),
+                    _moreItem(Icons.military_tech, 'Badges', AppColors.pink, 6),
                     const Divider(color: AppColors.border, height: 24),
                     _moreNavItem(Icons.timeline, 'Timeline', AppColors.cyan, '/timeline'),
                     _moreNavItem(Icons.group, 'Family Shield', AppColors.green, '/family'),
@@ -192,7 +190,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     _moreNavItem(Icons.dark_mode, 'Dark Web Monitor', AppColors.red, '/darkweb'),
                     _moreNavItem(Icons.download, 'Smart Import', AppColors.green, '/smart-import'),
                     _moreNavItem(Icons.alarm, 'Reminders', AppColors.orange, '/reminders'),
-                    _moreNavItem(Icons.qr_code_scanner, 'AR Scanner', AppColors.cyan, '/ar-scanner'),
                   ],
                 ),
               );

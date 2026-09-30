@@ -17,16 +17,16 @@ import 'screens/dao_screen.dart';
 import 'screens/darkweb_screen.dart';
 import 'screens/smart_import_screen.dart';
 import 'screens/reminders_screen.dart';
-import 'screens/ar_scanner_screen.dart';
+import 'screens/device_audit_screen.dart';
 import 'screens/leak_check_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.dark,
     systemNavigationBarColor: AppColors.surface,
-    systemNavigationBarIconBrightness: Brightness.light,
+    systemNavigationBarIconBrightness: Brightness.dark,
   ));
   runApp(const PrivacyShieldApp());
 }
@@ -41,7 +41,7 @@ class PrivacyShieldApp extends StatelessWidget {
       child: MaterialApp(
         title: 'PrivacyShield',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.theme,
         initialRoute: '/',
         routes: {
           '/': (_) => const SplashScreen(),
@@ -58,7 +58,7 @@ class PrivacyShieldApp extends StatelessWidget {
           '/darkweb': (_) => const DarkWebScreen(),
           '/smart-import': (_) => const SmartImportScreen(),
           '/reminders': (_) => const RemindersScreen(),
-          '/ar-scanner': (_) => const ARScannerScreen(),
+          '/device-audit': (_) => const DeviceAuditScreen(),
           '/leak-check': (_) => const LeakCheckScreen(),
         },
       ),

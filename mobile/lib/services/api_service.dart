@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/constants.dart';
@@ -12,8 +12,9 @@ class ApiService {
   static final Map<String, dynamic> _cache = {};
 
   String get baseUrl {
-    if (Platform.isAndroid) return ApiConstants.baseUrl;
-    return ApiConstants.webBaseUrl;
+    if (ApiConstants.configuredBaseUrl.isNotEmpty) return ApiConstants.configuredBaseUrl;
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) return ApiConstants.emulatorBaseUrl;
+    return ApiConstants.localBaseUrl;
   }
 
   Future<String?> get _token async {

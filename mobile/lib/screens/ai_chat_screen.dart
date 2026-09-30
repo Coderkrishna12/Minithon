@@ -73,31 +73,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
       });
     } catch (e) {
       setState(() {
-        _messages.add(_ChatMessage(text: 'Sorry, something went wrong. Please try again.', isUser: false));
+        final text = e is ApiException ? e.message : "Couldn't reach PrivacyBot. Please try again.";
+        _messages.add(_ChatMessage(text: text, isUser: false));
         _isTyping = false;
       });
     }
     _scrollToBottom();
-  }
-
-  void _showVoiceDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Voice Input'),
-        content: const Text(
-          'Voice input requires microphone permission. For this demo, type your message.',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK', style: TextStyle(color: AppColors.blue)),
-          ),
-        ],
-      ),
-    );
   }
 
   void _scrollToBottom() {
@@ -178,10 +159,6 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     textInputAction: TextInputAction.send,
                     onSubmitted: _sendMessage,
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.mic, color: AppColors.textMuted),
-                  onPressed: _showVoiceDialog,
                 ),
                 IconButton(
                   icon: const Icon(Icons.send, color: AppColors.blue),

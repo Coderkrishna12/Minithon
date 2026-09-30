@@ -35,9 +35,9 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
   Future<void> _loadAlerts() async {
     setState(() => _loading = true);
     try {
-      final data = await _api.get('/darkweb/alerts');
+      final data = await _api.getList('/darkweb/alerts');
       setState(() {
-        _alerts = (data['alerts'] as List?) ?? [];
+        _alerts = data;
         _loading = false;
       });
     } catch (_) {

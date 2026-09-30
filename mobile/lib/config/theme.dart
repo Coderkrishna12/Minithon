@@ -2,102 +2,136 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const background = Color(0xFF0F172A);
-  static const surface = Color(0xFF1E293B);
-  static const surfaceLight = Color(0xFF334155);
-  static const border = Color(0xFF334155);
-  static const borderHover = Color(0xFF475569);
-  static const textPrimary = Color(0xFFF8FAFC);
-  static const textSecondary = Color(0xFF94A3B8);
-  static const textMuted = Color(0xFF64748B);
-  static const blue = Color(0xFF3B82F6);
-  static const purple = Color(0xFF8B5CF6);
-  static const green = Color(0xFF10B981);
-  static const orange = Color(0xFFF59E0B);
-  static const red = Color(0xFFEF4444);
-  static const pink = Color(0xFFEC4899);
-  static const cyan = Color(0xFF06B6D4);
+  static const background = Color(0xFFF2EEE5);
+  static const surface = Color(0xFFFBF9F4);
+  static const surfaceLight = Color(0xFFEAE4D7);
+  static const border = Color(0xFFDCD4C4);
+  static const borderHover = Color(0xFFB8AE9A);
+  static const textPrimary = Color(0xFF17150F);
+  static const textSecondary = Color(0xFF5B544A);
+  static const textMuted = Color(0xFF8A8274);
+  static const ink = Color(0xFF17150F);
+  static const blue = Color(0xFF23408E);
+  static const purple = Color(0xFF6B3A6E);
+  static const green = Color(0xFF2E6B4E);
+  static const orange = Color(0xFFA8660F);
+  static const red = Color(0xFFC8321A);
+  static const pink = Color(0xFFA8436A);
+  static const cyan = Color(0xFF1F6E78);
+}
+
+class AppText {
+  static TextStyle serif({double size = 28, Color color = AppColors.textPrimary, FontStyle? style}) =>
+      GoogleFonts.instrumentSerif(fontSize: size, color: color, height: 1.05, fontStyle: style, letterSpacing: -0.2);
+
+  static TextStyle eyebrow({Color color = AppColors.textMuted}) => GoogleFonts.ibmPlexMono(
+        fontSize: 10.5,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 1.6,
+        color: color,
+      );
+
+  static TextStyle mono({double size = 12, Color color = AppColors.textPrimary, FontWeight? weight}) =>
+      GoogleFonts.ibmPlexMono(fontSize: size, color: color, fontWeight: weight);
 }
 
 class AppTheme {
-  static ThemeData get darkTheme {
+  static ThemeData get theme {
+    final base = GoogleFonts.ibmPlexSansTextTheme(ThemeData.light().textTheme).apply(
+      bodyColor: AppColors.textPrimary,
+      displayColor: AppColors.textPrimary,
+    );
+    final radius = BorderRadius.circular(4);
     return ThemeData(
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.blue,
-        secondary: AppColors.purple,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.ink,
+        onPrimary: AppColors.surface,
+        secondary: AppColors.red,
         surface: AppColors.surface,
+        onSurface: AppColors.textPrimary,
         error: AppColors.red,
       ),
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).apply(
-        bodyColor: AppColors.textPrimary,
-        displayColor: AppColors.textPrimary,
+      textTheme: base.copyWith(
+        displayLarge: AppText.serif(size: 48),
+        displayMedium: AppText.serif(size: 40),
+        headlineLarge: AppText.serif(size: 34),
+        headlineMedium: AppText.serif(size: 28),
+        headlineSmall: AppText.serif(size: 24),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.background,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: AppText.serif(size: 26),
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        shape: const Border(bottom: BorderSide(color: AppColors.border)),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.border),
-        ),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: radius, side: const BorderSide(color: AppColors.border)),
         elevation: 0,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.blue,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          backgroundColor: AppColors.ink,
+          foregroundColor: AppColors.surface,
+          disabledBackgroundColor: AppColors.borderHover,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: radius),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
+          textStyle: GoogleFonts.ibmPlexSans(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.ink,
+          side: const BorderSide(color: AppColors.ink),
+          shape: RoundedRectangleBorder(borderRadius: radius),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: AppColors.ink)),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.background,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.blue, width: 2),
-        ),
+        fillColor: AppColors.surface,
+        border: OutlineInputBorder(borderRadius: radius, borderSide: const BorderSide(color: AppColors.border)),
+        enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: const BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(borderRadius: radius, borderSide: const BorderSide(color: AppColors.ink, width: 1.5)),
         labelStyle: const TextStyle(color: AppColors.textSecondary),
         hintStyle: const TextStyle(color: AppColors.textMuted),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.blue,
+        selectedItemColor: AppColors.ink,
         unselectedItemColor: AppColors.textMuted,
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
-        selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 11),
+        elevation: 0,
+        selectedLabelStyle: GoogleFonts.ibmPlexSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: GoogleFonts.ibmPlexSans(fontSize: 11),
       ),
+      bottomSheetTheme: const BottomSheetThemeData(backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent),
+      dialogTheme: DialogThemeData(backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: radius)),
+      snackBarTheme: SnackBarThemeData(backgroundColor: AppColors.ink, contentTextStyle: GoogleFonts.ibmPlexSans(color: AppColors.surface)),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(color: AppColors.ink),
       dividerColor: AppColors.border,
+      dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1),
+      tabBarTheme: TabBarThemeData(
+        labelColor: AppColors.ink,
+        unselectedLabelColor: AppColors.textMuted,
+        indicatorColor: AppColors.red,
+        labelStyle: GoogleFonts.ibmPlexSans(fontWeight: FontWeight.w600),
+      ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surface,
-        labelStyle: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: AppColors.border),
-        ),
+        labelStyle: GoogleFonts.ibmPlexSans(color: AppColors.textPrimary, fontSize: 13),
+        shape: RoundedRectangleBorder(borderRadius: radius, side: const BorderSide(color: AppColors.border)),
       ),
     );
   }

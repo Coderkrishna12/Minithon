@@ -25,26 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showBiometricDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Biometric Login'),
-        content: const Text(
-          'Biometric authentication is a demo feature. In production, this would use FaceID/Fingerprint via local_auth package.',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK', style: TextStyle(color: AppColors.blue)),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -64,31 +44,33 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 60),
-                const Icon(Icons.shield, size: 56, color: AppColors.blue),
-                const SizedBox(height: 16),
-                const Text(
-                  'Welcome Back',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
+                const SizedBox(height: 24),
+                Row(children: [
+                  Container(width: 12, height: 12, color: AppColors.red),
+                  const SizedBox(width: 10),
+                  Text.rich(TextSpan(children: [
+                    TextSpan(text: 'Privacy', style: AppText.serif(size: 26)),
+                    TextSpan(text: 'Shield', style: AppText.serif(size: 26, style: FontStyle.italic)),
+                  ])),
+                ]),
+                const SizedBox(height: 36),
+                Text('Welcome back.', style: AppText.serif(size: 44)),
                 const SizedBox(height: 8),
                 const Text(
                   'Sign in to your PrivacyShield account',
-                  textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 24),
                 Material(
                   color: AppColors.red.withAlpha(25),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(4),
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(4),
                     onTap: () => Navigator.pushNamed(context, '/leak-check'),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(4),
                         border: Border.all(color: AppColors.red.withAlpha(90)),
                       ),
                       child: const Row(
@@ -166,17 +148,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: auth.isLoading
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text('Sign In'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _showBiometricDialog,
-                  icon: const Icon(Icons.fingerprint, color: AppColors.cyan),
-                  label: const Text('Biometric Login', style: TextStyle(color: AppColors.cyan)),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.cyan),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
                 ),
                 const SizedBox(height: 16),
                 Row(

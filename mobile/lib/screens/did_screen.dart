@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../config/theme.dart';
 import '../services/api_service.dart';
 
@@ -47,6 +48,32 @@ class _DIDScreenState extends State<DIDScreen> {
         _didData = data;
         _creating = false;
       });
+      final privateKey = data['private_key'] as String?;
+      if (privateKey != null && mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Save your private key'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('This is shown once. PrivacyShield does not keep it, and it proves you control this DID.'),
+                const SizedBox(height: 12),
+                SelectableText(privateKey, style: AppText.mono(size: 12)),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Clipboard.setData(ClipboardData(text: privateKey)),
+                child: const Text('Copy'),
+              ),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('I saved it')),
+            ],
+          ),
+        );
+      }
     } catch (e) {
       setState(() => _creating = false);
       if (mounted) {
