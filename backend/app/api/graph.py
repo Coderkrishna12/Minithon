@@ -6,6 +6,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.account import Account, AccountConnection
 from app.core.security import get_current_user
+from app.services.connections import refresh_user_graph
 
 router = APIRouter(prefix="/graph", tags=["graph"])
 
@@ -15,6 +16,7 @@ async def get_graph_data(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    await refresh_user_graph(user.id, db)
     accounts_result = await db.execute(select(Account).where(Account.user_id == user.id))
     accounts = accounts_result.scalars().all()
     account_ids = [a.id for a in accounts]
@@ -63,6 +65,7 @@ async def simulate_attack(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    await refresh_user_graph(user.id, db)
     accounts_result = await db.execute(select(Account).where(Account.user_id == user.id))
     accounts = {a.id: a for a in accounts_result.scalars().all()}
 

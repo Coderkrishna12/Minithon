@@ -1,22 +1,34 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from datetime import datetime, timezone
-import hashlib
 
-from app.db.session import get_db
-from app.models.user import User
-from app.models.account import Account, DarkWebAlert, Notification
+import httpx
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import get_current_user
+from app.db.session import get_db
+from app.models.account import Account, DarkWebAlert, Notification
+from app.models.user import User
+from app.services.breach_checker import email_breaches, email_pastes, http_client
 
 router = APIRouter(prefix="/darkweb", tags=["darkweb"])
 
-SIMULATED_DARK_WEB_SOURCES = [
-    {"name": "Dark Forum Alpha", "type": "credential_dump"},
-    {"name": "Paste Site Bravo", "type": "data_paste"},
-    {"name": "Marketplace Charlie", "type": "data_sale"},
-    {"name": "Hidden Wiki Delta", "type": "mention"},
-]
+CREDENTIAL_CLASSES = {"passwords", "password hints", "password", "hashed passwords", "auth tokens"}
+
+
+async def _add_alert(db: AsyncSession, user_id: int, alert_type: str, source: str, data_found: str, severity: str) -> bool:
+    existing = await db.execute(
+        select(DarkWebAlert).where(
+            DarkWebAlert.user_id == user_id,
+            DarkWebAlert.source == source,
+            DarkWebAlert.data_found == data_found,
+        )
+    )
+    if existing.scalar_one_or_none():
+        return False
+    db.add(DarkWebAlert(user_id=user_id, alert_type=alert_type, source=source, data_found=data_found, severity=severity))
+    db.add(Notification(user_id=user_id, title=f"Exposure found: {source}", message=data_found, severity=severity))
+    return True
 
 
 @router.post("/scan")
@@ -24,63 +36,45 @@ async def scan_dark_web(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """Paste dumps and credential leaks that contain the user's emails, from HIBP or XposedOrNot."""
     accounts_result = await db.execute(select(Account).where(Account.user_id == user.id))
-    accounts = accounts_result.scalars().all()
+    emails = sorted({a.email_used.strip().lower() for a in accounts_result.scalars().all() if a.email_used})
+    if user.email:
+        emails = sorted(set(emails) | {user.email.strip().lower()})
 
     alerts_found = []
-    for account in accounts:
-        email_hash = hashlib.md5((account.email_used or account.service_name).encode()).hexdigest()
-        risk_value = int(email_hash[:2], 16)
+    errors = []
+    async with http_client() as client:
+        for email in emails:
+            try:
+                pastes = await email_pastes(client, email)
+                breaches, _ = await email_breaches(client, email)
+            except httpx.HTTPError as e:
+                errors.append(f"Lookup failed for {email} ({e.__class__.__name__})")
+                continue
 
-        if risk_value < 40 or account.breach_count > 0:
-            source = SIMULATED_DARK_WEB_SOURCES[risk_value % len(SIMULATED_DARK_WEB_SOURCES)]
-            severity = "critical" if account.breach_count > 0 else "warning"
+            for p in pastes:
+                source = f"{p['source']}{' #' + p['id'] if p.get('id') else ''}"
+                detail = f"{email} appears in {p.get('title') or 'an untitled paste'}" + (f" ({p['date'][:10]})" if p.get("date") else "")
+                if await _add_alert(db, user.id, "data_paste", source, detail, "warning"):
+                    alerts_found.append({"email": email, "source": source, "source_type": "data_paste", "detail": detail, "severity": "warning"})
 
-            existing = await db.execute(
-                select(DarkWebAlert).where(
-                    DarkWebAlert.user_id == user.id,
-                    DarkWebAlert.source == source["name"],
-                    DarkWebAlert.data_found.contains(account.service_name),
-                )
-            )
-            if not existing.scalar_one_or_none():
-                data_types = ["email"]
-                if account.breach_count > 0:
-                    data_types.extend(["password_hash", "username"])
-                if account.category == "finance":
-                    data_types.append("partial_card_number")
-
-                alert = DarkWebAlert(
-                    user_id=user.id,
-                    alert_type=source["type"],
-                    source=source["name"],
-                    data_found=f"{account.service_name}: {', '.join(data_types)} found on {source['name']}",
-                    severity=severity,
-                )
-                db.add(alert)
-
-                notif = Notification(
-                    user_id=user.id,
-                    title=f"Dark Web Alert: {account.service_name}",
-                    message=f"Your data from {account.service_name} was found on {source['name']}. Data types: {', '.join(data_types)}",
-                    severity=severity,
-                )
-                db.add(notif)
-
-                alerts_found.append({
-                    "service": account.service_name,
-                    "source": source["name"],
-                    "source_type": source["type"],
-                    "data_types": data_types,
-                    "severity": severity,
-                })
+            for b in breaches:
+                classes = {c.lower() for c in b.get("data", [])}
+                if not classes & CREDENTIAL_CLASSES:
+                    continue
+                detail = f"{email} with {', '.join(b['data'])} from the {b['name']} breach is circulating in credential dumps"
+                if await _add_alert(db, user.id, "credential_dump", b["name"], detail, "critical"):
+                    alerts_found.append({"email": email, "source": b["name"], "source_type": "credential_dump", "detail": detail, "severity": "critical"})
 
     await db.commit()
 
     return {
         "scan_time": datetime.now(timezone.utc).isoformat(),
+        "emails_checked": len(emails),
         "total_alerts": len(alerts_found),
         "alerts": alerts_found,
+        "errors": errors,
     }
 
 
@@ -120,7 +114,6 @@ async def resolve_alert(
     )
     alert = result.scalar_one_or_none()
     if not alert:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Alert not found")
 
     alert.is_resolved = True

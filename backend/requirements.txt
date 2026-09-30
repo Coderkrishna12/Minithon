@@ -11,4 +11,5 @@ httpx==0.28.1
 web3==7.6.0
 python-dotenv==1.0.1
 websockets==13.1
-anthropic==0.42.0
+anthropic==1.10.0
+cryptography==50.0.2

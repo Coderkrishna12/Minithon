@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,7 +6,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.core.security import get_current_user
 from app.services.ai_engine import (
-    chat_with_ai, analyze_privacy_policy, predict_breach_probability,
+    AIUnavailable, chat_with_ai, analyze_privacy_policy, predict_breach_probability,
     smart_permission_advisor, digital_twin_simulation,
 )
 from sqlalchemy import select
@@ -30,7 +30,10 @@ async def ai_chat(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    response = await chat_with_ai(user.id, data.message, data.history, db)
+    try:
+        response = await chat_with_ai(user.id, data.message, data.history, db)
+    except AIUnavailable as e:
+        raise HTTPException(status_code=503, detail=str(e))
     return {"response": response}
 
 

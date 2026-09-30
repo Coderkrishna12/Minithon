@@ -1,129 +1,278 @@
-import httpx
+import asyncio
+import time
 from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
+from urllib.parse import quote, urlparse
+
+import httpx
 from sqlalchemy import select
-from app.models.account import Account, BreachRecord, Notification
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import get_settings
+from app.models.account import Account, BreachRecord, Notification
+from app.services.connections import refresh_user_graph
 
 settings = get_settings()
 
-KNOWN_BREACHES_DB = {
-    "adobe.com": [{"name": "Adobe 2013", "date": "2013-10-04", "data": ["email", "password", "username"]}],
-    "linkedin.com": [{"name": "LinkedIn 2012", "date": "2012-06-05", "data": ["email", "password"]}],
-    "dropbox.com": [{"name": "Dropbox 2012", "date": "2012-07-01", "data": ["email", "password"]}],
-    "yahoo.com": [{"name": "Yahoo 2013", "date": "2013-08-01", "data": ["email", "password", "security_questions", "phone"]}],
-    "facebook.com": [{"name": "Facebook 2019", "date": "2019-04-01", "data": ["email", "phone", "name"]}],
-    "twitter.com": [{"name": "Twitter 2022", "date": "2022-01-01", "data": ["email", "phone"]}],
-    "instagram.com": [{"name": "Instagram 2019", "date": "2019-05-20", "data": ["email", "phone", "password"]}],
-    "myspace.com": [{"name": "MySpace 2016", "date": "2016-05-31", "data": ["email", "password", "username"]}],
-    "canva.com": [{"name": "Canva 2019", "date": "2019-05-24", "data": ["email", "username", "name"]}],
-    "zynga.com": [{"name": "Zynga 2019", "date": "2019-09-01", "data": ["email", "password", "username", "phone"]}],
-}
+HIBP_API = "https://haveibeenpwned.com/api/v3"
+XON_API = "https://api.xposedornot.com/v1"
+USER_AGENT = "PrivacyShield/1.0"
+CATALOG_TTL_SECONDS = 6 * 3600
+ACCOUNT_SOURCES = {"hibp_account", "xposedornot"}
+
+_catalog: list[dict] = []
+_catalog_fetched_at = 0.0
+_catalog_lock = asyncio.Lock()
+_hibp_lock = asyncio.Lock()
+_hibp_last_call = 0.0
 
 
-async def check_hibp(email: str) -> list[dict]:
-    """Check HaveIBeenPwned API for breaches. Falls back to local DB if no API key."""
+def http_client() -> httpx.AsyncClient:
+    return httpx.AsyncClient(timeout=15, headers={"user-agent": USER_AGENT})
+
+
+def normalize_domain(value: str | None) -> str:
+    if not value:
+        return ""
+    v = value.strip().lower()
+    host = urlparse(v if "://" in v else f"//{v}").hostname or ""
+    return host.removeprefix("www.")
+
+
+def _domain_matches(account_domain: str, breach_domain: str) -> bool:
+    return bool(account_domain and breach_domain) and (
+        account_domain == breach_domain or account_domain.endswith("." + breach_domain)
+    )
+
+
+def _parse_date(value: str | None) -> datetime | None:
+    if not value or len(value) < 10:
+        return None
+    try:
+        return datetime.fromisoformat(value[:10]).replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def _from_hibp(b: dict, source: str) -> dict:
+    return {
+        "name": b.get("Title") or b.get("Name"),
+        "domain": (b.get("Domain") or "").lower(),
+        "date": b.get("BreachDate"),
+        "data": b.get("DataClasses") or [],
+        "records": b.get("PwnCount"),
+        "source": source,
+    }
+
+
+async def _hibp_keyed_get(client: httpx.AsyncClient, path: str, **params) -> httpx.Response:
+    """Keyed HIBP endpoints are rate limited per key; space calls to stay under settings.hibp_rpm."""
+    global _hibp_last_call
+    async with _hibp_lock:
+        wait = 60 / max(settings.hibp_rpm, 1) - (time.monotonic() - _hibp_last_call)
+        if wait > 0:
+            await asyncio.sleep(wait)
+        _hibp_last_call = time.monotonic()
+        return await client.get(f"{HIBP_API}{path}", params=params or None, headers={"hibp-api-key": settings.hibp_api_key})
+
+
+async def get_breach_catalog(client: httpx.AsyncClient) -> list[dict]:
+    """Every public breach HIBP knows about. Free, no key required."""
+    global _catalog, _catalog_fetched_at
+    async with _catalog_lock:
+        if _catalog and time.monotonic() - _catalog_fetched_at < CATALOG_TTL_SECONDS:
+            return _catalog
+        resp = await client.get(f"{HIBP_API}/breaches")
+        resp.raise_for_status()
+        _catalog = [b for b in resp.json() if not b.get("IsFabricated") and not b.get("IsSpamList")]
+        _catalog_fetched_at = time.monotonic()
+        return _catalog
+
+
+def service_breaches(catalog: list[dict], account: Account) -> list[dict]:
+    domain = normalize_domain(account.service_url)
+    name = (account.service_name or "").strip().lower()
+    found = []
+    for b in catalog:
+        names = {(b.get("Name") or "").lower(), (b.get("Title") or "").lower()}
+        if _domain_matches(domain, (b.get("Domain") or "").lower()) or (name and name in names):
+            found.append(_from_hibp(b, "hibp_catalog"))
+    return found
+
+
+async def email_breaches(client: httpx.AsyncClient, email: str) -> tuple[list[dict], str]:
+    """Breaches this exact email appears in. HIBP when a key is configured, otherwise XposedOrNot."""
     if settings.hibp_api_key:
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    f"https://haveibeenpwned.com/api/v3/breachedaccount/{email}",
-                    headers={
-                        "hibp-api-key": settings.hibp_api_key,
-                        "user-agent": "PrivacyShield-HackathonDemo",
-                    },
-                    params={"truncateResponse": "false"},
-                    timeout=10,
-                )
-                if resp.status_code == 200:
-                    return resp.json()
-                return []
-        except Exception:
+        resp = await _hibp_keyed_get(client, f"/breachedaccount/{quote(email)}", truncateResponse="false")
+        if resp.status_code == 404:
+            return [], "hibp"
+        resp.raise_for_status()
+        return [_from_hibp(b, "hibp_account") for b in resp.json()], "hibp"
+
+    resp = await client.get(f"{XON_API}/breach-analytics", params={"email": email})
+    if resp.status_code == 404:
+        return [], "xposedornot"
+    resp.raise_for_status()
+    details = ((resp.json().get("ExposedBreaches") or {}).get("breaches_details")) or []
+    return [
+        {
+            "name": d.get("breach"),
+            "domain": normalize_domain(d.get("domain")),
+            "date": d.get("xposed_date") if len(str(d.get("xposed_date") or "")) >= 10 else None,
+            "data": [x.strip() for x in (d.get("xposed_data") or "").split(";") if x.strip()],
+            "records": d.get("xposed_records"),
+            "source": "xposedornot",
+        }
+        for d in details
+        if d.get("breach")
+    ], "xposedornot"
+
+
+async def email_pastes(client: httpx.AsyncClient, email: str) -> list[dict]:
+    """Public paste dumps (Pastebin and similar) containing this email."""
+    if settings.hibp_api_key:
+        resp = await _hibp_keyed_get(client, f"/pasteaccount/{quote(email)}")
+        if resp.status_code == 404:
             return []
-    return []
+        resp.raise_for_status()
+        return [
+            {"source": p.get("Source"), "id": p.get("Id"), "title": p.get("Title"), "date": p.get("Date"), "emails": p.get("EmailCount")}
+            for p in resp.json()
+        ]
+
+    resp = await client.get(f"{XON_API}/breach-analytics", params={"email": email})
+    if resp.status_code == 404:
+        return []
+    resp.raise_for_status()
+    summary = resp.json().get("PastesSummary") or {}
+    count = int(summary.get("cnt") or 0)
+    if not count:
+        return []
+    return [{"source": "Public pastes", "id": None, "title": f"{count} paste(s)", "date": summary.get("tmpstmp"), "emails": None}]
 
 
-async def check_account_breaches(account: Account, db: AsyncSession) -> list[dict]:
-    """Check an account for known breaches using email and service URL."""
-    found_breaches = []
+def _merge(breaches: list[dict]) -> list[dict]:
+    """One entry per breach; an email-confirmed hit outranks a service-level one."""
+    merged: dict[str, dict] = {}
+    for b in breaches:
+        key = (b["name"] or "").lower()
+        if key not in merged or b["source"] in ACCOUNT_SOURCES:
+            merged[key] = b
+    return list(merged.values())
 
-    if account.email_used:
-        hibp_results = await check_hibp(account.email_used)
-        for breach in hibp_results:
-            found_breaches.append({
-                "name": breach.get("Name", "Unknown"),
-                "date": breach.get("BreachDate"),
-                "data": breach.get("DataClasses", []),
-                "source": "hibp",
-            })
 
-    service_lower = (account.service_name or "").lower()
-    service_url = (account.service_url or "").lower()
-    for domain, breaches in KNOWN_BREACHES_DB.items():
-        if domain.split(".")[0] in service_lower or domain in service_url:
-            for b in breaches:
-                found_breaches.append({**b, "source": "known_db"})
-
-    for breach_data in found_breaches:
+async def _persist(account: Account, breaches: list[dict], db: AsyncSession) -> None:
+    for b in breaches:
         existing = await db.execute(
-            select(BreachRecord).where(
-                BreachRecord.account_id == account.id,
-                BreachRecord.breach_name == breach_data["name"],
-            )
+            select(BreachRecord).where(BreachRecord.account_id == account.id, BreachRecord.breach_name == b["name"])
         )
-        if not existing.scalar_one_or_none():
-            breach_date = None
-            if breach_data.get("date"):
-                try:
-                    breach_date = datetime.fromisoformat(breach_data["date"]).replace(tzinfo=timezone.utc)
-                except (ValueError, TypeError):
-                    pass
-            record = BreachRecord(
-                account_id=account.id,
-                breach_name=breach_data["name"],
-                breach_date=breach_date,
-                data_exposed=breach_data.get("data", []),
-                source=breach_data.get("source", "unknown"),
-            )
-            db.add(record)
+        if existing.scalar_one_or_none():
+            continue
+        confirmed = b["source"] in ACCOUNT_SOURCES
+        db.add(BreachRecord(
+            account_id=account.id,
+            breach_name=b["name"],
+            breach_date=_parse_date(b.get("date")),
+            data_exposed=b.get("data", []),
+            source=b["source"],
+        ))
+        exposed = ", ".join(b.get("data", [])) or "unspecified data"
+        db.add(Notification(
+            user_id=account.user_id,
+            title=f"{'Your account was in' if confirmed else 'Service breached'}: {b['name']}",
+            message=(
+                f"{account.email_used} appears in the {b['name']} breach. Exposed: {exposed}."
+                if confirmed
+                else f"{account.service_name} was breached ({b.get('date') or 'date unknown'}). "
+                f"If your account existed then, change its password. Exposed: {exposed}."
+            ),
+            severity="critical" if confirmed else "warning",
+            related_account_id=account.id,
+        ))
 
-            notification = Notification(
-                user_id=account.user_id,
-                title=f"Breach detected: {breach_data['name']}",
-                message=f"Your account {account.service_name} ({account.email_used}) was found in the {breach_data['name']} breach. Data exposed: {', '.join(breach_data.get('data', []))}",
-                severity="critical",
-                related_account_id=account.id,
-            )
-            db.add(notification)
+    account.breach_count = len(breaches)
+    dates = [d for d in (_parse_date(b.get("date")) for b in breaches) if d]
+    account.last_breach_date = max(dates) if dates else None
 
-    if found_breaches:
-        account.breach_count = len(found_breaches)
-        if found_breaches[0].get("date"):
+
+async def _scan(accounts: list[Account], db: AsyncSession) -> dict:
+    errors: list[str] = []
+    email_source = None
+    by_email: dict[str, list[dict]] = {}
+
+    async with http_client() as client:
+        try:
+            catalog = await get_breach_catalog(client)
+        except httpx.HTTPError as e:
+            catalog = []
+            errors.append(f"HIBP breach catalog unreachable ({e.__class__.__name__})")
+
+        for email in sorted({a.email_used.strip().lower() for a in accounts if a.email_used}):
             try:
-                account.last_breach_date = datetime.fromisoformat(found_breaches[0]["date"]).replace(tzinfo=timezone.utc)
-            except (ValueError, TypeError):
-                pass
-        await db.commit()
+                by_email[email], email_source = await email_breaches(client, email)
+            except httpx.HTTPError as e:
+                errors.append(f"Email lookup failed for {email} ({e.__class__.__name__})")
 
-    return found_breaches
-
-
-async def scan_all_accounts(user_id: int, db: AsyncSession) -> dict:
-    """Scan all accounts for a user."""
-    result = await db.execute(select(Account).where(Account.user_id == user_id))
-    accounts = result.scalars().all()
-
-    total_breaches = 0
-    affected_accounts = 0
-
+    matched: set[tuple[str, str]] = set()
+    per_account: list[tuple[Account, list[dict]]] = []
     for account in accounts:
-        breaches = await check_account_breaches(account, db)
-        if breaches:
-            total_breaches += len(breaches)
-            affected_accounts += 1
+        found = service_breaches(catalog, account)
+        email = (account.email_used or "").strip().lower()
+        domain = normalize_domain(account.service_url)
+        name = (account.service_name or "").strip().lower()
+        for b in by_email.get(email, []):
+            if _domain_matches(domain, b["domain"]) or (name and name == (b["name"] or "").lower()):
+                found.append(b)
+                matched.add((email, b["name"]))
+        per_account.append((account, _merge(found)))
+
+    for account, breaches in per_account:
+        await _persist(account, breaches, db)
+
+    unlisted = []
+    for email, breaches in by_email.items():
+        owner = next((a for a in accounts if (a.email_used or "").strip().lower() == email), None)
+        for b in breaches:
+            if (email, b["name"]) in matched:
+                continue
+            unlisted.append({**b, "email": email})
+            if owner:
+                db.add(Notification(
+                    user_id=owner.user_id,
+                    title=f"Found in a breach you haven't listed: {b['name']}",
+                    message=f"{email} appears in the {b['name']} breach ({b.get('domain') or 'unknown domain'}), "
+                    f"but that service isn't in your inventory. Add it and change its password.",
+                    severity="critical",
+                ))
+
+    await db.commit()
+    for user_id in {a.user_id for a in accounts}:
+        await refresh_user_graph(user_id, db)
 
     return {
         "total_accounts_scanned": len(accounts),
-        "affected_accounts": affected_accounts,
-        "total_breaches_found": total_breaches,
+        "affected_accounts": sum(1 for _, b in per_account if b),
+        "total_breaches_found": sum(len(b) for _, b in per_account),
+        "confirmed_account_breaches": sum(1 for _, bs in per_account for b in bs if b["source"] in ACCOUNT_SOURCES),
+        "unlisted_exposures": unlisted,
+        "sources": {"catalog": "hibp" if catalog else None, "email": email_source},
+        "errors": errors,
     }
+
+
+async def check_account_breaches(account: Account, db: AsyncSession) -> list[dict]:
+    await _scan([account], db)
+    result = await db.execute(select(BreachRecord).where(BreachRecord.account_id == account.id))
+    return [
+        {
+            "name": r.breach_name,
+            "date": r.breach_date.date().isoformat() if r.breach_date else None,
+            "data": r.data_exposed,
+            "source": r.source,
+        }
+        for r in result.scalars().all()
+    ]
+
+
+async def scan_all_accounts(user_id: int, db: AsyncSession) -> dict:
+    result = await db.execute(select(Account).where(Account.user_id == user_id))
+    return await _scan(list(result.scalars().all()), db)

@@ -33,8 +33,9 @@ export default function AIChatPage() {
         history: messages,
       });
       setMessages((prev) => [...prev, { role: "assistant", content: res.data.response }]);
-    } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I encountered an error. Please try again." }]);
+    } catch (err) {
+      const detail = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail;
+      setMessages((prev) => [...prev, { role: "assistant", content: detail || "Couldn't reach PrivacyBot. Please try again." }]);
     } finally {
       setLoading(false);
     }

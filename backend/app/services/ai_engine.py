@@ -1,9 +1,58 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+import json
+
+import anthropic
 from sqlalchemy import select
-from app.models.account import Account, AccountConnection, BreachRecord
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import get_settings
+from app.models.account import Account, AccountConnection, BreachRecord
 
 settings = get_settings()
+
+MODEL = "claude-opus-5-5"
+FALLBACK_BETA = "server-side-fallback-2026-07-01"
+_client: anthropic.AsyncAnthropic | None = None
+
+
+class AIUnavailable(Exception):
+    """Raised when no Anthropic key is configured or the API call fails."""
+
+
+def _get_client() -> anthropic.AsyncAnthropic:
+    global _client
+    if not settings.anthropic_api_key:
+        raise AIUnavailable("PrivacyBot needs an Anthropic API key. Set ANTHROPIC_API_KEY in backend/.env.")
+    if _client is None:
+        _client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+    return _client
+
+
+async def _ask_claude(system: str, messages: list[dict], effort: str = "low", output_format: dict | None = None) -> str:
+    output_config: dict = {"effort": effort}
+    if output_format:
+        output_config["format"] = output_format
+    try:
+        response = await _get_client().beta.messages.create(
+            model=MODEL,
+            max_tokens=16000,
+            system=system,
+            messages=messages,
+            output_config=output_config,
+            betas=[FALLBACK_BETA],
+            fallbacks="default",
+        )
+    except anthropic.APIConnectionError as e:
+        raise AIUnavailable("Couldn't reach the Anthropic API.") from e
+    except anthropic.RateLimitError as e:
+        raise AIUnavailable("Anthropic rate limit hit. Try again in a minute.") from e
+    except anthropic.AuthenticationError as e:
+        raise AIUnavailable("The configured ANTHROPIC_API_KEY was rejected.") from e
+    except anthropic.APIStatusError as e:
+        raise AIUnavailable(f"Anthropic API error ({e.status_code}).") from e
+
+    if response.stop_reason == "refusal":
+        raise AIUnavailable("Claude declined this request.")
+    return next((b.text for b in response.content if b.type == "text"), "")
 
 
 async def get_user_context(user_id: int, db: AsyncSession) -> str:
@@ -78,111 +127,28 @@ async def chat_with_ai(
     conversation_history: list[dict],
     db: AsyncSession,
 ) -> str:
-    """Chat with PrivacyBot AI assistant."""
+    """Chat with PrivacyBot, grounded in the user's real account data."""
     user_context = await get_user_context(user_id, db)
-
-    if settings.anthropic_api_key:
-        try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-            messages = []
-            for msg in conversation_history[-10:]:
-                messages.append({"role": msg["role"], "content": msg["content"]})
-            messages.append({"role": "user", "content": message})
-
-            response = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=1024,
-                system=f"{SYSTEM_PROMPT}\n\nCurrent user's digital footprint:\n{user_context}",
-                messages=messages,
-            )
-            return response.content[0].text
-        except Exception as e:
-            return f"AI service error: {str(e)}. Please check your API key configuration."
-
-    return _local_ai_response(message, user_context)
+    messages = [
+        {"role": m["role"], "content": m["content"]}
+        for m in conversation_history[-10:]
+        if m.get("role") in ("user", "assistant") and m.get("content")
+    ]
+    messages.append({"role": "user", "content": message})
+    return await _ask_claude(f"{SYSTEM_PROMPT}\n\nCurrent user's digital footprint:\n{user_context}", messages)
 
 
-def _local_ai_response(message: str, context: str) -> str:
-    """Fallback local response when no API key is configured."""
-    msg_lower = message.lower()
-
-    if "what if" in msg_lower and ("hack" in msg_lower or "compromis" in msg_lower or "breach" in msg_lower):
-        return (
-            "**Attack Scenario Analysis**\n\n"
-            "Based on your account graph, here's what could happen:\n\n"
-            "1. If your primary email is compromised, an attacker could use password reset flows to access connected accounts\n"
-            "2. Any accounts using the same password group would be immediately vulnerable\n"
-            "3. SSO-connected accounts can be accessed without needing separate credentials\n\n"
-            "**Recommendation:** Use the Attack Simulator on the Risk Graph page to visualize this chain for any specific account.\n\n"
-            "**Priority fixes:**\n"
-            "- Enable 2FA on your primary email immediately\n"
-            "- Change passwords in shared password groups\n"
-            "- Review SSO connections and revoke unnecessary ones"
-        )
-
-    if "score" in msg_lower or "risk" in msg_lower or "how am i" in msg_lower:
-        return (
-            "**Your Privacy Assessment**\n\n"
-            "Your privacy score is calculated from:\n"
-            "- **Breach history** (30%): Past data breaches affecting your accounts\n"
-            "- **Permission scope** (20%): How many sensitive permissions your apps have\n"
-            "- **Password reuse** (20%): Accounts sharing the same password\n"
-            "- **2FA coverage** (15%): Accounts without two-factor authentication\n"
-            "- **Cascading impact** (15%): How connected each account is to others\n\n"
-            "Check your Dashboard for the full breakdown and prioritized fix list."
-        )
-
-    if "2fa" in msg_lower or "two factor" in msg_lower or "two-factor" in msg_lower:
-        return (
-            "**Two-Factor Authentication Guide**\n\n"
-            "2FA adds a second verification step beyond your password. Here's the priority:\n\n"
-            "1. **Email accounts** (highest priority) — they control password resets for everything else\n"
-            "2. **Financial accounts** — banking, crypto, payment services\n"
-            "3. **Cloud storage** — Google Drive, Dropbox, iCloud\n"
-            "4. **Social media** — prevents impersonation and social engineering\n\n"
-            "**Best options (in order):**\n"
-            "- Hardware key (YubiKey) — most secure\n"
-            "- Authenticator app (Google Authenticator, Authy) — very good\n"
-            "- SMS codes — better than nothing, but vulnerable to SIM swaps\n\n"
-            "Check your accounts list — any showing 'No 2FA' should be addressed."
-        )
-
-    if "password" in msg_lower:
-        return (
-            "**Password Security Best Practices**\n\n"
-            "Your password groups show which accounts share credentials. Each group is a single point of failure.\n\n"
-            "**Action items:**\n"
-            "1. Use a password manager (Bitwarden, 1Password) to generate unique passwords\n"
-            "2. Start with your highest-risk accounts (email, finance)\n"
-            "3. Make each password 16+ characters with mixed types\n"
-            "4. Never reuse passwords across services\n\n"
-            "On your Accounts page, accounts with the same password group label share a password. "
-            "Change them one at a time, starting with the highest risk score."
-        )
-
-    if "permission" in msg_lower or "app" in msg_lower and "access" in msg_lower:
-        return (
-            "**App Permissions Review**\n\n"
-            "Apps often request more permissions than they need. Key red flags:\n\n"
-            "- **Calculator/flashlight with camera access** — definitely suspicious\n"
-            "- **Social media with contacts + location + microphone** — common but excessive\n"
-            "- **Games with SMS or call permissions** — unnecessary\n\n"
-            "**Rule of thumb:** If an app doesn't need a permission for its core function, revoke it.\n\n"
-            "Check your Accounts page — accounts with 3+ sensitive permissions are flagged for review."
-        )
-
-    return (
-        "**PrivacyBot**\n\n"
-        "I can help you with:\n\n"
-        "- **\"What's my risk?\"** — Analyze your current privacy posture\n"
-        "- **\"What if Gmail gets hacked?\"** — Simulate attack scenarios\n"
-        "- **\"How do I set up 2FA?\"** — Security guides\n"
-        "- **\"Which passwords should I change?\"** — Prioritized recommendations\n"
-        "- **\"Review my app permissions\"** — Permission analysis\n\n"
-        "Ask me anything about your digital security!\n\n"
-        "*Note: For full AI responses, configure your Anthropic API key in the .env file.*"
-    )
+POLICY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string"},
+        "risk_score": {"type": "integer"},
+        "key_concerns": {"type": "array", "items": {"type": "string"}},
+        "recommendation": {"type": "string"},
+    },
+    "required": ["summary", "risk_score", "key_concerns", "recommendation"],
+    "additionalProperties": False,
+}
 
 
 async def analyze_privacy_policy(url: str) -> dict:
@@ -207,7 +173,7 @@ async def analyze_privacy_policy(url: str) -> dict:
                 import re
                 html = resp.text[:100000]
                 policy_text = re.sub(r'<[^>]+>', ' ', html)
-                policy_text = re.sub(r'\s+', ' ', policy_text).strip()[:50000]
+                policy_text = re.sub(r'\s+', ' ', policy_text).strip()
     except Exception:
         pass
 
@@ -224,29 +190,23 @@ async def analyze_privacy_policy(url: str) -> dict:
 
     if settings.anthropic_api_key and policy_text:
         try:
-            import anthropic
-            import json
-            client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-            response = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=800,
-                system="You are a privacy policy analyst. Analyze the text and return ONLY valid JSON: {\"summary\": string, \"risk_score\": 0-100, \"key_concerns\": [strings], \"recommendation\": string}",
-                messages=[{"role": "user", "content": f"Analyze this privacy policy from {url}:\n\n{policy_text[:10000]}"}],
+            ai_text = await _ask_claude(
+                "You are a privacy policy analyst. Judge how the policy treats personal data.",
+                [{"role": "user", "content": f"Analyze this privacy policy from {url}:\n\n{policy_text}"}],
+                effort="medium",
+                output_format={"type": "json_schema", "schema": POLICY_SCHEMA},
             )
-            ai_text = response.content[0].text
-            try:
-                ai_result = json.loads(ai_text)
-                return {
-                    "url": url, "status": "analyzed",
-                    "summary": ai_result.get("summary", ""),
-                    "risk_flags": {k: v["found"] for k, v in risk_flags.items()},
-                    "risk_score": ai_result.get("risk_score", risk_score),
-                    "key_concerns": ai_result.get("key_concerns", []),
-                    "recommendation": ai_result.get("recommendation", ""),
-                }
-            except json.JSONDecodeError:
-                pass
-        except Exception:
+            ai_result = json.loads(ai_text)
+            return {
+                "url": url,
+                "status": "analyzed",
+                "summary": ai_result["summary"],
+                "risk_flags": {k: v["found"] for k, v in risk_flags.items()},
+                "risk_score": max(0, min(100, int(ai_result["risk_score"]))),
+                "key_concerns": ai_result["key_concerns"],
+                "recommendation": ai_result["recommendation"],
+            }
+        except (AIUnavailable, json.JSONDecodeError, KeyError, ValueError):
             pass
 
     severity = "low" if risk_score < 30 else "moderate" if risk_score < 60 else "high"
@@ -310,22 +270,18 @@ async def smart_permission_advisor(user_id: int, db: AsyncSession) -> list[dict]
             })
 
     if settings.anthropic_api_key and recommendations:
+        context = "\n".join(
+            f"- {r['service_name']} ({r['category']}): permissions={r['current_permissions']}, unnecessary={r['unnecessary_permissions']}"
+            for r in recommendations
+        )
         try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-            context = "\n".join(
-                f"- {r['service_name']} ({r['category']}): permissions={r['current_permissions']}, unnecessary={r['unnecessary_permissions']}"
-                for r in recommendations[:10]
-            )
-            response = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=600,
-                system="You are a privacy advisor. Give a brief overall recommendation (2-3 sentences) about the user's app permissions.",
-                messages=[{"role": "user", "content": f"Analyze these permissions:\n{context}"}],
+            insight = await _ask_claude(
+                "You are a privacy advisor. Give a brief overall recommendation (2-3 sentences) about the user's app permissions.",
+                [{"role": "user", "content": f"Analyze these permissions:\n{context}"}],
             )
             for r in recommendations:
-                r["ai_insight"] = response.content[0].text
-        except Exception:
+                r["ai_insight"] = insight
+        except AIUnavailable:
             pass
 
     recommendations.sort(key=lambda r: r["risk_reduction"], reverse=True)
@@ -404,16 +360,11 @@ async def digital_twin_simulation(user_id: int, db: AsyncSession) -> dict:
     ai_analysis = ""
     if settings.anthropic_api_key:
         try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-            response = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=500,
-                system="You are a red-team security analyst. Given the user's digital footprint and attack vectors, provide a brief (3-4 sentences) executive summary of their biggest vulnerabilities and top 3 priority actions.",
-                messages=[{"role": "user", "content": f"User context:\n{user_context}\n\nAttack vectors found: {len(attack_vectors)}, Overall risk: {overall_risk:.0f}%"}],
+            ai_analysis = await _ask_claude(
+                "You are a red-team security analyst. Given the user's digital footprint and attack vectors, provide a brief (3-4 sentences) executive summary of their biggest vulnerabilities and top 3 priority actions.",
+                [{"role": "user", "content": f"User context:\n{user_context}\n\nAttack vectors found: {len(attack_vectors)}, Overall risk: {overall_risk:.0f}%"}],
             )
-            ai_analysis = response.content[0].text
-        except Exception:
+        except AIUnavailable:
             pass
 
     attack_vectors.sort(key=lambda v: v["success_probability"], reverse=True)

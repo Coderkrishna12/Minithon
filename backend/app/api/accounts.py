@@ -10,7 +10,7 @@ from app.schemas.account import (
     ConnectionCreate, ConnectionResponse,
 )
 from app.core.security import get_current_user
-from app.services.risk_engine import calculate_account_risk
+from app.services.connections import refresh_user_graph
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -46,10 +46,7 @@ async def create_account(
     account = Account(user_id=user.id, **data.model_dump())
     db.add(account)
     await db.commit()
-    await db.refresh(account)
-
-    account.risk_score = await calculate_account_risk(account, db)
-    await db.commit()
+    await refresh_user_graph(user.id, db)
     await db.refresh(account)
     return AccountResponse.model_validate(account)
 
@@ -82,8 +79,8 @@ async def update_account(
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(account, field, value)
 
-    account.risk_score = await calculate_account_risk(account, db)
     await db.commit()
+    await refresh_user_graph(user.id, db)
     await db.refresh(account)
     return AccountResponse.model_validate(account)
 
@@ -100,6 +97,7 @@ async def delete_account(
         raise HTTPException(status_code=404, detail="Account not found")
     await db.delete(account)
     await db.commit()
+    await refresh_user_graph(user.id, db)
 
 
 @router.post("/connections", response_model=ConnectionResponse, status_code=201)

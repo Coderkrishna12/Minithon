@@ -1,3 +1,6 @@
+import re
+
+import httpx
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,38 +10,42 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.account import Account
 from app.core.security import get_current_user
-from app.services.risk_engine import calculate_account_risk
+from app.services.breach_checker import get_breach_catalog, http_client, normalize_domain
+from app.services.connections import refresh_user_graph
 
 router = APIRouter(prefix="/import", tags=["import"])
 
-KNOWN_SERVICES = {
-    "google": {"category": "email", "url": "google.com", "permissions": ["contacts", "calendar", "drive"]},
-    "gmail": {"category": "email", "url": "gmail.com", "permissions": ["contacts", "calendar"]},
-    "facebook": {"category": "social", "url": "facebook.com", "permissions": ["contacts", "photos", "location"]},
-    "instagram": {"category": "social", "url": "instagram.com", "permissions": ["contacts", "camera", "photos"]},
-    "twitter": {"category": "social", "url": "twitter.com", "permissions": ["contacts"]},
-    "linkedin": {"category": "work", "url": "linkedin.com", "permissions": ["contacts", "email"]},
-    "amazon": {"category": "shopping", "url": "amazon.com", "permissions": ["payment", "address"]},
-    "netflix": {"category": "entertainment", "url": "netflix.com", "permissions": []},
-    "spotify": {"category": "entertainment", "url": "spotify.com", "permissions": ["contacts"]},
-    "github": {"category": "work", "url": "github.com", "permissions": ["repos", "email"]},
-    "apple": {"category": "cloud", "url": "apple.com", "permissions": ["contacts", "photos", "location", "health"]},
-    "microsoft": {"category": "work", "url": "microsoft.com", "permissions": ["contacts", "calendar", "files"]},
-    "dropbox": {"category": "cloud", "url": "dropbox.com", "permissions": ["files"]},
-    "paypal": {"category": "finance", "url": "paypal.com", "permissions": ["payment"]},
-    "venmo": {"category": "finance", "url": "venmo.com", "permissions": ["contacts", "payment"]},
-    "uber": {"category": "other", "url": "uber.com", "permissions": ["location", "contacts", "payment"]},
-    "airbnb": {"category": "other", "url": "airbnb.com", "permissions": ["location", "payment"]},
-    "discord": {"category": "social", "url": "discord.com", "permissions": ["microphone", "camera"]},
-    "twitch": {"category": "gaming", "url": "twitch.com", "permissions": []},
-    "steam": {"category": "gaming", "url": "store.steampowered.com", "permissions": []},
-    "reddit": {"category": "social", "url": "reddit.com", "permissions": []},
-    "tiktok": {"category": "social", "url": "tiktok.com", "permissions": ["camera", "microphone", "contacts", "location"]},
-    "snapchat": {"category": "social", "url": "snapchat.com", "permissions": ["camera", "contacts", "location"]},
-    "whatsapp": {"category": "social", "url": "whatsapp.com", "permissions": ["contacts", "camera", "microphone", "storage"]},
-    "zoom": {"category": "work", "url": "zoom.us", "permissions": ["camera", "microphone", "contacts"]},
-    "slack": {"category": "work", "url": "slack.com", "permissions": ["files", "contacts"]},
-}
+DOMAIN_PATTERN = re.compile(r"(?:@|https?://(?:www\.)?)([a-z0-9-]+(?:\.[a-z0-9-]+)+)", re.IGNORECASE)
+MAIL_INFRA = ("sendgrid", "mailchimp", "mandrillapp", "amazonses", "mailgun", "sparkpost", "list-manage", "mcsv", "rsgsv")
+
+
+def _site_domain(host: str) -> str:
+    """Collapse mail.x.com / accounts.x.com to x.com (keeps two-label country suffixes like x.co.uk)."""
+    parts = host.lower().strip(".").split(".")
+    if len(parts) >= 3 and len(parts[-1]) == 2 and parts[-2] in {"co", "com", "org", "net", "ac", "gov"}:
+        return ".".join(parts[-3:])
+    return ".".join(parts[-2:])
+
+
+async def _catalog_by_domain() -> dict[str, dict]:
+    async with http_client() as client:
+        catalog = await get_breach_catalog(client)
+    by_domain: dict[str, dict] = {}
+    for b in catalog:
+        d = (b.get("Domain") or "").lower()
+        if d and (d not in by_domain or (b.get("PwnCount") or 0) > (by_domain[d].get("PwnCount") or 0)):
+            by_domain[d] = b
+    return by_domain
+
+
+async def _tracked_names(user_id: int, db: AsyncSession) -> set[str]:
+    result = await db.execute(select(Account).where(Account.user_id == user_id))
+    names = set()
+    for a in result.scalars().all():
+        names.add((a.service_name or "").lower())
+        if a.service_url:
+            names.add(_site_domain(normalize_domain(a.service_url)))
+    return names
 
 
 class EmailImportRequest(BaseModel):
@@ -56,36 +63,33 @@ async def scan_email_for_accounts(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    content_lower = data.email_content.lower()
-    discovered = []
+    domains = {_site_domain(m) for m in DOMAIN_PATTERN.findall(data.email_content)}
+    domains = {d for d in domains if not any(k in d for k in MAIL_INFRA)}
+    try:
+        catalog = await _catalog_by_domain()
+    except httpx.HTTPError:
+        catalog = {}
+    tracked = await _tracked_names(user.id, db)
 
-    for service_name, info in KNOWN_SERVICES.items():
-        if service_name in content_lower or info["url"] in content_lower:
-            existing = await db.execute(
-                select(Account).where(
-                    Account.user_id == user.id,
-                    Account.service_name.ilike(f"%{service_name}%"),
-                )
-            )
-            if not existing.scalar_one_or_none():
-                discovered.append({
-                    "service_name": service_name.title(),
-                    "category": info["category"],
-                    "service_url": info["url"],
-                    "permissions": info["permissions"],
-                    "already_tracked": False,
-                })
-            else:
-                discovered.append({
-                    "service_name": service_name.title(),
-                    "category": info["category"],
-                    "already_tracked": True,
-                })
+    discovered = []
+    for domain in sorted(domains):
+        breach = catalog.get(domain)
+        name = (breach.get("Title") if breach else None) or domain
+        discovered.append({
+            "service_name": name,
+            "category": "other",
+            "service_url": domain,
+            "permissions": [],
+            "breached": bool(breach),
+            "breach_name": breach.get("Title") if breach else None,
+            "already_tracked": domain in tracked or name.lower() in tracked,
+        })
 
     return {
         "discovered": discovered,
-        "new_accounts": sum(1 for d in discovered if not d.get("already_tracked")),
-        "already_tracked": sum(1 for d in discovered if d.get("already_tracked")),
+        "new_accounts": sum(1 for d in discovered if not d["already_tracked"]),
+        "already_tracked": sum(1 for d in discovered if d["already_tracked"]),
+        "catalog_available": bool(catalog),
     }
 
 
@@ -95,47 +99,52 @@ async def bulk_add_accounts(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    try:
+        catalog = await _catalog_by_domain()
+    except httpx.HTTPError:
+        catalog = {}
+    by_name = {(b.get("Title") or "").lower(): (d, b) for d, b in catalog.items()}
+    tracked = await _tracked_names(user.id, db)
+
     added = []
     skipped = []
-
     for service_key in data.services:
-        service_lower = service_key.lower()
-        info = KNOWN_SERVICES.get(service_lower, {})
+        key = service_key.strip().lower()
+        if key in by_name:
+            domain, breach = by_name[key]
+        elif "." in key:
+            domain, breach = _site_domain(normalize_domain(key)), catalog.get(_site_domain(normalize_domain(key)))
+        else:
+            domain, breach = "", None
+        name = (breach.get("Title") if breach else None) or service_key.strip()
 
-        existing = await db.execute(
-            select(Account).where(
-                Account.user_id == user.id,
-                Account.service_name.ilike(f"%{service_key}%"),
-            )
-        )
-        if existing.scalar_one_or_none():
+        if name.lower() in tracked or (domain and domain in tracked):
             skipped.append(service_key)
             continue
 
         account = Account(
             user_id=user.id,
-            service_name=service_key.title(),
-            service_url=info.get("url", ""),
+            service_name=name,
+            service_url=domain,
             email_used=data.email,
-            category=info.get("category", "other"),
-            permissions=info.get("permissions", []),
+            category="other",
+            permissions=[],
             login_method="password",
         )
         db.add(account)
         await db.commit()
         await db.refresh(account)
+        tracked.update({name.lower(), domain})
+        added.append(account)
 
-        account.risk_score = await calculate_account_risk(account, db)
-        await db.commit()
-
-        added.append({
-            "id": account.id,
-            "service_name": account.service_name,
-            "category": account.category,
-            "risk_score": account.risk_score,
-        })
-
-    return {"added": added, "skipped": skipped}
+    await refresh_user_graph(user.id, db)
+    return {
+        "added": [
+            {"id": a.id, "service_name": a.service_name, "category": a.category, "risk_score": a.risk_score}
+            for a in added
+        ],
+        "skipped": skipped,
+    }
 
 
 @router.get("/suggestions")
@@ -143,16 +152,21 @@ async def get_import_suggestions(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    existing_result = await db.execute(select(Account).where(Account.user_id == user.id))
-    existing = {a.service_name.lower() for a in existing_result.scalars().all()}
-
-    suggestions = []
-    for name, info in KNOWN_SERVICES.items():
-        if name not in existing and name.title().lower() not in existing:
-            suggestions.append({
-                "service_name": name.title(),
-                "category": info["category"],
-                "service_url": info["url"],
-            })
-
-    return suggestions
+    """The largest real breaches for services the user hasn't added yet."""
+    try:
+        catalog = await _catalog_by_domain()
+    except httpx.HTTPError:
+        return []
+    tracked = await _tracked_names(user.id, db)
+    ranked = sorted(catalog.items(), key=lambda kv: kv[1].get("PwnCount") or 0, reverse=True)
+    return [
+        {
+            "service_name": b.get("Title") or domain,
+            "category": "other",
+            "service_url": domain,
+            "breach_date": b.get("BreachDate"),
+            "accounts_exposed": b.get("PwnCount"),
+        }
+        for domain, b in ranked
+        if domain not in tracked and (b.get("Title") or "").lower() not in tracked
+    ][:20]
