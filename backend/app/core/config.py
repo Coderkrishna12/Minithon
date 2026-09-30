@@ -1,13 +1,16 @@
-from pydantic_settings import BaseSettings
+import secrets
 from functools import lru_cache
-import os
+
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     app_name: str = "PrivacyShield API"
     debug: bool = True
     database_url: str = "sqlite+aiosqlite:///./privacyshield.db"
-    secret_key: str = "dev-secret-key-change-in-production"
+    # Without SECRET_KEY set, a random key is generated per process, so tokens reset on restart.
+    secret_key: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
     hibp_api_key: str = ""
@@ -15,7 +18,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     contract_address: str = ""
 
-    model_config = {"env_file": ".env", "extra": "ignore"}
+    model_config = {"env_file": ".env", "extra": "ignore", "env_ignore_empty": True}
 
 
 @lru_cache
