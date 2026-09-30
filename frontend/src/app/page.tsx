@@ -2,67 +2,100 @@
 
 import Link from "next/link";
 import PasswordLeakCheck from "@/components/PasswordLeakCheck";
+import Wordmark from "@/components/Wordmark";
+
+const stats = [
+  { value: "900M+", label: "Breached passwords indexed" },
+  { value: "5", label: "Hash characters we send" },
+  { value: "0", label: "Accounts needed" },
+];
+
+const steps = [
+  {
+    no: "01",
+    title: "Map every account",
+    body: "Add the services you use. We chart how they connect through single sign-on, recovery emails and shared passwords.",
+  },
+  {
+    no: "02",
+    title: "Trace the cascade",
+    body: "Pick any account and watch what falls if it is taken over. One weak inbox can hand over twenty other logins.",
+  },
+  {
+    no: "03",
+    title: "Fix in the right order",
+    body: "Each fix is ranked by how much total risk it removes, then written to a hash-chained audit log.",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="fixed inset-0 z-10 overflow-y-auto flex bg-[#0F172A] px-4 py-16">
-      <div className="text-center max-w-3xl w-full m-auto animate-slide-up">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] text-sm mb-8">
-          <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
-          AI-Powered &middot; Blockchain-Verified
+    <div className="fixed inset-0 z-10 overflow-y-auto bg-paper">
+      <header className="max-w-6xl mx-auto px-5 md:px-10 py-6 flex items-center justify-between">
+        <Wordmark />
+        <nav className="flex items-center gap-5 text-sm">
+          <Link href="/login" className="text-ink-2 hover:text-ink transition-colors">
+            Sign in
+          </Link>
+          <Link href="/register" className="bg-ink text-card px-4 py-2 rounded-sm hover:bg-signal transition-colors">
+            Open your file
+          </Link>
+        </nav>
+      </header>
+
+      <section className="max-w-6xl mx-auto px-5 md:px-10 pt-8 md:pt-14 pb-20 grid lg:grid-cols-[1.1fr_1fr] lg:grid-rows-[auto_1fr] gap-x-16 gap-y-12">
+        <div className="animate-slide-up lg:col-start-1 lg:row-start-1">
+          <p className="eyebrow">Case file &middot; Personal exposure audit</p>
+          <h1 className="mt-5 text-[3.1rem] md:text-[4.9rem] leading-[0.95]">
+            Find out what a stranger <em className="text-signal">already</em> knows about you.
+          </h1>
+          <p className="mt-6 text-lg text-ink-2 max-w-md leading-relaxed">
+            PrivacyShield maps the accounts you own, shows which single breach would unlock the rest, and tells you
+            what to fix first.
+          </p>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold mb-6">
-          <span className="bg-gradient-to-r from-[#3B82F6] via-[#8B5CF6] to-[#EC4899] bg-clip-text text-transparent">
-            PrivacyShield
-          </span>
-        </h1>
-
-        <p className="text-xl text-[#94A3B8] mb-4">
-          Digital Footprint &amp; Privacy Risk Auditor
-        </p>
-
-        <p className="text-[#64748B] max-w-xl mx-auto mb-10 leading-relaxed">
-          Map your entire digital identity. See how accounts connect.
-          Discover which breach could unlock everything.
-          AI finds the risks. You fix them. Blockchain proves it.
-        </p>
-
-        <div className="mb-10">
+        <div className="animate-slide-up [animation-delay:120ms] lg:col-start-2 lg:row-start-1 lg:row-span-2">
           <PasswordLeakCheck />
         </div>
 
-        <div className="flex gap-4 justify-center">
-          <Link
-            href="/register"
-            className="px-8 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-[#3B82F6]/25"
-          >
-            Get Started
-          </Link>
-          <Link
-            href="/login"
-            className="px-8 py-3 border border-[#334155] hover:border-[#3B82F6] text-[#94A3B8] hover:text-white rounded-xl font-medium transition-all"
-          >
-            Sign In
-          </Link>
-        </div>
-
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { title: "Account Graph", desc: "Visualize how all your accounts interconnect through SSO, recovery emails, and shared passwords", color: "#3B82F6" },
-            { title: "AI Risk Engine", desc: "Graph Neural Networks model cascading risk — one weak account can expose your entire network", color: "#8B5CF6" },
-            { title: "Blockchain Proof", desc: "Every audit and fix is hashed on-chain. Prove your security posture with zero-knowledge proofs", color: "#10B981" },
-          ].map((f) => (
-            <div key={f.title} className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 text-left hover:border-[#475569] transition-all">
-              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ backgroundColor: `${f.color}20` }}>
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: f.color }} />
-              </div>
-              <h3 className="font-semibold mb-2">{f.title}</h3>
-              <p className="text-sm text-[#94A3B8] leading-relaxed">{f.desc}</p>
+        <div className="grid grid-cols-3 border-t border-ink self-start lg:col-start-1 lg:row-start-2">
+          {stats.map((s, i) => (
+            <div key={s.label} className={`pt-4 pr-3 ${i > 0 ? "pl-4 border-l border-rule" : ""}`}>
+              <p className="num text-4xl md:text-5xl leading-none">{s.value}</p>
+              <p className="eyebrow mt-3 leading-snug">{s.label}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
+
+      <section className="border-t border-rule bg-card">
+        <div className="max-w-6xl mx-auto px-5 md:px-10 py-16">
+          <p className="eyebrow">How the audit works</p>
+          <div className="mt-8 grid md:grid-cols-3 gap-10 md:gap-12">
+            {steps.map((step) => (
+              <div key={step.no} className="border-t border-ink pt-5">
+                <p className="font-mono text-sm text-signal">{step.no}</p>
+                <h2 className="mt-3 text-3xl">{step.title}</h2>
+                <p className="mt-3 text-ink-2 leading-relaxed">{step.body}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-14 flex flex-wrap items-center gap-4">
+            <Link href="/register" className="bg-ink text-card px-6 py-3 rounded-sm hover:bg-signal transition-colors">
+              Start your audit
+            </Link>
+            <span className="text-sm text-ink-3">Takes about two minutes. Free.</span>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-rule">
+        <div className="max-w-6xl mx-auto px-5 md:px-10 py-6 flex flex-col md:flex-row justify-between gap-2 eyebrow">
+          <span>Passwords are checked with k-anonymity. Nothing you type here is stored.</span>
+          <span>Breach data: Have I Been Pwned</span>
+        </div>
+      </footer>
     </div>
   );
 }

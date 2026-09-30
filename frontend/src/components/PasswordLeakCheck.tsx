@@ -55,23 +55,25 @@ function useCountUp(target: number, durationMs = 1400) {
   return value;
 }
 
+
 function HashReveal({ hash, candidates }: { hash: string; candidates: number }) {
   return (
-    <div className="mt-6 text-left bg-[#0F172A] border border-[#334155] rounded-xl p-4 text-xs">
-      <p className="text-[#64748B] mb-2">SHA-1 of your password, computed in this browser:</p>
-      <p className="font-mono break-all text-sm">
-        <span className="text-[#3B82F6] font-bold bg-[#3B82F6]/10 rounded px-0.5">{hash.slice(0, 5)}</span>
-        <span className="text-[#475569]">{hash.slice(5)}</span>
+    <div className="mt-8 pt-5 border-t border-dashed border-rule-strong">
+      <p className="eyebrow">Chain of custody</p>
+      <p className="mt-3 font-mono text-[0.8rem] break-all leading-relaxed">
+        <span className="bg-ink text-card px-1 py-0.5">{hash.slice(0, 5)}</span>
+        <span className="text-rule-strong">{hash.slice(5)}</span>
       </p>
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[#94A3B8]">
-        <p>
-          <span className="text-[#3B82F6] font-semibold">Sent:</span> only the first 5 characters
-        </p>
-        <p>
-          <span className="text-[#10B981] font-semibold">Received:</span> {candidates.toLocaleString()} candidate hashes, matched locally
-        </p>
-      </div>
-      <p className="mt-2 text-[#64748B]">Your password and its full hash never left this device (k-anonymity).</p>
+      <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <div>
+          <dt className="eyebrow text-ink">Sent</dt>
+          <dd className="text-ink-2 mt-1">The first 5 characters of the SHA-1 hash.</dd>
+        </div>
+        <div>
+          <dt className="eyebrow text-ink">Received</dt>
+          <dd className="text-ink-2 mt-1">{candidates.toLocaleString()} candidate hashes, matched on this device.</dd>
+        </div>
+      </dl>
     </div>
   );
 }
@@ -80,15 +82,15 @@ function FoundResult({ count }: { count: number }) {
   const shown = useCountUp(count);
   const label = count >= 100_000 ? "Extremely common" : count >= 1_000 ? "Widely leaked" : "Leaked";
   return (
-    <div className="animate-slide-up">
-      <p className="text-xs uppercase tracking-widest text-[#EF4444] font-semibold">{label}</p>
-      <p className="text-5xl md:text-6xl font-bold text-[#EF4444] my-3 tabular-nums">{shown.toLocaleString()}</p>
-      <p className="text-[#F8FAFC] text-lg">
-        times this exact password appears in real data breaches.
-      </p>
-      <p className="text-[#94A3B8] text-sm mt-3 max-w-lg mx-auto">
-        Attackers try leaked lists first, so any account using it can be taken over <span className="text-[#EF4444] font-semibold">instantly</span>.
-        If you reuse it, every one of those accounts falls together.
+    <div className="relative">
+      <span className="stamp absolute right-0 -top-2 text-signal text-sm">Leaked</span>
+      <p className="eyebrow text-signal">{label}</p>
+      <p className="num text-signal text-[4.2rem] md:text-[5.2rem] leading-none mt-3">{shown.toLocaleString()}</p>
+      <p className="mt-3 text-lg leading-snug">times this exact password appears in real data breaches.</p>
+      <p className="mt-3 text-sm text-ink-2 leading-relaxed">
+        Attackers try leaked lists first, so any account using it can be taken over{" "}
+        <span className="text-signal font-medium">instantly</span>. If you reuse it, every one of those accounts falls
+        together.
       </p>
     </div>
   );
@@ -96,12 +98,14 @@ function FoundResult({ count }: { count: number }) {
 
 function CleanResult({ crackTime }: { crackTime: string }) {
   return (
-    <div className="animate-slide-up">
-      <p className="text-xs uppercase tracking-widest text-[#10B981] font-semibold">Not found in known breaches</p>
-      <p className="text-4xl font-bold text-[#10B981] my-3">0 leaks</p>
-      <p className="text-[#94A3B8] text-sm max-w-lg mx-auto">
-        Rough brute-force estimate: <span className="text-[#F8FAFC] font-semibold">{crackTime}</span> to crack at 10 billion guesses/sec.
-        Not being leaked yet doesn&apos;t make it safe to reuse.
+    <div className="relative">
+      <span className="stamp absolute right-0 -top-2 text-ok text-sm">Not found</span>
+      <p className="eyebrow text-ok">No known breach</p>
+      <p className="num text-ok text-[4.2rem] leading-none mt-3">0</p>
+      <p className="mt-3 text-lg leading-snug">appearances in known data breaches.</p>
+      <p className="mt-3 text-sm text-ink-2 leading-relaxed">
+        Rough brute-force estimate: <span className="text-ink font-medium">{crackTime}</span> at 10 billion
+        guesses/sec. Not being leaked yet doesn&apos;t make it safe to reuse.
       </p>
     </div>
   );
@@ -141,47 +145,54 @@ export default function PasswordLeakCheck() {
   };
 
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 md:p-8 w-full max-w-2xl mx-auto text-center">
-      <h2 className="text-xl font-semibold mb-1">Has your password already leaked?</h2>
-      <p className="text-sm text-[#94A3B8] mb-6">Checked against 900M+ real breached passwords. No signup. Nothing stored.</p>
+    <div className="bg-card border border-rule rounded-sm shadow-[0_1px_0_#DCD4C4,0_18px_40px_-24px_rgba(23,21,15,0.35)] w-full text-left">
+      <div className="flex items-center justify-between px-6 md:px-8 py-3 border-b border-rule">
+        <p className="eyebrow">Exhibit A &middot; Password</p>
+        <p className="eyebrow">k-anonymous</p>
+      </div>
 
-      <form onSubmit={check} className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <input
-            type={visible ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Type any password"
-            autoComplete="off"
-            spellCheck={false}
-            aria-label="Password to check"
-            className="w-full px-4 py-3 pr-16 bg-[#0F172A] border border-[#334155] rounded-xl text-[#F8FAFC] placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
-          />
+      <div className="px-6 md:px-8 pt-6 pb-8">
+        <h2 className="text-[2rem] leading-tight">Has your password already leaked?</h2>
+        <p className="mt-2 text-sm text-ink-2">Checked against 900M+ real breached passwords. No signup. Nothing stored.</p>
+
+        <form onSubmit={check} className="mt-6">
+          <div className="flex items-end gap-3 border-b-2 border-ink focus-within:border-signal transition-colors">
+            <input
+              type={visible ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Type any password"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label="Password to check"
+              className="flex-1 min-w-0 bg-transparent py-3 font-mono text-lg text-ink placeholder:text-ink-3 placeholder:font-sans placeholder:text-base focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setVisible((v) => !v)}
+              className="eyebrow pb-4 hover:text-ink transition-colors"
+            >
+              {visible ? "Hide" : "Show"}
+            </button>
+          </div>
           <button
-            type="button"
-            onClick={() => setVisible((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#64748B] hover:text-[#F8FAFC]"
+            type="submit"
+            disabled={!password || loading}
+            className="mt-5 w-full sm:w-auto px-6 py-3 bg-ink text-card rounded-sm hover:bg-signal disabled:opacity-30 disabled:hover:bg-ink disabled:cursor-not-allowed transition-colors"
           >
-            {visible ? "Hide" : "Show"}
+            {loading ? "Checking…" : "Check leaks"}
           </button>
-        </div>
-        <button
-          type="submit"
-          disabled={!password || loading}
-          className="px-6 py-3 bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all"
-        >
-          {loading ? "Checking..." : "Check leaks"}
-        </button>
-      </form>
+        </form>
 
-      {error && <p className="mt-4 text-sm text-[#EF4444]">{error}</p>}
+        {error && <p className="mt-4 text-sm text-signal">{error}</p>}
 
-      {result && (
-        <div className="mt-8" key={result.hash}>
-          {result.status === "found" ? <FoundResult count={result.count} /> : <CleanResult crackTime={result.crackTime} />}
-          <HashReveal hash={result.hash} candidates={result.candidates} />
-        </div>
-      )}
+        {result && (
+          <div className="mt-10 animate-slide-up" key={result.hash}>
+            {result.status === "found" ? <FoundResult count={result.count} /> : <CleanResult crackTime={result.crackTime} />}
+            <HashReveal hash={result.hash} candidates={result.candidates} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -51,20 +51,21 @@ export default function AIChatPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold">PrivacyBot</h1>
-        <p className="text-[#94A3B8] text-sm mt-1">AI-powered security assistant — ask anything about your digital privacy</p>
+        <p className="eyebrow mb-3">Assist &middot; 06</p>
+        <h1 className="page-title">PrivacyBot</h1>
+        <p className="text-[#5B544A] text-sm mt-1">AI-powered security assistant — ask anything about your digital privacy</p>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4 pb-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-16 h-16 bg-[#8B5CF6]/20 rounded-2xl flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <div className="w-16 h-16 bg-[#6B3A6E]/20 rounded-sm flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-[#6B3A6E]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold mb-2">Ask PrivacyBot</h2>
-            <p className="text-[#64748B] text-sm mb-6 max-w-md">
+            <h2 className="section-title mb-2">Ask PrivacyBot</h2>
+            <p className="text-[#8A8274] text-sm mb-6 max-w-md">
               I analyze your account network and give personalized security advice. Try one of these:
             </p>
             <div className="flex flex-wrap gap-2 justify-center max-w-lg">
@@ -72,7 +73,7 @@ export default function AIChatPage() {
                 <button
                   key={q}
                   onClick={() => { setInput(q); }}
-                  className="px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-xl text-sm text-[#94A3B8] hover:text-white hover:border-[#8B5CF6] transition-all"
+                  className="px-4 py-2 bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm text-sm text-[#5B544A] hover:text-[#17150F] hover:border-[#6B3A6E] transition-all"
                 >
                   {q}
                 </button>
@@ -84,10 +85,10 @@ export default function AIChatPage() {
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[70%] rounded-2xl px-5 py-3 ${
+              className={`max-w-[70%] rounded-sm px-5 py-3 ${
                 msg.role === "user"
-                  ? "bg-[#3B82F6] text-white"
-                  : "bg-[#1E293B] border border-[#334155] text-[#F8FAFC]"
+                  ? "bg-[#17150F] text-white"
+                  : "bg-[#FBF9F4] border border-[#DCD4C4] text-[#17150F]"
               }`}
             >
               <div className="text-sm whitespace-pre-wrap leading-relaxed"
@@ -103,11 +104,11 @@ export default function AIChatPage() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-[#1E293B] border border-[#334155] rounded-2xl px-5 py-3">
+            <div className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm px-5 py-3">
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#8B5CF6] animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 rounded-full bg-[#8B5CF6] animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 rounded-full bg-[#8B5CF6] animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="w-2 h-2 rounded-full bg-[#6B3A6E] animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-[#6B3A6E] animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 rounded-full bg-[#6B3A6E] animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -115,18 +116,18 @@ export default function AIChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="flex gap-3 pt-4 border-t border-[#334155]">
+      <form onSubmit={sendMessage} className="flex gap-3 pt-4 border-t border-[#DCD4C4]">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about your digital security..."
-          className="flex-1 px-5 py-3 bg-[#1E293B] border border-[#334155] rounded-xl text-white placeholder-[#64748B] focus:outline-none focus:border-[#8B5CF6] transition-colors"
+          className="flex-1 px-5 py-3 bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm text-[#17150F] placeholder-[#8A8274] focus:outline-none focus:border-[#17150F] transition-colors"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="px-6 py-3 bg-[#8B5CF6] hover:bg-[#7C3AED] disabled:opacity-50 text-white rounded-xl font-medium transition-all"
+          className="px-6 py-3 bg-[#17150F] hover:bg-[#C8321A] disabled:opacity-50 text-white rounded-sm font-medium transition-all"
         >
           Send
         </button>

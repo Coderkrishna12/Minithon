@@ -3,27 +3,20 @@
 interface StatCardProps {
   label: string;
   value: string | number;
-  icon: string;
+  icon?: string;
   color: string;
   subtitle?: string;
 }
 
-export default function StatCard({ label, value, icon, color, subtitle }: StatCardProps) {
+export default function StatCard({ label, value, color, subtitle }: StatCardProps) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-5 hover:border-[#475569] transition-all">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-[#94A3B8]">{label}</p>
-          <p className="text-3xl font-bold mt-1" style={{ color }}>{value}</p>
-          {subtitle && <p className="text-xs text-[#64748B] mt-1">{subtitle}</p>}
-        </div>
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-          style={{ backgroundColor: `${color}20`, color }}
-        >
-          {icon}
-        </div>
+    <div className="bg-card border border-rule rounded-sm px-5 pt-4 pb-5">
+      <div className="flex items-center gap-2">
+        <span className="w-2 h-2" style={{ backgroundColor: color }} />
+        <p className="eyebrow">{label}</p>
       </div>
+      <p className="num text-[2.8rem] leading-none mt-4">{value}</p>
+      {subtitle && <p className="text-xs text-ink-3 mt-2">{subtitle}</p>}
     </div>
   );
 }

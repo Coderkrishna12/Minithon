@@ -14,9 +14,9 @@ interface Notification {
 }
 
 const severityColors: Record<string, string> = {
-  critical: "#EF4444",
-  warning: "#F59E0B",
-  info: "#3B82F6",
+  critical: "#C8321A",
+  warning: "#A8660F",
+  info: "#23408E",
 };
 
 export default function NotificationsPage() {
@@ -40,7 +40,7 @@ export default function NotificationsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-10 h-10 border-2 border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-2 border-[#17150F] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -51,13 +51,14 @@ export default function NotificationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Notifications</h1>
-          <p className="text-[#94A3B8] text-sm mt-1">{unread} unread notification{unread !== 1 ? "s" : ""}</p>
+          <p className="eyebrow mb-3">Inbox</p>
+          <h1 className="page-title">Notifications</h1>
+          <p className="text-[#5B544A] text-sm mt-1">{unread} unread notification{unread !== 1 ? "s" : ""}</p>
         </div>
         {unread > 0 && (
           <button
             onClick={markAllRead}
-            className="px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-xl text-sm text-[#94A3B8] hover:text-white transition-all"
+            className="px-4 py-2 bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm text-sm text-[#5B544A] hover:text-[#17150F] transition-all"
           >
             Mark all read
           </button>
@@ -66,18 +67,18 @@ export default function NotificationsPage() {
 
       <div className="space-y-3">
         {notifications.map((n) => {
-          const color = severityColors[n.severity] || "#3B82F6";
+          const color = severityColors[n.severity] || "#23408E";
           return (
             <div
               key={n.id}
-              className={`bg-[#1E293B] border rounded-xl p-4 transition-all cursor-pointer ${
-                n.is_read ? "border-[#334155] opacity-70" : `border-l-4`
+              className={`bg-[#FBF9F4] border rounded-sm p-4 transition-all cursor-pointer ${
+                n.is_read ? "border-[#DCD4C4] opacity-70" : `border-l-4`
               }`}
               style={!n.is_read ? { borderLeftColor: color } : {}}
               onClick={() => !n.is_read && markRead(n.id)}
             >
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}20` }}>
+                <div className="w-8 h-8 rounded-sm flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}20` }}>
                   {n.severity === "critical" ? (
                     <svg className="w-4 h-4" style={{ color }} fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495z" clipRule="evenodd" />
@@ -94,11 +95,11 @@ export default function NotificationsPage() {
                     <span className="text-[10px] px-1.5 py-0.5 rounded uppercase" style={{ backgroundColor: `${color}20`, color }}>
                       {n.severity}
                     </span>
-                    {!n.is_read && <span className="w-2 h-2 rounded-full bg-[#3B82F6]" />}
+                    {!n.is_read && <span className="w-2 h-2 rounded-full bg-[#23408E]" />}
                   </div>
-                  <p className="text-sm text-[#94A3B8] mt-1">{n.message}</p>
+                  <p className="text-sm text-[#5B544A] mt-1">{n.message}</p>
                   {n.created_at && (
-                    <p className="text-[10px] text-[#64748B] mt-2">{new Date(n.created_at).toLocaleString()}</p>
+                    <p className="text-[10px] text-[#8A8274] mt-2">{new Date(n.created_at).toLocaleString()}</p>
                   )}
                 </div>
               </div>
@@ -107,7 +108,7 @@ export default function NotificationsPage() {
         })}
         {notifications.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-[#64748B]">No notifications yet. They&apos;ll appear here when breaches are detected or actions are needed.</p>
+            <p className="text-[#8A8274]">No notifications yet. They&apos;ll appear here when breaches are detected or actions are needed.</p>
           </div>
         )}
       </div>

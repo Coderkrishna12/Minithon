@@ -18,10 +18,10 @@ const sectionIcons: Record<string, string> = {
 };
 
 const sectionColors: Record<string, string> = {
-  accounts: "#3B82F6",
-  breaches: "#EF4444",
-  notifications: "#F59E0B",
-  audit_logs: "#8B5CF6",
+  accounts: "#23408E",
+  breaches: "#C8321A",
+  notifications: "#A8660F",
+  audit_logs: "#6B3A6E",
 };
 
 export default function SearchPage() {
@@ -51,13 +51,14 @@ export default function SearchPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Global Search</h1>
-        <p className="text-[#94A3B8] text-sm mt-1">Search across accounts, breaches, notifications, and audit logs</p>
+        <p className="eyebrow mb-3">Assist &middot; 07</p>
+        <h1 className="page-title">Global Search</h1>
+        <p className="text-[#5B544A] text-sm mt-1">Search across accounts, breaches, notifications, and audit logs</p>
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-3">
         <div className="flex-1 relative">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#64748B]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8A8274]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           <input
@@ -65,13 +66,13 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for accounts, breaches, notifications..."
-            className="w-full pl-12 pr-4 py-3 bg-[#1E293B] border border-[#334155] rounded-xl text-sm text-[#F8FAFC] placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6] transition-all"
+            className="w-full pl-12 pr-4 py-3 bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm text-sm text-[#17150F] placeholder-[#8A8274] focus:outline-none focus:border-[#17150F] transition-all"
           />
         </div>
         <button
           type="submit"
           disabled={loading || !query.trim()}
-          className="px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-all"
+          className="px-6 py-3 bg-[#17150F] hover:bg-[#C8321A] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-sm text-sm font-medium transition-all"
         >
           {loading ? "Searching..." : "Search"}
         </button>
@@ -79,32 +80,32 @@ export default function SearchPage() {
 
       {loading && (
         <div className="flex items-center justify-center h-48">
-          <div className="w-10 h-10 border-2 border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-2 border-[#17150F] border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
       {!loading && searched && results && totalResults === 0 && (
         <div className="text-center py-16">
-          <svg className="w-16 h-16 text-[#334155] mx-auto mb-4" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+          <svg className="w-16 h-16 text-[#DCD4C4] mx-auto mb-4" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
-          <p className="text-[#64748B] text-lg">No results found for &quot;{query}&quot;</p>
-          <p className="text-[#64748B] text-sm mt-1">Try different keywords or check your spelling</p>
+          <p className="text-[#8A8274] text-lg">No results found for &quot;{query}&quot;</p>
+          <p className="text-[#8A8274] text-sm mt-1">Try different keywords or check your spelling</p>
         </div>
       )}
 
       {!loading && !searched && (
         <div className="text-center py-16">
-          <svg className="w-16 h-16 text-[#334155] mx-auto mb-4" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+          <svg className="w-16 h-16 text-[#DCD4C4] mx-auto mb-4" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
-          <p className="text-[#64748B] text-lg">Enter a search query to get started</p>
+          <p className="text-[#8A8274] text-lg">Enter a search query to get started</p>
         </div>
       )}
 
       {!loading && results && totalResults > 0 && (
         <div className="space-y-6">
-          <p className="text-sm text-[#94A3B8]">{totalResults} result{totalResults !== 1 ? "s" : ""} found</p>
+          <p className="text-sm text-[#5B544A]">{totalResults} result{totalResults !== 1 ? "s" : ""} found</p>
 
           {results.accounts.length > 0 && (
             <div>
@@ -112,19 +113,19 @@ export default function SearchPage() {
                 <svg className="w-5 h-5" style={{ color: sectionColors.accounts }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d={sectionIcons.accounts} />
                 </svg>
-                <h2 className="text-lg font-semibold">Accounts ({results.accounts.length})</h2>
+                <h2 className="section-title">Accounts ({results.accounts.length})</h2>
               </div>
               <div className="space-y-2">
                 {results.accounts.map((a) => (
-                  <div key={a.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#3B82F6]/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[#3B82F6]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <div key={a.id} className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-sm bg-[#23408E]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#23408E]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d={sectionIcons.accounts} />
                       </svg>
                     </div>
                     <div>
                       <p className="font-medium text-sm">{a.service_name}</p>
-                      <p className="text-xs text-[#64748B]">{a.email} &middot; {a.category}</p>
+                      <p className="text-xs text-[#8A8274]">{a.email} &middot; {a.category}</p>
                     </div>
                   </div>
                 ))}
@@ -138,19 +139,19 @@ export default function SearchPage() {
                 <svg className="w-5 h-5" style={{ color: sectionColors.breaches }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d={sectionIcons.breaches} />
                 </svg>
-                <h2 className="text-lg font-semibold">Breaches ({results.breaches.length})</h2>
+                <h2 className="section-title">Breaches ({results.breaches.length})</h2>
               </div>
               <div className="space-y-2">
                 {results.breaches.map((b) => (
-                  <div key={b.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#EF4444]/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[#EF4444]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <div key={b.id} className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-sm bg-[#C8321A]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#C8321A]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d={sectionIcons.breaches} />
                       </svg>
                     </div>
                     <div>
                       <p className="font-medium text-sm">{b.breach_name}</p>
-                      <p className="text-xs text-[#64748B]">{b.domain} &middot; <span className={b.severity === "critical" ? "text-[#EF4444]" : b.severity === "high" ? "text-[#F59E0B]" : "text-[#3B82F6]"}>{b.severity}</span></p>
+                      <p className="text-xs text-[#8A8274]">{b.domain} &middot; <span className={b.severity === "critical" ? "text-[#C8321A]" : b.severity === "high" ? "text-[#A8660F]" : "text-[#23408E]"}>{b.severity}</span></p>
                     </div>
                   </div>
                 ))}
@@ -164,19 +165,19 @@ export default function SearchPage() {
                 <svg className="w-5 h-5" style={{ color: sectionColors.notifications }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d={sectionIcons.notifications} />
                 </svg>
-                <h2 className="text-lg font-semibold">Notifications ({results.notifications.length})</h2>
+                <h2 className="section-title">Notifications ({results.notifications.length})</h2>
               </div>
               <div className="space-y-2">
                 {results.notifications.map((n) => (
-                  <div key={n.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <div key={n.id} className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-sm bg-[#A8660F]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#A8660F]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d={sectionIcons.notifications} />
                       </svg>
                     </div>
                     <div>
                       <p className="font-medium text-sm">{n.title}</p>
-                      <p className="text-xs text-[#64748B]">{n.message}</p>
+                      <p className="text-xs text-[#8A8274]">{n.message}</p>
                     </div>
                   </div>
                 ))}
@@ -190,19 +191,19 @@ export default function SearchPage() {
                 <svg className="w-5 h-5" style={{ color: sectionColors.audit_logs }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d={sectionIcons.audit_logs} />
                 </svg>
-                <h2 className="text-lg font-semibold">Audit Logs ({results.audit_logs.length})</h2>
+                <h2 className="section-title">Audit Logs ({results.audit_logs.length})</h2>
               </div>
               <div className="space-y-2">
                 {results.audit_logs.map((l) => (
-                  <div key={l.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#8B5CF6]/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <div key={l.id} className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-sm bg-[#6B3A6E]/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#6B3A6E]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d={sectionIcons.audit_logs} />
                       </svg>
                     </div>
                     <div>
                       <p className="font-medium text-sm">{l.action}</p>
-                      <p className="text-xs text-[#64748B]">{l.details} &middot; {new Date(l.timestamp).toLocaleDateString()}</p>
+                      <p className="text-xs text-[#8A8274]">{l.details} &middot; {new Date(l.timestamp).toLocaleDateString()}</p>
                     </div>
                   </div>
                 ))}
