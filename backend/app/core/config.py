@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     hibp_api_key: str = ""
     hibp_rpm: int = 10
+    monitor_interval_minutes: int = 360
     polygon_rpc_url: str = "https://rpc-amoy.polygon.technology"
     polygon_private_key: str = ""
     polygon_explorer_tx_url: str = "https://amoy.polygonscan.com/tx/"

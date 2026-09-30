@@ -14,6 +14,7 @@ def client(tmp_path, monkeypatch):
     os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{tmp_path}/test.db"
     os.environ["ANTHROPIC_API_KEY"] = ""
     os.environ["HIBP_API_KEY"] = ""
+    os.environ["MONITOR_INTERVAL_MINUTES"] = "0"
     for name in list(sys.modules):
         if name == "app" or name.startswith("app."):
             del sys.modules[name]

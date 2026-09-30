@@ -7,13 +7,18 @@ from app.api import (
     notifications, features, search, timeline, family, did, dao,
     darkweb, reminders, reports, smart_import, websocket,
 )
+import asyncio
+
 from app.db.session import init_db
+from app.services.monitor import run_monitor
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    monitor = asyncio.create_task(run_monitor())
     yield
+    monitor.cancel()
 
 
 app = FastAPI(

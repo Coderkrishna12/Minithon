@@ -216,15 +216,15 @@ async def opt_out_all(
     for broker in DATA_BROKERS:
         results.append({
             "broker": broker["name"],
-            "status": "opt_out_initiated",
+            "status": "action_required",
             "opt_out_url": broker["opt_out_url"],
             "estimated_processing": "30-60 days",
         })
 
     notification = Notification(
         user_id=user.id,
-        title="Data Broker Opt-Out Initiated",
-        message=f"Opt-out requests prepared for {len(DATA_BROKERS)} data brokers. Visit each link to complete the removal process.",
+        title="Data broker opt-out links ready",
+        message=f"Opt-out links for {len(DATA_BROKERS)} data brokers are ready. Each broker only removes you once you submit its form.",
         severity="info",
     )
     db.add(notification)

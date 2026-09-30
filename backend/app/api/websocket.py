@@ -1,7 +1,9 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from datetime import datetime, timezone
 import asyncio
 import json
+
+from app.core.security import user_id_from_token
 
 router = APIRouter(tags=["websocket"])
 
@@ -40,8 +42,12 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@router.websocket("/ws/breach-monitor/{user_id}")
-async def breach_monitor_ws(websocket: WebSocket, user_id: int):
+@router.websocket("/ws/breach-monitor")
+async def breach_monitor_ws(websocket: WebSocket, token: str = ""):
+    user_id = user_id_from_token(token)
+    if user_id is None:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
     await manager.connect(websocket, user_id)
     try:
         await websocket.send_json({

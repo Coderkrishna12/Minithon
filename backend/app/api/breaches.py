@@ -6,7 +6,8 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.account import Account, BreachRecord
 from app.core.security import get_current_user
-from app.services.breach_checker import check_account_breaches, scan_all_accounts
+from app.services.breach_checker import check_account_breaches
+from app.services.monitor import scan_and_notify
 
 router = APIRouter(prefix="/breaches", tags=["breaches"])
 
@@ -16,8 +17,7 @@ async def scan_all(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await scan_all_accounts(user.id, db)
-    return result
+    return await scan_and_notify(user.id, db)
 
 
 @router.post("/scan/{account_id}")

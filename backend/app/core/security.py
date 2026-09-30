@@ -35,6 +35,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
 
+def user_id_from_token(token: str) -> int | None:
+    try:
+        sub = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm]).get("sub")
+        return int(sub) if sub is not None else None
+    except (JWTError, ValueError):
+        return None
+
+
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

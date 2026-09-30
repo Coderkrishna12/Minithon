@@ -120,3 +120,26 @@ def test_chat_without_key_explains_instead_of_faking_answers(client, auth):
     r = client.post("/api/ai/chat", headers=headers, json={"message": "What is my biggest risk?"})
     assert r.status_code == 503
     assert "ANTHROPIC_API_KEY" in r.json()["detail"]
+
+
+def test_live_socket_requires_token_and_pushes_new_breaches(client, auth, mock_http):
+    import pytest
+    from starlette.websockets import WebSocketDisconnect
+
+    headers, email = auth
+    with pytest.raises(WebSocketDisconnect):
+        with client.websocket_connect("/api/ws/breach-monitor") as ws:
+            ws.receive_json()
+
+    add(client, headers, service_name="Adobe", service_url="adobe.com", email_used=email)
+    mock_http["handler"] = handler_for(xon_analytics([]))
+    token = headers["Authorization"].split()[1]
+    with client.websocket_connect(f"/api/ws/breach-monitor?token={token}") as ws:
+        assert ws.receive_json()["type"] == "connected"
+        result = client.post("/api/breaches/scan-all", headers=headers).json()
+        assert result["new_breaches"] == 1
+        alert = ws.receive_json()
+        assert alert["type"] == "breach_alert"
+        assert alert["data"]["breach"] == "Adobe"
+
+    assert client.post("/api/breaches/scan-all", headers=headers).json()["new_breaches"] == 0

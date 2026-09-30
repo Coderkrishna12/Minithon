@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
+import LiveAlerts from "@/components/LiveAlerts";
 
 const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-sans" });
 const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-plex-mono" });
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1 ml-64 overflow-auto">
           <div className="max-w-6xl mx-auto px-10 py-12">{children}</div>
         </main>
+        <LiveAlerts />
       </body>
     </html>
   );
