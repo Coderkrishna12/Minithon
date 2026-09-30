@@ -57,6 +57,16 @@ class BreachRecord(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class ChainAnchor(Base):
+    __tablename__ = "chain_anchors"
+
+    id = Column(Integer, primary_key=True, index=True)
+    audit_log_id = Column(Integer, ForeignKey("audit_logs.id", ondelete="CASCADE"), nullable=False, unique=True)
+    network_tx_hash = Column(String(100), nullable=False)
+    chain_id = Column(Integer)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class FixAction(Base):
     __tablename__ = "fix_actions"
 

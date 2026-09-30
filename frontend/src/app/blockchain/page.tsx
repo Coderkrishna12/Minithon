@@ -16,21 +16,24 @@ interface AuditEntry {
 interface Block {
   index: number;
   timestamp: string;
-  data: unknown;
+  data: { action: string; data_hash: string };
   previous_hash: string;
   hash: string;
+  intact: boolean;
+  anchor: { tx_hash: string; chain_id: number; url: string } | null;
 }
 
 interface ZKPCertificate {
   verified: boolean;
-  proof: { commitment: string; challenge: string; response: string; proof_hash: string };
   claim: string;
   timestamp: string;
+  statement: { issuer: string; subject: string; claim: string; result: boolean; issued_at: string };
+  proof: { type: string; verificationMethod: string; proofValue: string };
 }
 
 export default function BlockchainPage() {
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
-  const [chain, setChain] = useState<{ chain: Block[]; length: number; valid: boolean } | null>(null);
+  const [chain, setChain] = useState<{ chain: Block[]; length: number; valid: boolean; broken_at: number | null; anchoring: boolean } | null>(null);
   const [zkp, setZkp] = useState<ZKPCertificate | null>(null);
   const [zkpThreshold, setZkpThreshold] = useState(70);
   const [activeTab, setActiveTab] = useState<"audit" | "chain" | "zkp">("audit");
@@ -66,14 +69,14 @@ export default function BlockchainPage() {
       <div>
         <p className="eyebrow mb-3">Record &middot; 11</p>
         <h1 className="page-title">Blockchain Audit Trail</h1>
-        <p className="text-[#5B544A] text-sm mt-1">Immutable, tamper-proof record of every privacy action</p>
+        <p className="text-[#5B544A] text-sm mt-1">Hash-chained record of every privacy action. Editing any entry breaks every hash after it.</p>
       </div>
 
       {chain && (
         <div className="flex gap-4">
           <div className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm px-4 py-3 flex items-center gap-3">
             <div className={`w-3 h-3 rounded-full ${chain.valid ? "bg-[#2E6B4E]" : "bg-[#C8321A]"}`} />
-            <span className="text-sm">Chain: {chain.valid ? "Valid" : "Invalid"}</span>
+            <span className="text-sm">Chain: {chain.valid ? "Intact" : `Tampered at block ${chain.broken_at}`}</span>
           </div>
           <div className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm px-4 py-3">
             <span className="text-sm text-[#5B544A]">Blocks: <span className="text-[#17150F] font-medium">{chain.length}</span></span>
@@ -90,7 +93,7 @@ export default function BlockchainPage() {
               activeTab === tab ? "bg-[#17150F] text-white" : "bg-[#FBF9F4] text-[#5B544A] border border-[#DCD4C4]"
             }`}
           >
-            {tab === "audit" ? "Audit Log" : tab === "chain" ? "Block Explorer" : "ZKP Certificate"}
+            {tab === "audit" ? "Audit Log" : tab === "chain" ? "Block Explorer" : "Score Attestation"}
           </button>
         ))}
       </div>
@@ -128,8 +131,18 @@ export default function BlockchainPage() {
           {chain.chain.slice().reverse().map((block) => (
             <div key={block.index} className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">Block #{block.index}</span>
-                <span className="text-xs text-[#8A8274]">{new Date(block.timestamp).toLocaleString()}</span>
+                <span className="font-medium">
+                  Block #{block.index} <span className="text-[#8A8274] font-normal">&middot; {block.data.action}</span>
+                </span>
+                <span className="flex items-center gap-3 text-xs text-[#8A8274]">
+                  {!block.intact && <span className="text-[#C8321A] font-medium">Hash mismatch</span>}
+                  {block.anchor && (
+                    <a href={block.anchor.url} target="_blank" rel="noreferrer" className="text-[#23408E] hover:underline">
+                      Anchored on Polygon
+                    </a>
+                  )}
+                  {new Date(block.timestamp).toLocaleString()}
+                </span>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -149,10 +162,11 @@ export default function BlockchainPage() {
       {activeTab === "zkp" && (
         <div className="space-y-6">
           <div className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-6">
-            <h2 className="section-title mb-2">Zero-Knowledge Proof Certificate</h2>
+            <h2 className="section-title mb-2">Signed score attestation</h2>
             <p className="text-sm text-[#5B544A] mb-6">
-              Prove your privacy score meets a threshold WITHOUT revealing your actual score or account details.
-              Share with insurers, employers, or platforms for trust verification.
+              Get a statement, signed with PrivacyShield&apos;s Ed25519 issuer key, that your privacy score meets a
+              threshold. It states only whether you passed, not your score or accounts. Anyone can check it at
+              <code className="mx-1 font-mono text-xs">POST /api/blockchain/attestations/verify</code>.
             </p>
             <div className="flex items-center gap-4 mb-6">
               <label className="text-sm text-[#5B544A]">Threshold:</label>
@@ -170,7 +184,7 @@ export default function BlockchainPage() {
               onClick={generateZKP}
               className="px-6 py-3 bg-[#17150F] hover:bg-[#C8321A] text-white font-medium rounded-sm transition-all"
             >
-              Generate ZKP Certificate
+              Issue attestation
             </button>
           </div>
 
@@ -202,23 +216,15 @@ export default function BlockchainPage() {
                 </div>
               </div>
               <div className="space-y-2 bg-[#F2EEE5] rounded-sm p-4">
-                <p className="text-xs text-[#8A8274]">Cryptographic Proof:</p>
-                <div className="grid grid-cols-2 gap-2">
+                <p className="eyebrow">Ed25519 signature</p>
+                <div className="grid grid-cols-1 gap-2">
                   <div>
-                    <span className="text-[10px] text-[#8A8274]">Commitment</span>
-                    <code className="block text-[10px] text-[#6B3A6E] font-mono truncate">{zkp.proof.commitment}</code>
+                    <span className="text-[10px] text-[#8A8274]">Issuer</span>
+                    <code className="block text-[10px] text-[#17150F] font-mono truncate">{zkp.statement.issuer}</code>
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#8A8274]">Challenge</span>
-                    <code className="block text-[10px] text-[#1F6E78] font-mono">{zkp.proof.challenge}</code>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-[#8A8274]">Response</span>
-                    <code className="block text-[10px] text-[#2E6B4E] font-mono">{zkp.proof.response}</code>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-[#8A8274]">Proof Hash</span>
-                    <code className="block text-[10px] text-[#A8660F] font-mono truncate">{zkp.proof.proof_hash}</code>
+                    <span className="text-[10px] text-[#8A8274]">Signature</span>
+                    <code className="block text-[10px] text-[#17150F] font-mono break-all">{zkp.proof.proofValue}</code>
                   </div>
                 </div>
               </div>

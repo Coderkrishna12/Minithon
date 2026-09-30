@@ -2,23 +2,31 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone
-import hashlib
-import secrets
 
 from app.db.session import get_db
 from app.models.user import User
 from app.models.account import DIDIdentity
 from app.core.security import get_current_user
-from app.services.blockchain import record_audit, compute_hash
+from app.services.blockchain import record_audit
+from app.services.identity import issuer_did, new_keypair, private_key_b64, raw_public, sign_payload, verify_payload
 
 router = APIRouter(prefix="/did", tags=["did"])
 
 
-def _generate_did(user_id: int) -> tuple[str, str]:
-    private_seed = secrets.token_hex(32)
-    public_key = hashlib.sha256(private_seed.encode()).hexdigest()
-    did_string = f"did:privacyshield:{public_key[:32]}"
-    return did_string, public_key
+def _credential(subject_did: str, credential_type: str, privacy_score: int) -> dict:
+    body = {
+        "type": credential_type,
+        "issuer": issuer_did(),
+        "subject": subject_did,
+        "issuance_date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "privacy_score": privacy_score,
+    }
+    return {**body, "proof": sign_payload(body)}
+
+
+def _credential_valid(credential: dict) -> bool:
+    body = {k: v for k, v in credential.items() if k != "proof"}
+    return isinstance(credential.get("proof"), dict) and verify_payload(body, credential["proof"])
 
 
 @router.post("/create")
@@ -32,19 +40,15 @@ async def create_did(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Active DID already exists")
 
-    did_string, public_key = _generate_did(user.id)
+    private_key, did_string = new_keypair()
+    public_key = raw_public(private_key.public_key()).hex()
 
     did = DIDIdentity(
         user_id=user.id,
         did_string=did_string,
         public_key=public_key,
-        verification_method=f"{did_string}#key-1",
-        credentials=[{
-            "type": "PrivacyScoreCredential",
-            "issuer": "did:privacyshield:system",
-            "issuance_date": datetime.now(timezone.utc).isoformat(),
-            "privacy_score": user.privacy_score,
-        }],
+        verification_method=f"{did_string}#{did_string.removeprefix('did:key:')}",
+        credentials=[_credential(did_string, "PrivacyScoreCredential", user.privacy_score)],
     )
     db.add(did)
     await db.commit()
@@ -61,6 +65,8 @@ async def create_did(
         "id": did.id,
         "did": did.did_string,
         "public_key": did.public_key,
+        "private_key": private_key_b64(private_key),
+        "private_key_notice": "Shown once. PrivacyShield does not store it; save it to prove control of this DID.",
         "verification_method": did.verification_method,
         "credentials": did.credentials,
         "document": {
@@ -114,14 +120,15 @@ async def verify_did(
     if not did:
         return {"verified": False, "reason": "DID not found"}
 
-    proof_hash = compute_hash({"did": did.did_string, "key": did.public_key})
-
+    credentials = did.credentials or []
+    valid = [c for c in credentials if _credential_valid(c)]
     return {
-        "verified": True,
+        "verified": did.is_active and len(valid) == len(credentials),
         "did": did.did_string,
         "is_active": did.is_active,
-        "proof_hash": proof_hash,
-        "credentials_count": len(did.credentials or []),
+        "issuer": issuer_did(),
+        "credentials_count": len(credentials),
+        "credentials_valid": len(valid),
     }
 
 
@@ -138,17 +145,7 @@ async def issue_credential(
     if not did:
         raise HTTPException(status_code=400, detail="Create a DID first")
 
-    credential = {
-        "type": credential_type,
-        "issuer": "did:privacyshield:system",
-        "issuance_date": datetime.now(timezone.utc).isoformat(),
-        "privacy_score": user.privacy_score,
-        "proof": compute_hash({
-            "did": did.did_string,
-            "score": user.privacy_score,
-            "type": credential_type,
-        }),
-    }
+    credential = _credential(did.did_string, credential_type, user.privacy_score)
 
     creds = list(did.credentials or [])
     creds.append(credential)

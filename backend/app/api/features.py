@@ -9,7 +9,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.account import Account, NFTBadge, Notification
 from app.core.security import get_current_user
-from app.services.blockchain import blockchain, compute_hash, record_audit
+from app.services.blockchain import record_audit
 
 router = APIRouter(prefix="/features", tags=["features"])
 
@@ -26,6 +26,20 @@ BADGE_TYPES = {
 }
 
 
+def _eligible(badge_type: str, user: User, accounts: list[Account]) -> bool:
+    if badge_type == "privacy_champion":
+        return user.privacy_score >= 90
+    if badge_type == "security_pro":
+        return user.privacy_score >= 70
+    if badge_type == "two_fa_everywhere":
+        return bool(accounts) and all(a.has_2fa for a in accounts)
+    if badge_type == "zero_reuse":
+        return bool(accounts) and all(not a.password_group for a in accounts)
+    if badge_type == "breach_free":
+        return bool(accounts) and all(a.breach_count == 0 for a in accounts)
+    return badge_type == "first_audit"
+
+
 @router.get("/badges")
 async def list_badges(
     user: User = Depends(get_current_user),
@@ -40,20 +54,7 @@ async def list_badges(
 
     available = []
     for badge_type, info in BADGE_TYPES.items():
-        eligible = False
-        if badge_type == "privacy_champion":
-            eligible = user.privacy_score >= 90
-        elif badge_type == "security_pro":
-            eligible = user.privacy_score >= 70
-        elif badge_type == "two_fa_everywhere":
-            eligible = len(accounts) > 0 and all(a.has_2fa for a in accounts)
-        elif badge_type == "zero_reuse":
-            eligible = len(accounts) > 0 and all(not a.password_group for a in accounts)
-        elif badge_type == "breach_free":
-            eligible = len(accounts) > 0 and all(a.breach_count == 0 for a in accounts)
-        elif badge_type == "first_audit":
-            eligible = True
-
+        eligible = _eligible(badge_type, user, list(accounts))
         available.append({
             "type": badge_type,
             "title": info["title"],
@@ -94,6 +95,10 @@ async def mint_badge(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Badge already minted")
 
+    accounts = (await db.execute(select(Account).where(Account.user_id == user.id))).scalars().all()
+    if not _eligible(badge_type, user, list(accounts)):
+        raise HTTPException(status_code=403, detail="Not eligible for this badge yet")
+
     info = BADGE_TYPES[badge_type]
 
     nft_data = {
@@ -102,7 +107,7 @@ async def mint_badge(
         "privacy_score": user.privacy_score,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-    block = blockchain.add_block(nft_data)
+    block = await record_audit(user.id, "badge_minted", f"Minted badge: {info['title']}", nft_data, db)
 
     badge = NFTBadge(
         user_id=user.id,
@@ -110,15 +115,13 @@ async def mint_badge(
         title=info["title"],
         description=info.get("desc", ""),
         score_at_mint=user.privacy_score,
-        token_id=f"PS-{user.id}-{badge_type}-{block['index']}",
-        tx_hash=block["hash"],
-        metadata_uri=f"ipfs://simulated/{block['hash'][:16]}",
+        token_id=f"PS-{user.id}-{badge_type}-{block.blockchain_block}",
+        tx_hash=block.blockchain_tx_hash,
+        metadata_uri=None,
     )
     db.add(badge)
     await db.commit()
     await db.refresh(badge)
-
-    await record_audit(user.id, "nft_badge_minted", f"Minted badge: {info['title']}", nft_data, db)
 
     return {
         "id": badge.id,

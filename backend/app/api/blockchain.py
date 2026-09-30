@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -6,14 +7,23 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.account import AuditLog
 from app.core.security import get_current_user
-from app.services.blockchain import blockchain, record_audit, generate_zkp_certificate
+from app.services.blockchain import record_audit, score_attestation, user_chain
+from app.services.identity import issuer_did, verify_payload
 
 router = APIRouter(prefix="/blockchain", tags=["blockchain"])
 
 
+class AttestationCheck(BaseModel):
+    statement: dict
+    proof: dict
+
+
 @router.get("/chain")
-async def get_chain():
-    return {"chain": blockchain.get_chain(), "length": len(blockchain.get_chain()), "valid": blockchain.verify_chain()}
+async def get_chain(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await user_chain(user.id, db)
 
 
 @router.get("/audit-log")
@@ -57,27 +67,36 @@ async def create_audit(
 
 
 @router.get("/verify/{block_index}")
-async def verify_block(block_index: int):
-    block = blockchain.get_block(block_index)
+async def verify_block(
+    block_index: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    chain = await user_chain(user.id, db)
+    block = next((b for b in chain["chain"] if b["index"] == block_index), None)
     if not block:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Block not found")
-    return {"block": block, "chain_valid": blockchain.verify_chain()}
+    return {"block": block, "chain_valid": chain["valid"]}
 
 
 @router.post("/zkp-certificate")
-async def generate_zkp(
+async def generate_attestation(
     threshold: int = Query(default=70, ge=0, le=100),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    certificate = generate_zkp_certificate(user.id, user.privacy_score, threshold)
-
+    attestation = score_attestation(user.id, user.privacy_score, threshold)
     await record_audit(
-        user.id, "zkp_certificate_generated",
-        f"ZKP certificate generated for threshold {threshold}",
-        {"threshold": threshold, "result": certificate["verified"]},
+        user.id, "score_attestation_issued",
+        f"Signed attestation issued for threshold {threshold}",
+        attestation["statement"],
         db,
     )
+    return attestation
 
-    return certificate
+
+@router.post("/attestations/verify")
+async def verify_attestation(data: AttestationCheck):
+    """Public: anyone holding an attestation can check it was signed by this server's issuer key."""
+    valid = verify_payload(data.statement, data.proof) and data.statement.get("issuer") == issuer_did()
+    return {"valid": valid, "issuer": issuer_did()}
