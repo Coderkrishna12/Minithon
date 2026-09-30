@@ -1,0 +1,54 @@
+# Environment and Secrets
+.env
+*.env
+!.env.example
+!*.env.example
+.env*.local
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.db
+*.sqlite
+*.sqlite3
+venv/
+.venv/
+env/
+
+# Node.js / Next.js
+node_modules/
+**/node_modules/
+.next/
+**/build/
+out/
+.vercel/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Flutter / Dart / Mobile
+.dart_tool/
+**/mobile/.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+mobile/build/
+build/
+*.iml
+.idea/
+**/mobile/.idea/
+.metadata
+
+# IDEs & System
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+hs_err_pid*
+replay_pid*
