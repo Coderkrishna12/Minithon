@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../config/theme.dart';
 import '../services/api_service.dart';
 
@@ -9,22 +10,34 @@ class BadgesScreen extends StatefulWidget {
   State<BadgesScreen> createState() => _BadgesScreenState();
 }
 
-class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderStateMixin {
+class _BadgesScreenState extends State<BadgesScreen>
+    with SingleTickerProviderStateMixin {
   final _api = ApiService();
   late TabController _tabCtrl;
   List<dynamic> _badges = [];
+  List<dynamic> _availableBadges = [];
   List<dynamic> _brokers = [];
   bool _loadingBadges = true;
   bool _loadingBrokers = true;
   bool _lockdownTriggered = false;
+  List<dynamic> _recoverySteps = [];
+  bool _lockingDown = false;
 
-  final _badgeTypes = [
-    {'type': 'privacy_pioneer', 'title': 'Privacy Pioneer', 'desc': 'First audit completed', 'icon': Icons.explore, 'color': AppColors.blue},
-    {'type': 'two_fa_champion', 'title': '2FA Champion', 'desc': '2FA on all accounts', 'icon': Icons.verified_user, 'color': AppColors.green},
-    {'type': 'breach_survivor', 'title': 'Breach Survivor', 'desc': 'Survived a breach scan', 'icon': Icons.shield, 'color': AppColors.orange},
-    {'type': 'graph_master', 'title': 'Graph Master', 'desc': '10+ connected accounts', 'icon': Icons.hub, 'color': AppColors.purple},
-    {'type': 'fix_hero', 'title': 'Fix Hero', 'desc': 'All fixes completed', 'icon': Icons.build, 'color': AppColors.cyan},
-    {'type': 'blockchain_verified', 'title': 'Blockchain Verified', 'desc': 'ZKP certificate generated', 'icon': Icons.link, 'color': AppColors.pink},
+  final _badgeIcons = [
+    Icons.shield,
+    Icons.verified_user,
+    Icons.password,
+    Icons.cleaning_services,
+    Icons.warning_amber,
+    Icons.fact_check,
+  ];
+  final _badgeColors = [
+    AppColors.blue,
+    AppColors.green,
+    AppColors.purple,
+    AppColors.cyan,
+    AppColors.orange,
+    AppColors.pink,
   ];
 
   @override
@@ -43,9 +56,10 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
 
   Future<void> _loadBadges() async {
     try {
-      final data = await _api.getList('/features/badges');
+      final data = await _api.get('/features/badges');
       setState(() {
-        _badges = data;
+        _badges = (data['minted'] as List?) ?? [];
+        _availableBadges = (data['available'] as List?) ?? [];
         _loadingBadges = false;
       });
     } catch (_) {
@@ -55,9 +69,9 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
 
   Future<void> _loadBrokers() async {
     try {
-      final data = await _api.getList('/features/data-brokers');
+      final data = await _api.get('/features/data-brokers');
       setState(() {
-        _brokers = data;
+        _brokers = (data['brokers'] as List?) ?? [];
         _loadingBrokers = false;
       });
     } catch (_) {
@@ -71,7 +85,10 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
       _loadBadges();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Badge minted!'), backgroundColor: AppColors.green),
+          const SnackBar(
+            content: Text('Badge minted!'),
+            backgroundColor: AppColors.green,
+          ),
         );
       }
     } catch (e) {
@@ -89,9 +106,14 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: const Text('Emergency Lockdown'),
-        content: const Text('This will attempt to lock down all connected accounts. Are you sure?'),
+        content: const Text(
+          'This will attempt to lock down all connected accounts. Are you sure?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
@@ -101,10 +123,31 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
       ),
     );
     if (confirm != true) return;
+    setState(() => _lockingDown = true);
     try {
-      await _api.post('/features/lockdown');
-      setState(() => _lockdownTriggered = true);
-    } catch (_) {}
+      final result = await _api.post('/features/lockdown');
+      if (mounted) {
+        setState(() {
+          _lockdownTriggered = true;
+          _recoverySteps = (result['recovery_steps'] as List?) ?? [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Lockdown plan prepared for ${result['accounts_affected'] ?? 0} accounts. Review each service action below.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not activate lockdown: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _lockingDown = false);
+    }
   }
 
   @override
@@ -128,7 +171,11 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
         Expanded(
           child: TabBarView(
             controller: _tabCtrl,
-            children: [_buildBadgesTab(), _buildDeathSwitchTab(), _buildBrokersTab()],
+            children: [
+              _buildBadgesTab(),
+              _buildDeathSwitchTab(),
+              _buildBrokersTab(),
+            ],
           ),
         ),
       ],
@@ -136,12 +183,22 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   }
 
   Widget _buildBadgesTab() {
-    if (_loadingBadges) return const Center(child: CircularProgressIndicator(color: AppColors.pink));
-    final mintedTypes = _badges.map((b) => b['badge_type']).toSet();
+    if (_loadingBadges) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.pink),
+      );
+    }
+    final mintedTypes = _badges
+        .map((b) => b['type'] ?? b['badge_type'])
+        .toSet();
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: _badgeTypes.map((bt) {
-        final minted = mintedTypes.contains(bt['type']);
+      children: List.generate(_availableBadges.length, (index) {
+        final bt = _availableBadges[index] as Map<String, dynamic>;
+        final type = bt['type'] as String;
+        final color = _badgeColors[index % _badgeColors.length];
+        final minted = bt['minted'] == true || mintedTypes.contains(type);
+        final eligible = bt['eligible'] == true;
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
@@ -149,7 +206,7 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: minted ? (bt['color'] as Color).withAlpha(120) : AppColors.border,
+              color: minted ? color.withAlpha(120) : AppColors.border,
             ),
           ),
           child: Row(
@@ -158,34 +215,62 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: (bt['color'] as Color).withAlpha(30),
+                  color: color.withAlpha(30),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(bt['icon'] as IconData, color: bt['color'] as Color, size: 24),
+                child: Icon(
+                  _badgeIcons[index % _badgeIcons.length],
+                  color: color,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(bt['title'] as String, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    Text(bt['desc'] as String, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    Text(
+                      bt['title'] as String? ?? type,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      bt['description'] as String? ?? '',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
               if (minted)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.green.withAlpha(30),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text('Minted', style: TextStyle(color: AppColors.green, fontSize: 12, fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Minted',
+                    style: TextStyle(
+                      color: AppColors.green,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 )
               else
                 TextButton(
-                  onPressed: () => _mintBadge(bt['type'] as String),
-                  child: const Text('Mint', style: TextStyle(color: AppColors.pink)),
+                  onPressed: eligible ? () => _mintBadge(type) : null,
+                  child: Text(
+                    eligible ? 'Mint' : 'Locked',
+                    style: TextStyle(
+                      color: eligible ? AppColors.pink : AppColors.textMuted,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -206,7 +291,9 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _lockdownTriggered ? AppColors.green.withAlpha(30) : AppColors.red.withAlpha(30),
+                color: _lockdownTriggered
+                    ? AppColors.green.withAlpha(30)
+                    : AppColors.red.withAlpha(30),
                 border: Border.all(
                   color: _lockdownTriggered ? AppColors.green : AppColors.red,
                   width: 3,
@@ -226,15 +313,15 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
             const SizedBox(height: 8),
             Text(
               _lockdownTriggered
-                  ? 'All accounts have been locked down. Follow recovery steps below.'
-                  : 'One tap to lock down your entire digital life',
+                  ? 'Your response plan is ready. PrivacyShield cannot revoke sessions or reset passwords on your behalf; complete these steps with each service.'
+                  : 'Prepare a prioritized response plan for your connected accounts',
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 32),
             if (!_lockdownTriggered)
               GestureDetector(
-                onTap: _triggerLockdown,
+                onTap: _lockingDown ? null : _triggerLockdown,
                 child: Container(
                   width: 200,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -243,30 +330,46 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                     borderRadius: BorderRadius.circular(16),
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
-                    'ACTIVATE LOCKDOWN',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  child: Text(
+                    _lockingDown ? 'PREPARING…' : 'PREPARE LOCKDOWN',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               )
             else ...[
-              const Text('Recovery Steps:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Recovery Steps:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
-              ...[
-                '1. Change your primary email password',
-                '2. Enable 2FA on all accounts',
-                '3. Revoke suspicious app permissions',
-                '4. Check breach scanner results',
-              ].map((step) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.chevron_right, color: AppColors.green, size: 18),
-                        const SizedBox(width: 4),
-                        Flexible(child: Text(step, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13))),
-                      ],
-                    ),
-                  )),
+              ..._recoverySteps.map(
+                (step) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.chevron_right,
+                        color: AppColors.green,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          step,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ],
         ),
@@ -275,9 +378,18 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   }
 
   Widget _buildBrokersTab() {
-    if (_loadingBrokers) return const Center(child: CircularProgressIndicator(color: AppColors.pink));
+    if (_loadingBrokers) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.pink),
+      );
+    }
     if (_brokers.isEmpty) {
-      return const Center(child: Text('No data brokers found', style: TextStyle(color: AppColors.textMuted)));
+      return const Center(
+        child: Text(
+          'No data brokers found',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
+      );
     }
     return Column(
       children: [
@@ -286,16 +398,23 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
           child: ElevatedButton.icon(
             onPressed: () async {
               try {
-                await _api.post('/features/data-brokers/opt-out-all');
+                final result = await _api.post(
+                  '/features/data-brokers/opt-out-all',
+                );
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Opt-out requests sent!'), backgroundColor: AppColors.green),
+                    SnackBar(
+                      content: Text(
+                        '${result['total_brokers'] ?? _brokers.length} opt-out forms are ready. Open each broker link and submit its form to complete removal.',
+                      ),
+                      backgroundColor: AppColors.blue,
+                    ),
                   );
                 }
               } catch (_) {}
             },
             icon: const Icon(Icons.block),
-            label: const Text('Opt-Out All'),
+            label: const Text('Get opt-out links'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.pink,
               minimumSize: const Size.fromHeight(48),
@@ -318,27 +437,80 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.visibility_off, color: AppColors.pink, size: 20),
+                    const Icon(
+                      Icons.visibility_off,
+                      color: AppColors.pink,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(b['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
-                          Text(b['category'] ?? '', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          Text(
+                            b['name'] ?? '',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            (b['data_types'] as List? ?? []).join(' · '),
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),
+                    IconButton(
+                      tooltip: 'Copy opt-out link',
+                      icon: const Icon(
+                        Icons.open_in_new,
+                        color: AppColors.blue,
+                      ),
+                      onPressed: () async {
+                        final url = b['opt_out_url']?.toString() ?? '';
+                        try {
+                          await const MethodChannel(
+                            'privacyshield/device',
+                          ).invokeMethod('openUrl', {'url': url});
+                        } on PlatformException {
+                          await Clipboard.setData(ClipboardData(text: url));
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Link copied. Open it and submit the broker form.',
+                                ),
+                              ),
+                            );
+                          }
+                        } on MissingPluginException {
+                          await Clipboard.setData(ClipboardData(text: url));
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Link copied. Open it and submit the broker form.',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: b['opted_out'] == true ? AppColors.green.withAlpha(30) : AppColors.orange.withAlpha(30),
+                        color: AppColors.blue.withAlpha(30),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        b['opted_out'] == true ? 'Opted Out' : 'Active',
+                        'Open form',
                         style: TextStyle(
-                          color: b['opted_out'] == true ? AppColors.green : AppColors.orange,
+                          color: AppColors.blue,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),

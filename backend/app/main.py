@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import (
     auth, accounts, dashboard, graph, blockchain, breaches, ai_chat,
     notifications, features, search, timeline, family, did, dao,
-    darkweb, reminders, reports, smart_import, websocket,
+    darkweb, reminders, reports, smart_import, websocket, status,
 )
 import asyncio
 
@@ -55,6 +55,7 @@ app.include_router(reminders.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(smart_import.router, prefix="/api")
 app.include_router(websocket.router, prefix="/api")
+app.include_router(status.router, prefix="/api/v1")
 
 
 @app.get("/api/health")

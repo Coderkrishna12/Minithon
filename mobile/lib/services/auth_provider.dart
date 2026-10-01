@@ -20,8 +20,11 @@ class AuthProvider extends ChangeNotifier {
       _user = User.fromJson(data);
       notifyListeners();
       return true;
+    } on ApiException catch (e) {
+      if (e.statusCode == 401 || e.statusCode == 403) await _api.clearToken();
+      return false;
     } catch (_) {
-      await _api.clearToken();
+      // A temporary offline/API failure must not destroy a valid saved login.
       return false;
     }
   }

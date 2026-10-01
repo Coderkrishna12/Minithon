@@ -35,12 +35,32 @@ REQUIRED = {
 }
 
 
+def _import_error() -> str | None:
+    """Import the whole app in a fresh interpreter; catches missing packages and mismatched versions."""
+    result = subprocess.run([sys.executable, "-c", "import app.main"], cwd=HERE, capture_output=True, text=True)
+    if result.returncode == 0:
+        return None
+    lines = [line for line in result.stderr.strip().splitlines() if line.strip()]
+    return lines[-1] if lines else "unknown import error"
+
+
 def ensure_requirements() -> None:
     missing = [pkg for module, pkg in REQUIRED.items() if importlib.util.find_spec(module) is None]
-    if not missing:
+    problem = f"missing {', '.join(missing)}" if missing else _import_error()
+    if not problem:
         return
-    print(f"Installing missing packages ({', '.join(missing)}) from requirements.txt ...")
+    print(f"Backend can't start ({problem}).")
+    print("Reinstalling the pinned versions from requirements.txt ...")
+    subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", str(HERE / "requirements.txt")])
+    still = _import_error()
+    if still:
+        print(f"\nStill failing: {still}")
+        print("Your global Python has conflicting packages. Use a clean virtual environment:")
+        print("    python -m venv .venv")
+        print("    .venv\\Scripts\\activate      (macOS/Linux: source .venv/bin/activate)")
+        print("    python run.py")
+        sys.exit(1)
 
 
 def lan_addresses() -> list[str]:

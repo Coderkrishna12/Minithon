@@ -16,6 +16,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final _api = ApiService();
   Map<String, dynamic>? _dashboard;
   List<FixAction> _fixes = [];
+  int _accountsWith2fa = 0;
   bool _loading = true;
 
   @override
@@ -30,10 +31,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final results = await Future.wait([
         _api.get('/dashboard/'),
         _api.getList('/dashboard/fixes'),
+        _api.getList('/accounts/'),
       ]);
       setState(() {
         _dashboard = results[0] as Map<String, dynamic>;
-        _fixes = (results[1] as List).map((e) => FixAction.fromJson(e)).toList();
+        _fixes = (results[1] as List)
+            .map((e) => FixAction.fromJson(e))
+            .toList();
+        _accountsWith2fa = (results[2] as List)
+            .where((account) => account['has_2fa'] == true)
+            .length;
         _loading = false;
       });
     } catch (e) {
@@ -43,15 +50,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _completeFix(int fixId) async {
     try {
-      await _api.patch('/dashboard/fixes/$fixId/complete');
-      _loadData();
-    } catch (_) {}
+      final completed = await _api.patch('/dashboard/fixes/$fixId/complete');
+      await _loadData();
+      if (mounted) {
+        final receipt = completed['blockchain_tx_hash']?.toString();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(receipt == null
+              ? 'Confirmation recorded in your local audit chain.'
+              : 'Confirmation recorded · receipt ${receipt.substring(0, receipt.length > 12 ? 12 : receipt.length)}…'),
+        ));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not record this fix: $e')));
+    }
+  }
+
+  Future<void> _previewFix(FixAction fix) async {
+    try {
+      final preview = await _api.get('/dashboard/fixes/${fix.id}/preview');
+      if (!mounted) return;
+      final accepted = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Review this fix'),
+          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${preview['account']}: ${fix.description}'),
+            const SizedBox(height: 12),
+            Text('Estimated privacy score: ${preview['before_score']} → ${preview['after_score']} (+${preview['score_improvement']})'),
+            Text('Estimated time: ${preview['estimated_minutes']} minutes'),
+            const SizedBox(height: 12),
+            const Text('This does not change the service account. Make the change with the service first, then confirm it here.', style: TextStyle(fontSize: 12)),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Not now')),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('I completed it')),
+          ],
+        ),
+      );
+      if (accepted == true) await _completeFix(fix.id);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not preview this fix: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
 
     final d = _dashboard;
@@ -62,7 +109,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             const Icon(Icons.cloud_off, size: 48, color: AppColors.textMuted),
             const SizedBox(height: 12),
-            const Text('Could not load dashboard', style: TextStyle(color: AppColors.textSecondary)),
+            const Text(
+              'Could not load dashboard',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
             const SizedBox(height: 12),
             ElevatedButton(onPressed: _loadData, child: const Text('Retry')),
           ],
@@ -72,9 +122,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final score = (d['privacy_score'] ?? 0).toDouble();
     final totalAccounts = d['total_accounts'] ?? 0;
-    final accountsAt2fa = d['accounts_with_2fa'] ?? 0;
-    final totalBreaches = d['total_breaches'] ?? 0;
-    final riskDistribution = d['risk_distribution'] as Map<String, dynamic>? ?? {};
+    final accountsAt2fa = _accountsWith2fa;
+    final totalBreaches = d['total_breaches'] ?? d['breaches_found'] ?? 0;
+    final riskDistribution =
+        d['risk_distribution'] as Map<String, dynamic>? ?? {};
     final spofs = (d['single_points_of_failure'] as List?) ?? [];
     final pendingFixes = _fixes.where((f) => f.status == 'pending').toList();
 
@@ -87,7 +138,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Center(child: ScoreRing(score: score, size: 180, strokeWidth: 14)),
           const SizedBox(height: 8),
           const Center(
-            child: Text('Privacy Score', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+            child: Text(
+              'Privacy Score',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            ),
           ),
           const SizedBox(height: 24),
           GridView.count(
@@ -98,9 +152,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisSpacing: 12,
             childAspectRatio: 1.4,
             children: [
-              StatCard(label: 'Accounts', value: '$totalAccounts', icon: Icons.apps, color: AppColors.blue),
-              StatCard(label: '2FA Enabled', value: '$accountsAt2fa', icon: Icons.verified_user, color: AppColors.green),
-              StatCard(label: 'Breaches', value: '$totalBreaches', icon: Icons.warning_amber, color: AppColors.red),
+              StatCard(
+                label: 'Accounts',
+                value: '$totalAccounts',
+                icon: Icons.apps,
+                color: AppColors.blue,
+              ),
+              StatCard(
+                label: '2FA Enabled',
+                value: '$accountsAt2fa/$totalAccounts',
+                icon: Icons.verified_user,
+                color: AppColors.green,
+              ),
+              StatCard(
+                label: 'Breaches',
+                value: '$totalBreaches',
+                icon: Icons.warning_amber,
+                color: AppColors.red,
+              ),
               StatCard(
                 label: 'Fixes Pending',
                 value: '${pendingFixes.length}',
@@ -113,13 +182,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _buildRiskDistribution(riskDistribution),
           const SizedBox(height: 24),
           if (spofs.isNotEmpty) ...[
-            _buildSectionTitle('Single Points of Failure', Icons.error, AppColors.red),
+            _buildSectionTitle(
+              'Single Points of Failure',
+              Icons.error,
+              AppColors.red,
+            ),
             const SizedBox(height: 8),
             ...spofs.map((s) => _buildSpofCard(s)),
             const SizedBox(height: 24),
           ],
           if (pendingFixes.isNotEmpty) ...[
-            _buildSectionTitle('Fix Checklist', Icons.checklist, AppColors.green),
+            _buildSectionTitle(
+              'Fix Checklist',
+              Icons.checklist,
+              AppColors.green,
+            ),
             const SizedBox(height: 8),
             ...pendingFixes.take(5).map((f) => _buildFixCard(f)),
           ],
@@ -133,15 +210,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 8),
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
 
   Widget _buildRiskDistribution(Map<String, dynamic> dist) {
     final levels = ['critical', 'high', 'medium', 'low'];
-    final colors = [AppColors.red, AppColors.orange, AppColors.blue, AppColors.green];
-    final total = levels.fold<int>(0, (sum, l) => sum + ((dist[l] ?? 0) as int));
+    final colors = [
+      AppColors.red,
+      AppColors.orange,
+      AppColors.blue,
+      AppColors.green,
+    ];
+    final total = levels.fold<int>(
+      0,
+      (sum, l) => sum + ((dist[l] ?? 0) as int),
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -153,7 +241,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Risk Distribution', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          const Text(
+            'Risk Distribution',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 16),
           ...List.generate(levels.length, (i) {
             final count = (dist[levels[i]] ?? 0) as int;
@@ -168,9 +259,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(
                         levels[i][0].toUpperCase() + levels[i].substring(1),
-                        style: TextStyle(color: colors[i], fontWeight: FontWeight.w500, fontSize: 13),
+                        style: TextStyle(
+                          color: colors[i],
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                        ),
                       ),
-                      Text('$count', style: TextStyle(color: colors[i], fontWeight: FontWeight.bold)),
+                      Text(
+                        '$count',
+                        style: TextStyle(
+                          color: colors[i],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -214,7 +315,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
                 Text(
                   'Could cascade to $impact accounts',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -225,7 +329,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppColors.red.withAlpha(30),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text('$impact', style: const TextStyle(color: AppColors.red, fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(
+              '$impact',
+              style: const TextStyle(
+                color: AppColors.red,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
           ),
         ],
       ),
@@ -257,8 +368,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.check_circle_outline, color: AppColors.green),
-            onPressed: () => _completeFix(fix.id),
+            icon: const Icon(
+              Icons.visibility_outlined,
+              color: AppColors.blue,
+            ),
+            tooltip: 'Preview fix',
+            onPressed: () => _previewFix(fix),
           ),
         ],
       ),

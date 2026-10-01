@@ -20,15 +20,20 @@ import 'screens/reminders_screen.dart';
 import 'screens/device_audit_screen.dart';
 import 'screens/leak_check_screen.dart';
 import 'screens/server_setup_screen.dart';
+import 'screens/ai_insights_screen.dart';
+import 'screens/qr_privacy_scanner_screen.dart';
+import 'screens/integration_status_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarColor: AppColors.surface,
-    systemNavigationBarIconBrightness: Brightness.dark,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: AppColors.surface,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
   runApp(const PrivacyShieldApp());
 }
 
@@ -62,6 +67,9 @@ class PrivacyShieldApp extends StatelessWidget {
           '/device-audit': (_) => const DeviceAuditScreen(),
           '/leak-check': (_) => const LeakCheckScreen(),
           '/server': (_) => const ServerSetupScreen(),
+          '/ai-insights': (_) => const AiInsightsScreen(),
+          '/qr-scanner': (_) => const QrPrivacyScannerScreen(),
+          '/integration-status': (_) => const IntegrationStatusScreen(),
         },
       ),
     );

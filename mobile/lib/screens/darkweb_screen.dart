@@ -9,7 +9,8 @@ class DarkWebScreen extends StatefulWidget {
   State<DarkWebScreen> createState() => _DarkWebScreenState();
 }
 
-class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProviderStateMixin {
+class _DarkWebScreenState extends State<DarkWebScreen>
+    with SingleTickerProviderStateMixin {
   final _api = ApiService();
   List<dynamic> _alerts = [];
   bool _loading = true;
@@ -37,7 +38,7 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
     try {
       final data = await _api.getList('/darkweb/alerts');
       setState(() {
-        _alerts = data;
+        _alerts = data.where((alert) => alert['is_resolved'] != true).toList();
         _loading = false;
       });
     } catch (_) {
@@ -51,16 +52,16 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
     try {
       await _api.post('/darkweb/scan');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dark web scan complete')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Dark web scan complete')));
       }
       _loadAlerts();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Scan failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Scan failed: $e')));
       }
     }
     _pulseCtrl.stop();
@@ -72,16 +73,16 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
     try {
       await _api.patch('/darkweb/alerts/$alertId/resolve');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Alert resolved')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Alert resolved')));
       }
       _loadAlerts();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to resolve: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to resolve: $e')));
       }
     }
   }
@@ -102,7 +103,9 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
     return Scaffold(
       appBar: AppBar(title: const Text('Dark Web Monitor')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.blue))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.blue),
+            )
           : RefreshIndicator(
               onRefresh: _loadAlerts,
               color: AppColors.blue,
@@ -113,19 +116,36 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      const Icon(Icons.warning_amber, color: AppColors.orange, size: 20),
+                      const Icon(
+                        Icons.warning_amber,
+                        color: AppColors.orange,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
-                      const Text('Alerts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Alerts',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.red.withAlpha(30),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           '${_alerts.length}',
-                          style: const TextStyle(color: AppColors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: AppColors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -141,13 +161,23 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
                       ),
                       child: const Column(
                         children: [
-                          Icon(Icons.check_circle, color: AppColors.green, size: 48),
+                          Icon(
+                            Icons.check_circle,
+                            color: AppColors.green,
+                            size: 48,
+                          ),
                           SizedBox(height: 12),
-                          Text('No alerts found', style: TextStyle(color: AppColors.textSecondary)),
+                          Text(
+                            'No alerts found',
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
                           SizedBox(height: 4),
                           Text(
                             'Your data was not found on the dark web',
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                            style: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -193,9 +223,16 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
                       ),
                       child: _scanning
                           ? const Center(
-                              child: CircularProgressIndicator(color: AppColors.red, strokeWidth: 3),
+                              child: CircularProgressIndicator(
+                                color: AppColors.red,
+                                strokeWidth: 3,
+                              ),
                             )
-                          : const Icon(Icons.radar, size: 40, color: AppColors.red),
+                          : const Icon(
+                              Icons.radar,
+                              size: 40,
+                              color: AppColors.red,
+                            ),
                     ),
                   ),
                 ],
@@ -251,7 +288,11 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
                     ),
                     Text(
                       severity.toUpperCase(),
-                      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -260,11 +301,17 @@ class _DarkWebScreenState extends State<DarkWebScreen> with SingleTickerProvider
           ),
           if (alert['data_found'] != null) ...[
             const SizedBox(height: 10),
-            const Text('Data Found:', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+            const Text(
+              'Data Found:',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
             const SizedBox(height: 4),
             Text(
               alert['data_found'].toString(),
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
             ),
           ],
           const SizedBox(height: 12),

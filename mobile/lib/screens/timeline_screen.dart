@@ -26,12 +26,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
     setState(() => _loading = true);
     try {
       final results = await Future.wait([
-        _api.get('/timeline/score-history'),
-        _api.get('/timeline/events'),
+        _api.getList('/timeline/score-history'),
+        _api.getList('/timeline/events'),
       ]);
       setState(() {
-        _scoreHistory = (results[0]['history'] as List?) ?? [];
-        _events = (results[1]['events'] as List?) ?? [];
+        _scoreHistory = results[0];
+        _events = results[1];
         _loading = false;
       });
     } catch (e) {
@@ -74,7 +74,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
 
     return RefreshIndicator(
@@ -96,13 +98,19 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.camera_alt, size: 18),
                 label: Text(_snapshotting ? 'Saving...' : 'Snapshot'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.purple,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ],
@@ -119,7 +127,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
-                child: Text('No events yet', style: TextStyle(color: AppColors.textMuted)),
+                child: Text(
+                  'No events yet',
+                  style: TextStyle(color: AppColors.textMuted),
+                ),
               ),
             )
           else
@@ -140,7 +151,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
           border: Border.all(color: AppColors.border),
         ),
         child: const Center(
-          child: Text('No score history available', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(
+            'No score history available',
+            style: TextStyle(color: AppColors.textMuted),
+          ),
         ),
       );
     }
@@ -171,8 +185,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 final color = score >= 70
                     ? AppColors.green
                     : score >= 40
-                        ? AppColors.orange
-                        : AppColors.red;
+                    ? AppColors.orange
+                    : AppColors.red;
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -181,7 +195,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       children: [
                         Text(
                           '${score.toInt()}',
-                          style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Container(
@@ -222,10 +240,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             width: 10,
             height: 10,
             margin: const EdgeInsets.only(top: 5),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -234,20 +249,30 @@ class _TimelineScreenState extends State<TimelineScreen> {
               children: [
                 Text(
                   event['title'] ?? event['event_type'] ?? 'Event',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
                 if (event['description'] != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     event['description'],
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
-                if (event['timestamp'] != null || event['created_at'] != null) ...[
+                if (event['timestamp'] != null ||
+                    event['created_at'] != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     event['timestamp'] ?? event['created_at'] ?? '',
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ],
@@ -261,7 +286,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
             ),
             child: Text(
               severity,
-              style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

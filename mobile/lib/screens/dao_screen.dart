@@ -9,7 +9,8 @@ class DAOScreen extends StatefulWidget {
   State<DAOScreen> createState() => _DAOScreenState();
 }
 
-class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMixin {
+class _DAOScreenState extends State<DAOScreen>
+    with SingleTickerProviderStateMixin {
   final _api = ApiService();
   late TabController _tabCtrl;
   List<dynamic> _proposals = [];
@@ -38,9 +39,9 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
   Future<void> _loadProposals() async {
     setState(() => _loadingProposals = true);
     try {
-      final data = await _api.get('/dao/proposals');
+      final data = await _api.getList('/dao/proposals');
       setState(() {
-        _proposals = (data['proposals'] as List?) ?? [];
+        _proposals = data;
         _loadingProposals = false;
       });
     } catch (_) {
@@ -65,16 +66,16 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
     try {
       await _api.post('/dao/proposals/$proposalId/vote', body: {'vote': vote});
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vote "$vote" recorded')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Vote "$vote" recorded')));
       }
       _loadProposals();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vote failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Vote failed: $e')));
       }
     }
   }
@@ -94,13 +95,21 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
       ),
       builder: (ctx) {
         return Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Create Proposal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Create Proposal',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: titleCtrl,
@@ -120,7 +129,10 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
                 const SizedBox(height: 12),
                 TextField(
                   controller: dateCtrl,
-                  decoration: const InputDecoration(labelText: 'Breach Date (YYYY-MM-DD)', hintText: '2024-01-15'),
+                  decoration: const InputDecoration(
+                    labelText: 'Breach Date (YYYY-MM-DD)',
+                    hintText: '2024-01-15',
+                  ),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
@@ -128,12 +140,15 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
                     if (titleCtrl.text.trim().isEmpty) return;
                     final messenger = ScaffoldMessenger.of(context);
                     try {
-                      await _api.post('/dao/proposals', body: {
-                        'title': titleCtrl.text.trim(),
-                        'description': descCtrl.text.trim(),
-                        'service_name': serviceCtrl.text.trim(),
-                        'breach_date': dateCtrl.text.trim(),
-                      });
+                      await _api.post(
+                        '/dao/proposals',
+                        body: {
+                          'title': titleCtrl.text.trim(),
+                          'description': descCtrl.text.trim(),
+                          'service_name': serviceCtrl.text.trim(),
+                          'breach_date': dateCtrl.text.trim(),
+                        },
+                      );
                       if (ctx.mounted) Navigator.pop(ctx);
                       _loadProposals();
                     } catch (e) {
@@ -203,11 +218,16 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
 
   Widget _buildProposalsTab() {
     if (_loadingProposals) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
     if (_proposals.isEmpty) {
       return const Center(
-        child: Text('No proposals yet', style: TextStyle(color: AppColors.textMuted)),
+        child: Text(
+          'No proposals yet',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
       );
     }
 
@@ -240,11 +260,17 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
                     Expanded(
                       child: Text(
                         p['title'] ?? 'Untitled',
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: _statusColor(status).withAlpha(30),
                         borderRadius: BorderRadius.circular(8),
@@ -264,7 +290,10 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
                   const SizedBox(height: 6),
                   Text(
                     'Service: ${p['service_name']}',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -274,7 +303,13 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
                     const SizedBox(width: 12),
                     _voteChip(Icons.thumb_down, votesAgainst, AppColors.red),
                     const Spacer(),
-                    Text('$totalVotes votes', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                    Text(
+                      '$totalVotes votes',
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
                 if (totalVotes > 0) ...[
@@ -331,18 +366,30 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
       children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 4),
-        Text('$count', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          '$count',
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildStatsTab() {
     if (_loadingStats) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
     if (_stats == null) {
       return const Center(
-        child: Text('Could not load stats', style: TextStyle(color: AppColors.textMuted)),
+        child: Text(
+          'Could not load stats',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
       );
     }
 
@@ -360,10 +407,30 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
             mainAxisSpacing: 12,
             childAspectRatio: 1.4,
             children: [
-              _statCard('Total Proposals', '${_stats!['total_proposals'] ?? 0}', Icons.description, AppColors.blue),
-              _statCard('Active', '${_stats!['active'] ?? _stats!['active_proposals'] ?? 0}', Icons.pending_actions, AppColors.orange),
-              _statCard('Confirmed', '${_stats!['confirmed'] ?? _stats!['confirmed_proposals'] ?? 0}', Icons.check_circle, AppColors.green),
-              _statCard('Total Votes', '${_stats!['total_votes'] ?? 0}', Icons.how_to_vote, AppColors.purple),
+              _statCard(
+                'Total Proposals',
+                '${_stats!['total_proposals'] ?? 0}',
+                Icons.description,
+                AppColors.blue,
+              ),
+              _statCard(
+                'Active',
+                '${_stats!['active'] ?? _stats!['active_proposals'] ?? 0}',
+                Icons.pending_actions,
+                AppColors.orange,
+              ),
+              _statCard(
+                'Confirmed',
+                '${_stats!['confirmed'] ?? _stats!['confirmed_proposals'] ?? 0}',
+                Icons.check_circle,
+                AppColors.green,
+              ),
+              _statCard(
+                'Total Votes',
+                '${_stats!['total_votes'] ?? 0}',
+                Icons.how_to_vote,
+                AppColors.purple,
+              ),
             ],
           ),
         ],
@@ -384,9 +451,22 @@ class _DAOScreenState extends State<DAOScreen> with SingleTickerProviderStateMix
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );

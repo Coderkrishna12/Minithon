@@ -43,6 +43,12 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PrivacyShield uses the microphone only while you dictate a question to PrivacyBot.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>PrivacyShield converts your spoken question to text for PrivacyBot.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>PrivacyShield uses the camera to scan QR codes for privacy checks. Scanned codes are not opened automatically.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 </dict>

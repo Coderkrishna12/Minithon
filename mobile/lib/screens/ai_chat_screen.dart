@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import '../config/theme.dart';
 import '../services/api_service.dart';
 
@@ -17,7 +19,7 @@ class _ChatMessage {
   final DateTime time;
 
   _ChatMessage({required this.text, required this.isUser, this.isError = false, this.sources = const []})
-      : time = DateTime.now();
+    : time = DateTime.now();
 }
 
 class _AiChatScreenState extends State<AiChatScreen> {
@@ -26,6 +28,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final _scrollCtrl = ScrollController();
   final List<_ChatMessage> _messages = [];
   bool _isTyping = false;
+  bool _isListening = false;
+  static const _voiceChannel = MethodChannel('privacyshield/voice');
 
   final _quickQuestions = [
     'Which of my accounts are most at risk?',
@@ -37,10 +41,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
   @override
   void initState() {
     super.initState();
-    _messages.add(_ChatMessage(
-      text: 'Ask about your accounts, breaches or fixes. Answers come from your own records and the Have I Been Pwned breach catalog, with sources.',
-      isUser: false,
-    ));
+    _messages.add(
+      _ChatMessage(
+        text:
+            "Hi! I'm PrivacyBot, your AI security assistant. Ask me anything about your digital security.",
+        isUser: false,
+      ),
+    );
   }
 
   @override
@@ -65,29 +72,61 @@ class _AiChatScreenState extends State<AiChatScreen> {
     _scrollToBottom();
 
     try {
-      final data = await _api.post('/ai/chat', body: {
-        'message': text.trim(),
-        'history': history.length > 10 ? history.sublist(history.length - 10) : history,
-      });
+      final data = await _api.post(
+        '/ai/chat',
+        body: {
+          'message': text.trim(),
+          'history': history.length > 10
+              ? history.sublist(history.length - 10)
+              : history,
+        },
+      );
 
       final answer = data['response'] as String?;
       setState(() {
-        _messages.add(_ChatMessage(
-          text: answer ?? data['error'] as String? ?? '',
-          isUser: false,
-          isError: answer == null,
-          sources: List<Map<String, dynamic>>.from(data['sources'] as List? ?? const []),
-        ));
+        _messages.add(
+          _ChatMessage(
+            text: answer ?? data['error'] as String? ?? '',
+            isUser: false,
+            isError: answer == null,
+            sources: List<Map<String, dynamic>>.from(data['sources'] as List? ?? const []),
+          ),
+        );
         _isTyping = false;
       });
     } catch (e) {
       setState(() {
-        final text = e is ApiException ? e.message : "Couldn't reach PrivacyBot. Please try again.";
+        final text = e is ApiException
+            ? e.message
+            : "Couldn't reach PrivacyBot. Please try again.";
         _messages.add(_ChatMessage(text: text, isUser: false, isError: true));
         _isTyping = false;
       });
     }
     _scrollToBottom();
+  }
+
+  Future<void> _listen() async {
+    setState(() => _isListening = true);
+    try {
+      final phrase = await _voiceChannel.invokeMethod<String>('listen');
+      if (!mounted || phrase == null || phrase.trim().isEmpty) return;
+      final prefix = _msgCtrl.text.trim();
+      _msgCtrl.text = prefix.isEmpty
+          ? phrase.trim()
+          : '$prefix ${phrase.trim()}';
+      _msgCtrl.selection = TextSelection.collapsed(
+        offset: _msgCtrl.text.length,
+      );
+    } on PlatformException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Voice input is unavailable.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isListening = false);
+    }
   }
 
   void _scrollToBottom() {
@@ -138,7 +177,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     alignment: Alignment.center,
                     child: Text(
                       _quickQuestions[i],
-                      style: const TextStyle(color: AppColors.blue, fontSize: 12),
+                      style: const TextStyle(
+                        color: AppColors.blue,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 );
@@ -162,12 +204,33 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     decoration: const InputDecoration(
                       hintText: 'Ask PrivacyBot...',
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                     maxLines: null,
                     textInputAction: TextInputAction.send,
                     onSubmitted: _sendMessage,
                   ),
+                ),
+                IconButton(
+                  tooltip: _isListening ? 'Listening…' : 'Ask with voice',
+                  icon: _isListening
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.mic_none, color: AppColors.blue),
+                  onPressed:
+                      _isListening ||
+                          !{
+                            TargetPlatform.android,
+                            TargetPlatform.iOS,
+                          }.contains(defaultTargetPlatform)
+                      ? null
+                      : _listen,
                 ),
                 IconButton(
                   icon: const Icon(Icons.send, color: AppColors.blue),
@@ -185,9 +248,25 @@ class _AiChatScreenState extends State<AiChatScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: msg.isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (!msg.isUser) ...[
+            Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [AppColors.blue, AppColors.purple],
+                ),
+              ),
+              child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
+            ),
+            const SizedBox(width: 8),
+          ],
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -247,7 +326,83 @@ class _AiChatScreenState extends State<AiChatScreen> {
   Widget _buildTypingIndicator() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text('SEARCHING YOUR RECORDS…', style: AppText.eyebrow()),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [AppColors.blue, AppColors.purple],
+              ),
+            ),
+            child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(3, (i) {
+                return Padding(
+                  padding: EdgeInsets.only(left: i > 0 ? 4 : 0),
+                  child: const _TypingDot(),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TypingDot extends StatefulWidget {
+  const _TypingDot();
+
+  @override
+  State<_TypingDot> createState() => _TypingDotState();
+}
+
+class _TypingDotState extends State<_TypingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, child) => Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.textMuted.withAlpha(
+            (100 + 155 * _ctrl.value).toInt(),
+          ),
+        ),
+      ),
     );
   }
 }
