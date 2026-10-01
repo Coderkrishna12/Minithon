@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import LayoutWrapper from "@/components/LayoutWrapper";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
 
 export const metadata: Metadata = {
-  title: "PrivacyShield",
-  description: "Digital Footprint & Privacy Risk Auditor",
+  title: "PrivacyShield - Nordic Monolith Security Enclave",
+  description: "Digital Footprint & Hardware-Backed Privacy Risk Auditor",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="min-h-full flex bg-[#0F172A] text-[#F8FAFC]">
-        <Sidebar />
-        <main className="flex-1 ml-64 p-8 overflow-auto">{children}</main>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} h-full dark`}>
+      <body className="min-h-full bg-[#0B0C0E] text-[#F4F4F6] font-sans antialiased selection:bg-[#F4F4F6] selection:text-[#0B0C0E]">
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../config/theme.dart';
 import '../services/api_service.dart';
 import '../models/account.dart';
@@ -82,84 +83,123 @@ class _AccountsScreenState extends State<AccountsScreen> {
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+        side: BorderSide(color: AppColors.border, width: 1.0),
       ),
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, setSheetState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20, right: 20, top: 20,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text('Add Account', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Service Name', hintText: 'e.g. Google, Instagram'),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 20, right: 20, top: 16,
+                  bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 32,
+                          height: 3,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.borderHover,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'VAULT NEW ASSET',
+                        style: GoogleFonts.spaceGrotesk(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 1.5),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Register a credential node to evaluate cascading vulnerability',
+                        style: GoogleFonts.spaceGrotesk(color: AppColors.textMuted, fontSize: 12),
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: nameCtrl,
+                        decoration: const InputDecoration(labelText: 'SERVICE / PLATFORM', hintText: 'e.g. Google, GitHub, Proton'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: emailCtrl,
+                        decoration: const InputDecoration(labelText: 'ASSOCIATED EMAIL / IDENTIFIER'),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: category,
+                        decoration: const InputDecoration(labelText: 'CLASSIFICATION'),
+                        dropdownColor: AppColors.surface,
+                        items: _categories.where((c) => c != 'all').map((c) {
+                          return DropdownMenuItem(
+                            value: c,
+                            child: Text(c.toUpperCase(), style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.w600)),
+                          );
+                        }).toList(),
+                        onChanged: (v) => setSheetState(() => category = v!),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: loginMethod,
+                        decoration: const InputDecoration(labelText: 'AUTHENTICATION VECTOR'),
+                        dropdownColor: AppColors.surface,
+                        items: ['password', 'google_sso', 'apple_sso', 'facebook_sso', 'github_sso']
+                            .map((m) => DropdownMenuItem(
+                                  value: m,
+                                  child: Text(m.replaceAll('_', ' ').toUpperCase(), style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.w600)),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setSheetState(() => loginMethod = v!),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        onChanged: (v) => passwordGroup = v,
+                        decoration: const InputDecoration(labelText: 'PASSWORD COHORT (OPTIONAL)', hintText: 'Shared credential cluster label'),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceLight,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.border, width: 1.0),
+                        ),
+                        child: SwitchListTile(
+                          title: Text('TWO-FACTOR AUTHENTICATION (2FA)', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                          subtitle: Text(has2fa ? 'ACTIVE HARDENING' : 'UNSECURED', style: GoogleFonts.spaceGrotesk(fontSize: 10, color: has2fa ? AppColors.green : AppColors.textMuted)),
+                          value: has2fa,
+                          contentPadding: EdgeInsets.zero,
+                          onChanged: (v) => setSheetState(() => has2fa = v),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (nameCtrl.text.isEmpty) return;
+                          try {
+                            await _api.post('/accounts/', body: {
+                              'service_name': nameCtrl.text,
+                              'email_used': emailCtrl.text.isEmpty ? null : emailCtrl.text,
+                              'category': category,
+                              'login_method': loginMethod,
+                              'password_group': passwordGroup.isEmpty ? null : passwordGroup,
+                              'has_2fa': has2fa,
+                            });
+                            if (context.mounted) Navigator.pop(ctx);
+                            _loadAccounts();
+                          } catch (_) {}
+                        },
+                        child: const Text('VAULT ASSET'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: emailCtrl,
-                    decoration: const InputDecoration(labelText: 'Email Used'),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: category,
-                    decoration: const InputDecoration(labelText: 'Category'),
-                    dropdownColor: AppColors.surface,
-                    items: _categories.where((c) => c != 'all').map((c) {
-                      return DropdownMenuItem(value: c, child: Text(c[0].toUpperCase() + c.substring(1)));
-                    }).toList(),
-                    onChanged: (v) => setSheetState(() => category = v!),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: loginMethod,
-                    decoration: const InputDecoration(labelText: 'Login Method'),
-                    dropdownColor: AppColors.surface,
-                    items: ['password', 'google_sso', 'apple_sso', 'facebook_sso', 'github_sso']
-                        .map((m) => DropdownMenuItem(value: m, child: Text(m.replaceAll('_', ' ').toUpperCase())))
-                        .toList(),
-                    onChanged: (v) => setSheetState(() => loginMethod = v!),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    onChanged: (v) => passwordGroup = v,
-                    decoration: const InputDecoration(labelText: 'Password Group (optional)', hintText: 'Label for shared passwords'),
-                  ),
-                  const SizedBox(height: 12),
-                  SwitchListTile(
-                    title: const Text('2FA Enabled'),
-                    value: has2fa,
-                    activeThumbColor: AppColors.green,
-                    contentPadding: EdgeInsets.zero,
-                    onChanged: (v) => setSheetState(() => has2fa = v),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (nameCtrl.text.isEmpty) return;
-                      try {
-                        await _api.post('/accounts/', body: {
-                          'service_name': nameCtrl.text,
-                          'email_used': emailCtrl.text.isEmpty ? null : emailCtrl.text,
-                          'category': category,
-                          'login_method': loginMethod,
-                          'password_group': passwordGroup.isEmpty ? null : passwordGroup,
-                          'has_2fa': has2fa,
-                        });
-                        if (context.mounted) Navigator.pop(ctx);
-                        _loadAccounts();
-                      } catch (_) {}
-                    },
-                    child: const Text('Add Account'),
-                  ),
-                ],
+                ),
               ),
             ),
           );
@@ -179,26 +219,27 @@ class _AccountsScreenState extends State<AccountsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
               itemCount: _categories.length,
-              separatorBuilder: (_, i) => const SizedBox(width: 8),
+              separatorBuilder: (_, i) => const SizedBox(width: 6),
               itemBuilder: (_, i) {
                 final cat = _categories[i];
                 final selected = cat == _filterCategory;
                 return GestureDetector(
                   onTap: () => setState(() => _filterCategory = cat),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      color: selected ? AppColors.blue : AppColors.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: selected ? AppColors.blue : AppColors.border),
+                      color: selected ? AppColors.textPrimary : AppColors.surface,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: selected ? AppColors.textPrimary : AppColors.border, width: 1.0),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      cat[0].toUpperCase() + cat.substring(1),
-                      style: TextStyle(
-                        color: selected ? Colors.white : AppColors.textSecondary,
-                        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                        fontSize: 13,
+                      cat.toUpperCase(),
+                      style: GoogleFonts.spaceGrotesk(
+                        color: selected ? AppColors.background : AppColors.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                        letterSpacing: 0.8,
                       ),
                     ),
                   ),
@@ -209,14 +250,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
           const SizedBox(height: 12),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.blue))
+                ? const Center(child: CircularProgressIndicator(color: AppColors.textPrimary))
                 : RefreshIndicator(
                     onRefresh: _loadAccounts,
-                    color: AppColors.blue,
+                    color: AppColors.textPrimary,
                     child: _filteredAccounts.isEmpty
                         ? ListView(children: [
                             const SizedBox(height: 100),
-                            const Center(child: Text('No accounts yet', style: TextStyle(color: AppColors.textMuted))),
+                            Center(child: Text('NO VAULTED ACCOUNTS', style: GoogleFonts.spaceGrotesk(color: AppColors.textMuted, fontSize: 12, letterSpacing: 1.0))),
                           ])
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -229,35 +270,39 @@ class _AccountsScreenState extends State<AccountsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddAccountSheet,
-        backgroundColor: AppColors.blue,
-        child: const Icon(Icons.add),
+        backgroundColor: AppColors.textPrimary,
+        foregroundColor: AppColors.background,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: const Icon(Icons.add, size: 22),
       ),
     );
   }
 
   Widget _buildAccountCard(Account account) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border, width: 1.0),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         leading: Container(
-          width: 44,
-          height: 44,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
-            color: _riskColor(account.riskScore).withAlpha(30),
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.border, width: 1.0),
           ),
-          child: Icon(_categoryIcon(account.category), color: _riskColor(account.riskScore)),
+          child: Icon(_categoryIcon(account.category), color: AppColors.textPrimary, size: 16),
         ),
-        title: Text(account.serviceName, style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(account.serviceName, style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w700, fontSize: 14)),
         subtitle: Text(
-          account.emailUsed ?? account.category,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          account.emailUsed ?? account.category.toUpperCase(),
+          style: GoogleFonts.spaceGrotesk(color: AppColors.textMuted, fontSize: 11),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -265,20 +310,21 @@ class _AccountsScreenState extends State<AccountsScreen> {
             if (account.has2fa)
               const Padding(
                 padding: EdgeInsets.only(right: 8),
-                child: Icon(Icons.verified_user, color: AppColors.green, size: 18),
+                child: Icon(Icons.verified_user_outlined, color: AppColors.green, size: 16),
               ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               decoration: BoxDecoration(
-                color: _riskColor(account.riskScore).withAlpha(30),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: _riskColor(account.riskScore).withAlpha(120), width: 1.0),
               ),
               child: Text(
                 '${account.riskScore.toInt()}',
-                style: TextStyle(
+                style: GoogleFonts.spaceGrotesk(
                   color: _riskColor(account.riskScore),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
                 ),
               ),
             ),

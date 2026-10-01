@@ -18,13 +18,14 @@ import 'screens/darkweb_screen.dart';
 import 'screens/smart_import_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/ar_scanner_screen.dart';
+import 'screens/android_security_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: AppColors.surface,
+    systemNavigationBarColor: AppColors.background,
     systemNavigationBarIconBrightness: Brightness.light,
   ));
   runApp(const PrivacyShieldApp());
@@ -58,6 +59,7 @@ class PrivacyShieldApp extends StatelessWidget {
           '/smart-import': (_) => const SmartImportScreen(),
           '/reminders': (_) => const RemindersScreen(),
           '/ar-scanner': (_) => const ARScannerScreen(),
+          '/android-security': (_) => const AndroidSecurityScreen(),
         },
       ),
     );

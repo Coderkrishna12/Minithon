@@ -21,8 +21,11 @@ KNOWN_BREACHES_DB = {
 }
 
 
+from app.services.risk_engine import calculate_account_risk
+
+
 async def check_hibp(email: str) -> list[dict]:
-    """Check HaveIBeenPwned API for breaches. Falls back to local DB if no API key."""
+    """Check HaveIBeenPwned API for breaches."""
     if settings.hibp_api_key:
         try:
             async with httpx.AsyncClient() as client:
@@ -44,9 +47,24 @@ async def check_hibp(email: str) -> list[dict]:
 
 
 async def check_account_breaches(account: Account, db: AsyncSession) -> list[dict]:
-    """Check an account for known breaches using email and service URL."""
+    """Check an account for verified personal leaks.
+
+    Only genuine email leaks returned by HaveIBeenPwned are treated as confirmed personal breaches.
+    Historical service incidents are not falsely attributed to the user's specific credentials.
+    """
     found_breaches = []
 
+    # 1. Clean up any obsolete/unverified "known_db" records falsely tied to this account
+    obsolete = await db.execute(
+        select(BreachRecord).where(
+            BreachRecord.account_id == account.id,
+            BreachRecord.source == "known_db",
+        )
+    )
+    for rec in obsolete.scalars().all():
+        await db.delete(rec)
+
+    # 2. Check HaveIBeenPwned for verified leaks involving this specific email
     if account.email_used:
         hibp_results = await check_hibp(account.email_used)
         for breach in hibp_results:
@@ -57,13 +75,7 @@ async def check_account_breaches(account: Account, db: AsyncSession) -> list[dic
                 "source": "hibp",
             })
 
-    service_lower = (account.service_name or "").lower()
-    service_url = (account.service_url or "").lower()
-    for domain, breaches in KNOWN_BREACHES_DB.items():
-        if domain.split(".")[0] in service_lower or domain in service_url:
-            for b in breaches:
-                found_breaches.append({**b, "source": "known_db"})
-
+    # 3. Store verified breaches
     for breach_data in found_breaches:
         existing = await db.execute(
             select(BreachRecord).where(
@@ -83,28 +95,44 @@ async def check_account_breaches(account: Account, db: AsyncSession) -> list[dic
                 breach_name=breach_data["name"],
                 breach_date=breach_date,
                 data_exposed=breach_data.get("data", []),
-                source=breach_data.get("source", "unknown"),
+                source="hibp",
             )
             db.add(record)
 
             notification = Notification(
                 user_id=account.user_id,
-                title=f"Breach detected: {breach_data['name']}",
-                message=f"Your account {account.service_name} ({account.email_used}) was found in the {breach_data['name']} breach. Data exposed: {', '.join(breach_data.get('data', []))}",
+                title=f"Verified Breach: {breach_data['name']}",
+                message=f"Your email ({account.email_used}) was confirmed in the {breach_data['name']} breach. Exposed data: {', '.join(breach_data.get('data', []))}",
                 severity="critical",
                 related_account_id=account.id,
             )
             db.add(notification)
 
-    if found_breaches:
-        account.breach_count = len(found_breaches)
-        if found_breaches[0].get("date"):
-            try:
-                account.last_breach_date = datetime.fromisoformat(found_breaches[0]["date"]).replace(tzinfo=timezone.utc)
-            except (ValueError, TypeError):
-                pass
-        await db.commit()
+    # If no verified breaches, remove false previous notifications
+    if not found_breaches:
+        false_notifications = await db.execute(
+            select(Notification).where(
+                Notification.related_account_id == account.id,
+                Notification.title.like("%Instagram 2019%"),
+            )
+        )
+        for notif in false_notifications.scalars().all():
+            await db.delete(notif)
 
+    # Update account breach metrics strictly reflecting verified leaks
+    account.breach_count = len(found_breaches)
+    if found_breaches and found_breaches[0].get("date"):
+        try:
+            account.last_breach_date = datetime.fromisoformat(found_breaches[0]["date"]).replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            pass
+    else:
+        account.last_breach_date = None
+
+    # Recalculate risk score
+    account.risk_score = await calculate_account_risk(account, db)
+
+    await db.commit()
     return found_breaches
 
 

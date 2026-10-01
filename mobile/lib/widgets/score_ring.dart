@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../config/theme.dart';
 
 class ScoreRing extends StatelessWidget {
@@ -10,22 +11,22 @@ class ScoreRing extends StatelessWidget {
   const ScoreRing({
     super.key,
     required this.score,
-    this.size = 160,
-    this.strokeWidth = 12,
+    this.size = 180,
+    this.strokeWidth = 6,
   });
 
   Color get _scoreColor {
-    if (score >= 80) return AppColors.green;
-    if (score >= 60) return AppColors.blue;
+    if (score >= 80) return AppColors.textPrimary; // Crisp Bone White
+    if (score >= 60) return AppColors.titanium;
     if (score >= 40) return AppColors.orange;
     return AppColors.red;
   }
 
   String get _label {
-    if (score >= 80) return 'Strong';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Fair';
-    return 'Weak';
+    if (score >= 80) return 'OPTIMAL';
+    if (score >= 60) return 'ELEVATED';
+    if (score >= 40) return 'AT_RISK';
+    return 'CRITICAL';
   }
 
   @override
@@ -34,7 +35,7 @@ class ScoreRing extends StatelessWidget {
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _RingPainter(
+        painter: _PrecisionDialPainter(
           score: score,
           color: _scoreColor,
           strokeWidth: strokeWidth,
@@ -44,19 +45,55 @@ class ScoreRing extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                score.toInt().toString(),
-                style: TextStyle(
-                  fontSize: size * 0.25,
-                  fontWeight: FontWeight.bold,
-                  color: _scoreColor,
+                'PRIVACY_INDEX',
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 10,
+                  letterSpacing: 2.0,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted,
                 ),
               ),
-              Text(
-                _label,
-                style: TextStyle(
-                  fontSize: size * 0.09,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+              const SizedBox(height: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    score.toInt().toString(),
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: size * 0.28,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -1.0,
+                      color: _scoreColor,
+                    ),
+                  ),
+                  Text(
+                    '/100',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.border, width: 1.0),
+                ),
+                child: Text(
+                  _label,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 9,
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w700,
+                    color: _scoreColor,
+                  ),
                 ),
               ),
             ],
@@ -67,12 +104,12 @@ class ScoreRing extends StatelessWidget {
   }
 }
 
-class _RingPainter extends CustomPainter {
+class _PrecisionDialPainter extends CustomPainter {
   final double score;
   final Color color;
   final double strokeWidth;
 
-  _RingPainter({
+  _PrecisionDialPainter({
     required this.score,
     required this.color,
     required this.strokeWidth,
@@ -81,32 +118,65 @@ class _RingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
+    final radius = (size.width - strokeWidth * 2) / 2;
 
-    final bgPaint = Paint()
+    // 1. Draw outer subtle tick marks (60 ticks like a precision mechanical gauge)
+    final tickPaint = Paint()
+      ..color = AppColors.borderHover
+      ..strokeWidth = 1.0;
+
+    final activeTickPaint = Paint()
+      ..color = AppColors.titanium
+      ..strokeWidth = 1.5;
+
+    const totalTicks = 48;
+    const startAngle = -pi / 2;
+    final activeTicksCount = ((score / 100) * totalTicks).round();
+
+    for (int i = 0; i < totalTicks; i++) {
+      final angle = startAngle + (i / totalTicks) * 2 * pi;
+      final isMajor = i % 6 == 0;
+      final tickLength = isMajor ? 6.0 : 3.0;
+
+      final startOffset = Offset(
+        center.dx + (radius + 6) * cos(angle),
+        center.dy + (radius + 6) * sin(angle),
+      );
+      final endOffset = Offset(
+        center.dx + (radius + 6 + tickLength) * cos(angle),
+        center.dy + (radius + 6 + tickLength) * sin(angle),
+      );
+
+      final paintToUse = i <= activeTicksCount ? activeTickPaint : tickPaint;
+      canvas.drawLine(startOffset, endOffset, paintToUse);
+    }
+
+    // 2. Track background arc
+    final trackPaint = Paint()
       ..color = AppColors.surfaceLight
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    canvas.drawCircle(center, radius, bgPaint);
+      ..strokeCap = StrokeCap.square;
+    canvas.drawCircle(center, radius, trackPaint);
 
-    final fgPaint = Paint()
+    // 3. Active score arc
+    final sweepAngle = (score / 100) * 2 * pi;
+    final activeArcPaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.square;
 
-    final sweepAngle = (score / 100) * 2 * pi;
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -pi / 2,
       sweepAngle,
       false,
-      fgPaint,
+      activeArcPaint,
     );
   }
 
   @override
-  bool shouldRepaint(covariant _RingPainter oldDelegate) =>
+  bool shouldRepaint(covariant _PrecisionDialPainter oldDelegate) =>
       oldDelegate.score != score || oldDelegate.color != color;
 }

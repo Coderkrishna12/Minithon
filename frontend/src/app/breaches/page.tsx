@@ -22,7 +22,11 @@ interface Prediction {
 
 export default function BreachesPage() {
   const [scanning, setScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<{ total_accounts_scanned: number; affected_accounts: number; total_breaches_found: number } | null>(null);
+  const [scanResult, setScanResult] = useState<{
+    total_accounts_scanned: number;
+    affected_accounts: number;
+    total_breaches_found: number;
+  } | null>(null);
   const [history, setHistory] = useState<BreachRecord[]>([]);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [activeTab, setActiveTab] = useState<"scan" | "history" | "predict">("scan");
@@ -45,69 +49,100 @@ export default function BreachesPage() {
     } catch {}
   };
 
-  const riskColors: Record<string, string> = { critical: "#EF4444", high: "#F59E0B", medium: "#3B82F6", low: "#10B981" };
+  const riskColors: Record<string, string> = {
+    critical: "#E54D2E",
+    high: "#D97706",
+    medium: "#D4D6DC",
+    low: "#3E9B66",
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Breach Scanner</h1>
-        <p className="text-[#94A3B8] text-sm mt-1">Check your accounts against known data breaches and predict future risks</p>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#222429] gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E54D2E]" />
+            <span className="text-[10px] font-mono tracking-widest text-[#6B6E78] uppercase font-display">
+              LEAK RECONNAISSANCE // HIBP & DARK WEB DUMPS
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold font-display tracking-tight text-[#F4F4F6] mt-1">
+            Breach Intelligence & Predictive Radar
+          </h1>
+          <p className="text-xs text-[#A1A3AA] mt-0.5">
+            Audit known external paste dumps, dark web databases, and calculate machine-learned compromise probabilities.
+          </p>
+        </div>
       </div>
 
-      <div className="flex gap-2">
-        {(["scan", "history", "predict"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => {
-              setActiveTab(tab);
-              if (tab === "history" && history.length === 0) api.get("/breaches/history").then((r) => setHistory(r.data)).catch(() => {});
-              if (tab === "predict" && predictions.length === 0) loadPredictions();
-            }}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              activeTab === tab ? "bg-[#3B82F6] text-white" : "bg-[#1E293B] text-[#94A3B8] border border-[#334155]"
-            }`}
-          >
-            {tab === "scan" ? "Scan Now" : tab === "history" ? "Breach History" : "AI Predictions"}
-          </button>
-        ))}
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-[#222429] pb-3">
+        {(["scan", "history", "predict"] as const).map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <button
+              key={tab}
+              onClick={() => {
+                setActiveTab(tab);
+                if (tab === "history" && history.length === 0) {
+                  api.get("/breaches/history").then((r) => setHistory(r.data)).catch(() => {});
+                }
+                if (tab === "predict" && predictions.length === 0) loadPredictions();
+              }}
+              className={`px-3.5 py-1.5 rounded text-xs font-mono tracking-wider uppercase transition-all ${
+                isActive
+                  ? "bg-[#18191E] text-[#F4F4F6] border border-[#2B2E36]"
+                  : "text-[#6B6E78] hover:text-[#A1A3AA] border border-transparent"
+              }`}
+            >
+              {tab === "scan" ? "01 // LIVE RECON" : tab === "history" ? `02 // INCIDENT ARCHIVE (${history.length})` : "03 // ML PREDICTIONS"}
+            </button>
+          );
+        })}
       </div>
 
+      {/* Tab 1: Live Recon Scan */}
       {activeTab === "scan" && (
         <div className="space-y-6">
-          <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-8 text-center">
-            <div className="w-16 h-16 bg-[#F59E0B]/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <div className="monolith-card p-8 text-center flex flex-col items-center">
+            <div className="w-12 h-12 rounded border border-[#222429] bg-[#0B0C0E] flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-[#E54D2E]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold mb-2">Breach Database Scan</h2>
-            <p className="text-[#94A3B8] text-sm mb-6 max-w-md mx-auto">
-              Scans all your accounts against HaveIBeenPwned and our known breach database. Checks email addresses and service names.
+            <h2 className="text-sm font-bold tracking-widest text-[#F4F4F6] uppercase font-display mb-2">
+              DATABASE LEAK RECONNAISSANCE SCAN
+            </h2>
+            <p className="text-xs text-[#A1A3AA] mb-6 max-w-md">
+              Validates all monitored identities and service credentials against verified external breaches and pastebin disclosures.
             </p>
             <button
               onClick={runScan}
               disabled={scanning}
-              className="px-8 py-3 bg-[#F59E0B] hover:bg-[#D97706] disabled:opacity-50 text-black font-medium rounded-xl transition-all"
+              className="monolith-btn-primary px-8 py-3 disabled:opacity-50"
             >
-              {scanning ? "Scanning..." : "Run Full Scan"}
+              {scanning ? "AUDITING PUBLIC DUMPS..." : "INITIATE RECON SCAN"}
             </button>
           </div>
 
           {scanResult && (
-            <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 animate-slide-up">
-              <h3 className="text-lg font-semibold mb-4">Scan Results</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-[#0F172A] rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-[#3B82F6]">{scanResult.total_accounts_scanned}</p>
-                  <p className="text-xs text-[#94A3B8]">Accounts Scanned</p>
+            <div className="monolith-card p-6 animate-slide-up">
+              <h3 className="text-xs font-bold tracking-widest text-[#6B6E78] uppercase font-display mb-4">
+                RECON SCAN OUTCOME
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-[#0B0C0E] border border-[#222429] rounded p-4 text-center">
+                  <div className="text-3xl font-black font-display text-[#F4F4F6]">{scanResult.total_accounts_scanned}</div>
+                  <div className="text-[10px] font-mono tracking-widest text-[#6B6E78] uppercase mt-1">NODES AUDITED</div>
                 </div>
-                <div className="bg-[#0F172A] rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-[#EF4444]">{scanResult.affected_accounts}</p>
-                  <p className="text-xs text-[#94A3B8]">Affected Accounts</p>
+                <div className="bg-[#0B0C0E] border border-[#222429] rounded p-4 text-center">
+                  <div className="text-3xl font-black font-display text-[#E54D2E]">{scanResult.affected_accounts}</div>
+                  <div className="text-[10px] font-mono tracking-widest text-[#E54D2E] uppercase mt-1">IDENTITIES COMPROMISED</div>
                 </div>
-                <div className="bg-[#0F172A] rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-[#F59E0B]">{scanResult.total_breaches_found}</p>
-                  <p className="text-xs text-[#94A3B8]">Breaches Found</p>
+                <div className="bg-[#0B0C0E] border border-[#222429] rounded p-4 text-center">
+                  <div className="text-3xl font-black font-display text-[#D97706]">{scanResult.total_breaches_found}</div>
+                  <div className="text-[10px] font-mono tracking-widest text-[#D97706] uppercase mt-1">VERIFIED LEAK OCCURRENCES</div>
                 </div>
               </div>
             </div>
@@ -115,65 +150,88 @@ export default function BreachesPage() {
         </div>
       )}
 
+      {/* Tab 2: Breach History */}
       {activeTab === "history" && (
         <div className="space-y-3">
           {history.map((b) => (
-            <div key={b.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4 flex items-start gap-4">
-              <div className="w-10 h-10 bg-[#EF4444]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-[#EF4444]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495z" clipRule="evenodd" />
-                </svg>
+            <div key={b.id} className="monolith-card p-4 flex items-start gap-4">
+              <div className="w-8 h-8 rounded border border-[#E54D2E]/30 bg-[#E54D2E]/10 flex items-center justify-center flex-shrink-0 text-xs font-mono text-[#E54D2E]">
+                !
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{b.breach_name}</span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-[#EF4444]/15 text-[#EF4444]">{b.source}</span>
+                  <span className="text-xs font-bold font-display text-[#F4F4F6]">{b.breach_name}</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#E54D2E]/10 text-[#E54D2E] border border-[#E54D2E]/20">
+                    {b.source}
+                  </span>
                 </div>
-                <p className="text-sm text-[#94A3B8] mt-1">Account: {b.account_name}</p>
-                {b.breach_date && <p className="text-xs text-[#64748B]">Date: {b.breach_date.split("T")[0]}</p>}
+                <p className="text-xs text-[#A1A3AA] mt-1 font-mono">ACCOUNT: {b.account_name}</p>
+                {b.breach_date && <p className="text-[11px] text-[#6B6E78] font-mono">LEAK TIMESTAMP: {b.breach_date.split("T")[0]}</p>}
                 {b.data_exposed.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  <div className="flex flex-wrap gap-1.5 mt-2">
                     {b.data_exposed.map((d) => (
-                      <span key={d} className="text-[10px] px-1.5 py-0.5 rounded bg-[#0F172A] text-[#94A3B8]">{d}</span>
+                      <span key={d} className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0B0C0E] border border-[#222429] text-[#A1A3AA]">
+                        {d}
+                      </span>
                     ))}
                   </div>
                 )}
               </div>
             </div>
           ))}
-          {history.length === 0 && <p className="text-center text-[#64748B] py-12">No breaches found. Run a scan first.</p>}
+          {history.length === 0 && (
+            <div className="text-center py-12 text-xs font-mono text-[#6B6E78]">
+              No confirmed breach occurrences logged. Trigger recon scan above.
+            </div>
+          )}
         </div>
       )}
 
+      {/* Tab 3: Predictions */}
       {activeTab === "predict" && (
         <div className="space-y-3">
-          <p className="text-sm text-[#94A3B8] mb-4">AI-predicted breach probability for each account over the next 6 months</p>
+          <p className="text-xs text-[#A1A3AA]">
+            Algorithmic forecast of credential vulnerability and breach probability over the upcoming 180-day window.
+          </p>
           {predictions.map((p, i) => (
-            <div key={i} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
+            <div key={i} className="monolith-card p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">{p.service}</span>
+                <span className="text-xs font-bold font-display text-[#F4F4F6]">{p.service}</span>
                 <span
-                  className="text-sm font-bold px-3 py-1 rounded-full"
-                  style={{ backgroundColor: `${riskColors[p.risk_level] || "#3B82F6"}20`, color: riskColors[p.risk_level] || "#3B82F6" }}
+                  className="text-xs font-mono font-bold px-2 py-0.5 rounded border"
+                  style={{
+                    backgroundColor: `${riskColors[p.risk_level] || "#D4D6DC"}15`,
+                    borderColor: `${riskColors[p.risk_level] || "#D4D6DC"}30`,
+                    color: riskColors[p.risk_level] || "#D4D6DC",
+                  }}
                 >
-                  {p.probability_6_months}%
+                  {p.probability_6_months}% PROBABILITY
                 </span>
               </div>
-              <div className="w-full bg-[#0F172A] rounded-full h-2 mb-3">
+              <div className="w-full bg-[#0B0C0E] rounded-full h-1.5 mb-2 overflow-hidden">
                 <div
-                  className="h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${p.probability_6_months}%`, backgroundColor: riskColors[p.risk_level] || "#3B82F6" }}
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${p.probability_6_months}%`,
+                    backgroundColor: riskColors[p.risk_level] || "#D4D6DC",
+                  }}
                 />
               </div>
-              <p className="text-xs text-[#94A3B8]">{p.recommendation}</p>
-              <div className="flex gap-3 mt-2">
+              <p className="text-xs text-[#A1A3AA]">{p.recommendation}</p>
+              <div className="flex flex-wrap gap-3 mt-2 text-[10px] font-mono text-[#6B6E78]">
                 {Object.entries(p.factors).map(([k, v]) => (
-                  <span key={k} className="text-[10px] text-[#64748B]">{k.replace(/_/g, " ")}: {v}%</span>
+                  <span key={k}>
+                    {k.replace(/_/g, " ").toUpperCase()}: {v}%
+                  </span>
                 ))}
               </div>
             </div>
           ))}
-          {predictions.length === 0 && <p className="text-center text-[#64748B] py-12">Loading predictions...</p>}
+          {predictions.length === 0 && (
+            <div className="text-center py-12 text-xs font-mono text-[#6B6E78]">
+              Generating predictive vulnerability heuristics...
+            </div>
+          )}
         </div>
       )}
     </div>

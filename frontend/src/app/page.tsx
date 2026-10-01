@@ -4,56 +4,93 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F172A] -ml-64 px-6">
-      <div className="text-center max-w-3xl animate-slide-up">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] text-sm mb-8">
-          <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
-          AI-Powered &middot; Blockchain-Verified
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#0B0C0E] px-6 py-20 text-[#F4F4F6]">
+      <div className="text-center max-w-4xl animate-fade-in">
+        {/* Enclave Status Badge */}
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded bg-[#131417] border border-[#222429] mb-8">
+          <span className="w-2 h-2 rounded-full bg-[#3E9B66]" />
+          <span className="text-[10px] font-mono tracking-widest text-[#6B6E78] uppercase font-display">
+            NORDIC SECURITY ENCLAVE // MULTI-LAYER TELEMETRY
+          </span>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold mb-6">
-          <span className="bg-gradient-to-r from-[#3B82F6] via-[#8B5CF6] to-[#EC4899] bg-clip-text text-transparent">
-            PrivacyShield
-          </span>
+        {/* Primary Monolith Title */}
+        <h1 className="text-5xl md:text-7xl font-black font-display tracking-tight text-[#F4F4F6] mb-6 leading-[1.05]">
+          PRIVACYSHIELD
         </h1>
 
-        <p className="text-xl text-[#94A3B8] mb-4">
-          Digital Footprint &amp; Privacy Risk Auditor
+        <p className="text-lg md:text-xl font-display text-[#D4D6DC] mb-3 max-w-2xl mx-auto">
+          Cryptographic Identity Defense, Attack Cascade Simulator &amp; Physical Airspace Radar
         </p>
 
-        <p className="text-[#64748B] max-w-xl mx-auto mb-10 leading-relaxed">
-          Map your entire digital identity. See how accounts connect.
-          Discover which breach could unlock everything.
-          AI finds the risks. You fix them. Blockchain proves it.
+        <p className="text-xs md:text-sm font-mono text-[#6B6E78] max-w-xl mx-auto mb-10 leading-relaxed">
+          Map interconnected attack surfaces. Calculate blast radiuses before credential stuffing cascades. Audit Android system permissions, anti-theft sentry, and rogue RF airspace.
         </p>
 
-        <div className="flex gap-4 justify-center">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <Link
             href="/register"
-            className="px-8 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-[#3B82F6]/25"
+            className="monolith-btn-primary px-8 py-3 w-full sm:w-auto text-xs"
           >
-            Get Started
+            INITIALIZE ENCLAVE AUDIT
           </Link>
           <Link
             href="/login"
-            className="px-8 py-3 border border-[#334155] hover:border-[#3B82F6] text-[#94A3B8] hover:text-white rounded-xl font-medium transition-all"
+            className="monolith-btn-outline px-8 py-3 w-full sm:w-auto text-xs flex items-center justify-center gap-2"
           >
-            Sign In
+            <svg className="w-4 h-4 text-[#F4F4F6]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+            AUTHENTICATE PASSKEY
           </Link>
         </div>
 
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Feature Matrix Cards */}
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
           {[
-            { title: "Account Graph", desc: "Visualize how all your accounts interconnect through SSO, recovery emails, and shared passwords", color: "#3B82F6" },
-            { title: "AI Risk Engine", desc: "Graph Neural Networks model cascading risk — one weak account can expose your entire network", color: "#8B5CF6" },
-            { title: "Blockchain Proof", desc: "Every audit and fix is hashed on-chain. Prove your security posture with zero-knowledge proofs", color: "#10B981" },
+            {
+              code: "01",
+              title: "Domino Threat Simulator",
+              desc: "Calculates the collateral blast radius across SSO, secondary emails, and reused password clusters.",
+              tag: "CASCADE ENGINE",
+            },
+            {
+              code: "02",
+              title: "Android Sentry & Theft Guard",
+              desc: "Audits accessibility banking trojans, overlay tapjacking, and arms motion pickpocket sensors.",
+              tag: "ENDPOINT SHIELD",
+            },
+            {
+              code: "03",
+              title: "Airspace RF Radar",
+              desc: "Detects evil-twin WiFi access points, rogue Bluetooth tracking tags, and acoustic beacons in physical space.",
+              tag: "PHYSICAL SENSORS",
+            },
+            {
+              code: "04",
+              title: "Hardware Passkey Enclave",
+              desc: "Zero-knowledge cryptographic audit proofs anchored on-chain with hardware biometric authentication.",
+              tag: "CRYPTO PROOFS",
+            },
           ].map((f) => (
-            <div key={f.title} className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 text-left hover:border-[#475569] transition-all">
-              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ backgroundColor: `${f.color}20` }}>
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: f.color }} />
+            <div
+              key={f.code}
+              className="bg-[#131417] border border-[#222429] rounded-lg p-5 hover:border-[#383B43] transition-all flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-mono text-[#6B6E78] font-bold">{f.code} //</span>
+                  <span className="text-[9px] font-mono text-[#D4D6DC] px-1.5 py-0.5 rounded bg-[#0B0C0E] border border-[#222429]">
+                    {f.tag}
+                  </span>
+                </div>
+                <h3 className="text-sm font-bold font-display text-[#F4F4F6] mb-2">{f.title}</h3>
+                <p className="text-xs text-[#A1A3AA] leading-relaxed">{f.desc}</p>
               </div>
-              <h3 className="font-semibold mb-2">{f.title}</h3>
-              <p className="text-sm text-[#94A3B8] leading-relaxed">{f.desc}</p>
+              <div className="mt-4 pt-3 border-t border-[#1C1E24] text-[10px] font-mono text-[#3E9B66]">
+                STATUS: VERIFIED
+              </div>
             </div>
           ))}
         </div>

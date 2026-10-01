@@ -1,43 +1,151 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0F172A;
-  --foreground: #F8FAFC;
-  --bg-secondary: #1E293B;
-  --bg-card: #1E293B;
-  --bg-card-hover: #334155;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --accent-blue: #3B82F6;
-  --accent-cyan: #06B6D4;
-  --accent-purple: #8B5CF6;
-  --accent-green: #10B981;
-  --accent-orange: #F59E0B;
-  --accent-red: #EF4444;
-  --accent-pink: #EC4899;
-  --border-color: #334155;
+  --background: #0B0C0E;
+  --foreground: #F4F4F6;
+  --bg-secondary: #131417;
+  --bg-card: #131417;
+  --bg-card-hover: #1B1C21;
+  --bg-elevated: #23252B;
+  --text-primary: #F4F4F6;
+  --text-secondary: #A1A3AA;
+  --text-muted: #6B6E78;
+  --titanium: #D4D6DC;
+  --border-color: #222429;
+  --border-hover: #383B43;
+
+  /* Nordic Monolith Non-Slop Palette */
+  --accent-primary: #EDEDED;
+  --accent-blue: #EDEDED; /* Primary bone white CTA */
+  --accent-green: #3E9B66; /* Mineral Sage */
+  --accent-orange: #D97706; /* Raw Ochre */
+  --accent-red: #E54D2E; /* Raw Vermilion Alert */
+  --accent-purple: #8E929E; /* Titanium Gray */
+  --accent-cyan: #CFD3DC; /* Quartz */
+  --accent-pink: #B5BAC6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-space-grotesk), monospace;
+  --font-display: var(--font-space-grotesk), sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #0B0C0E;
+  color: #F4F4F6;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 
+h1, h2, h3, h4, .font-display, .font-heading {
+  font-family: var(--font-space-grotesk), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Hairline Nordic Scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--bg-card-hover) var(--bg-secondary);
+  scrollbar-color: #222429 #0B0C0E;
 }
 
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B0C0E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222429;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #383B43;
+}
+
+/* Monolith Card & UI Utility Classes */
+.monolith-card {
+  background-color: #131417;
+  border: 1px solid #222429;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.monolith-card:hover {
+  border-color: #383B43;
+}
+
+.monolith-badge {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.monolith-btn-primary {
+  background-color: #F4F4F6;
+  color: #0B0C0E;
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  padding: 10px 18px;
+  transition: all 0.2s ease;
+}
+
+.monolith-btn-primary:hover {
+  background-color: #FFFFFF;
+  box-shadow: 0 0 16px rgba(244, 244, 246, 0.12);
+}
+
+.monolith-btn-outline {
+  background-color: transparent;
+  color: #F4F4F6;
+  border: 1px solid #222429;
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  padding: 10px 18px;
+  transition: all 0.2s ease;
+}
+
+.monolith-btn-outline:hover {
+  background-color: #1B1C21;
+  border-color: #383B43;
+}
+
+/* Monolith Inputs */
+input, select, textarea {
+  background-color: #0B0C0E !important;
+  border: 1px solid #222429 !important;
+  color: #F4F4F6 !important;
+  border-radius: 6px !important;
+  font-size: 0.875rem !important;
+  transition: border-color 0.2s ease !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: #D4D6DC !important;
+}
+
+/* Minimal Keyframes */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -47,9 +155,9 @@ body {
 }
 
 .animate-slide-up {
-  animation: slide-up 0.5s ease-out forwards;
+  animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out forwards;
+  animation: fade-in 0.25s ease-out forwards;
 }
