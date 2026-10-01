@@ -53,9 +53,10 @@ def _blast(accounts, connections):
             weight = EDGE_PROBABILITY.get(_get(edge, "connection_type"), 0.3)
             adjacency[source].append((target, weight))
     by_id = {_get(a, "id"): a for a in accounts}
-    max_radius = max(sum(_asset(a) for a in accounts) - _asset(src), 0.1)
+    total_assets = sum(_asset(a) for a in accounts)
     scores, reachable, paths = {}, {}, {}
     for source in by_id:
+        max_radius = max(total_assets - _asset(by_id[source]), 0.1)
         best = {source: 1.0}
         queue = deque([(source, 1.0, 0)])
         while queue:
