@@ -1,0 +1,13 @@
+{
+  "summary": "Returns catalog of 8 major data brokers with opt-out links and targeted data types.",
+  "brokers": [
+    "Spokeo",
+    "Whitepages",
+    "BeenVerified",
+    "Intelius",
+    "PeopleFinder",
+    "TruePeopleSearch",
+    "FastPeopleSearch",
+    "ThatsThem"
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "summary": "PDF claims ML model trained on breach patterns and company size. Implementation is a deterministic heuristic formula based on category, breach history, 2FA, and password reuse.",
+  "actual_implementation": "Rule-based scoring formula in ai_engine.py:predict_breach_probability"
+}

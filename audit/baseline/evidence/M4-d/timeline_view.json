@@ -1,0 +1,5 @@
+{
+  "summary": "HTTP 500: Timeline endpoint crashes with TypeError: can't compare offset-naive and offset-aware datetimes in timeline.py line 103/129 when completed fixes exist.",
+  "status_code": 500,
+  "response_text": "Internal Server Error"
+}

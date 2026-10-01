@@ -1,0 +1,4 @@
+{
+  "summary": "Reports total breaches_found, but not total individual records exposed or remediation status breakdown.",
+  "breaches_found": 1
+}

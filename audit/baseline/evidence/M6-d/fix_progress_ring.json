@@ -1,0 +1,5 @@
+{
+  "summary": "Pending/completed counts rendered; SVG progress ring absent on dashboard page.",
+  "fixes_completed": 1,
+  "fixes_pending": 11
+}

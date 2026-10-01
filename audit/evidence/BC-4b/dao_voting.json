@@ -1,0 +1,8 @@
+{
+  "summary": "Community validator vote recorded successfully.",
+  "vote_response": {
+    "status": "voted",
+    "votes_for": 1,
+    "votes_against": 0
+  }
+}

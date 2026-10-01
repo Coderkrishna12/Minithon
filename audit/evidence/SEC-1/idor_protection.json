@@ -1,0 +1,5 @@
+{
+  "summary": "IDOR test: User B querying or deleting User A's account ID receives 404 Not Found. Proper user scoping confirmed.",
+  "idor_read_status": 404,
+  "idor_delete_status": 404
+}

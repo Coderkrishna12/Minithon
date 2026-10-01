@@ -1,0 +1,86 @@
+{
+  "summary": "Context-aware response retrieves linked accounts and recovery edges.",
+  "response": {
+    "response": null,
+    "error": "PrivacyBot needs an Anthropic API key. Set ANTHROPIC_API_KEY in backend/.env. The most relevant records are listed below.",
+    "sources": [
+      {
+        "n": 1,
+        "title": "Get Revenge On Your Ex breach",
+        "type": "hibp_breach",
+        "label": "Have I Been Pwned",
+        "url": "https://haveibeenpwned.com/PwnedWebsites#GetRevengeOnYourEx",
+        "snippet": "Get Revenge On Your Ex (getrevengeonyourex.com) was breached on 2022-09-09, exposing 79,195 accounts. Compromised data: Email addresses, IP addresses, Names, Passwords, Phone numbers, Physical addresses, Purchases. Flags: verified, sensitive. In September 2022, the revenge websit",
+        "cited": false
+      },
+      {
+        "n": 2,
+        "title": "Bitcoin Security Forum Gmail Dump breach",
+        "type": "hibp_breach",
+        "label": "Have I Been Pwned",
+        "url": "https://haveibeenpwned.com/PwnedWebsites#BTSec",
+        "snippet": "Bitcoin Security Forum Gmail Dump (forum.btcsec.com) was breached on 2014-01-09, exposing 4,789,599 accounts. Compromised data: Email addresses, Passwords. Flags: verified. In September 2014, a large dump of nearly 5M usernames and passwords was posted to a Russian Bitcoin forum ",
+        "cited": false
+      },
+      {
+        "n": 3,
+        "title": "Account: ProtonMail Secure",
+        "type": "account",
+        "label": "Your account",
+        "url": null,
+        "snippet": "ProtonMail Secure (https://proton.me) is a email account. Signed up with auditor@pm.me; logs in with password. Two-factor authentication is OFF. Risk score 37/100; 0 known breach(es). Uses the same password as: Slack Enterprise, Reddit. Recovery email: backup@gmail.com. Granted p",
+        "cited": false
+      },
+      {
+        "n": 4,
+        "title": "Lookiero breach",
+        "type": "hibp_breach",
+        "label": "Have I Been Pwned",
+        "url": "https://haveibeenpwned.com/PwnedWebsites#Lookiero",
+        "snippet": "Lookiero (lookiero.com) was breached on 2024-03-27, exposing 4,981,760 accounts. Compromised data: Email addresses, Names, Phone numbers, Physical addresses. Flags: verified. In August 2024, a data breach from the online styling service Lookiero was posted to a popular hacking fo",
+        "cited": false
+      },
+      {
+        "n": 5,
+        "title": "Apollo breach",
+        "type": "hibp_breach",
+        "label": "Have I Been Pwned",
+        "url": "https://haveibeenpwned.com/PwnedWebsites#Apollo",
+        "snippet": "as names and email addresses as well as professional information including places of employment, the roles people hold and where they're located. Apollo stressed that the exposed data did not include sensitive information such as passwords, social security numbers or financial da",
+        "cited": false
+      },
+      {
+        "n": 6,
+        "title": "Baby Names breach",
+        "type": "hibp_breach",
+        "label": "Have I Been Pwned",
+        "url": "https://haveibeenpwned.com/PwnedWebsites#BabyNames",
+        "snippet": "Baby Names (babynames.com) was breached on 2008-10-24, exposing 846,742 accounts. Compromised data: Email addresses, Passwords. Flags: verified. In approximately 2008, the site to help parents name their children known as Baby Names suffered a data breach. The incident exposed 84",
+        "cited": false
+      },
+      {
+        "n": 7,
+        "title": "Speedio breach",
+        "type": "hibp_breach",
+        "label": "Have I Been Pwned",
+        "url": "https://haveibeenpwned.com/PwnedWebsites#Speedio",
+        "snippet": "Speedio (speedio.com.br) was breached on 2024-12-24, exposing 27,501,041 accounts. Compromised data: Company names, Email addresses, Phone numbers, Physical addresses. In December 2024, data alleged to have been taken from the Brazilian lead generation platform Speedio was posted",
+        "cited": false
+      },
+      {
+        "n": 8,
+        "title": "Hacking Team breach",
+        "type": "hibp_breach",
+        "label": "Have I Been Pwned",
+        "url": "https://haveibeenpwned.com/PwnedWebsites#HackingTeam",
+        "snippet": "Hacking Team (hackingteam.com) was breached on 2015-07-06, exposing 32,310 accounts. Compromised data: Email addresses, Email messages. Flags: verified. In July 2015, the Italian security firm Hacking Team suffered a major data breach that resulted in over 400GB of their data bei",
+        "cited": false
+      }
+    ],
+    "retrieval": {
+      "mode": "keyword",
+      "searched": 1138,
+      "warnings": []
+    }
+  }
+}

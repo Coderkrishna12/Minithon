@@ -1,0 +1,6 @@
+{
+  "summary": "HTTP 500: Review reminders endpoint crashes with TypeError: can't compare offset-naive and offset-aware datetimes in reminders.py line 71 when checking r.next_trigger <= now.",
+  "create_status": 200,
+  "list_status": 500,
+  "response_text": "Internal Server Error"
+}

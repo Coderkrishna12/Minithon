@@ -1,0 +1,22 @@
+{
+  "summary": "Global search queries accounts, breaches, notifications, and audit logs.",
+  "accounts_found": 1,
+  "results": {
+    "query": "ProtonMail",
+    "results": {
+      "accounts": [
+        {
+          "id": 69,
+          "type": "account",
+          "title": "ProtonMail Secure",
+          "subtitle": "auditor@pm.me",
+          "risk_score": 37.23164363856588
+        }
+      ],
+      "breaches": [],
+      "notifications": [],
+      "audit_logs": []
+    },
+    "total": 1
+  }
+}

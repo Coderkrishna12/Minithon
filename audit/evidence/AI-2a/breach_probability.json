@@ -1,0 +1,16 @@
+{
+  "summary": "Returns per-account 6-month breach probability. Note: Returned as a 0-100 percentage rather than a 0.0-1.0 probability value.",
+  "sample_prediction": {
+    "service": "Reddit",
+    "probability_6_months": 42.0,
+    "risk_level": "critical",
+    "factors": {
+      "category_risk": 15.0,
+      "breach_history": 0.0,
+      "no_2fa_penalty": 10.0,
+      "password_reuse_penalty": 12.0
+    },
+    "recommendation": "Enable 2FA and change password immediately"
+  },
+  "value_range": "0-100 percentage scale"
+}

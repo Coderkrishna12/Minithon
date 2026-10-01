@@ -1,0 +1,23 @@
+{
+  "summary": "Weights match PDF spec exactly: 0.30*breach + 0.20*permission + 0.20*reuse + 0.15*2fa + 0.15*cascade. Computed base=33.46, App base=33.46.",
+  "components": {
+    "model_version": "deterministic-2",
+    "breach": 0.0,
+    "permission_scope": 0,
+    "password_reuse": 86.32,
+    "missing_2fa": 100,
+    "cascading_impact": 8.0,
+    "base_score": 33.46,
+    "keystone": false,
+    "reachable_accounts": 1,
+    "keystone_floor": null,
+    "top_paths": [
+      {
+        "account_id": 74,
+        "probability": 0.56
+      }
+    ]
+  },
+  "hand_computed_base": 33.464,
+  "app_base_score": 33.46
+}

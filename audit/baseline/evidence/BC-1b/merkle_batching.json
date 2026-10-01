@@ -1,0 +1,3 @@
+{
+  "summary": "PDF claims Merkle Tree batching. Implementation uses a sequential linear hash chain, not a Merkle tree."
+}

@@ -1,0 +1,27 @@
+{
+  "summary": "Fix preview calculates projected score before completion; completion updates live score.",
+  "preview": {
+    "fix_id": 45,
+    "account": "Keystone Master Email",
+    "action_type": "enable_2fa",
+    "before_score": 71,
+    "after_score": 79,
+    "score_improvement": 8,
+    "estimated_minutes": 10,
+    "changes_external_account": false,
+    "message": "Preview is an estimate. You must make this change with the service and confirm it here."
+  },
+  "completed": {
+    "id": 45,
+    "account_id": 77,
+    "action_type": "enable_2fa",
+    "description": "Enable two-factor authentication on Keystone Master Email",
+    "priority": 80,
+    "risk_reduction": 8.0,
+    "status": "completed",
+    "blockchain_tx_hash": "7f44d1cb467adf86545588e73a27f8591c00b133961e09bb4f3fe00b4d321646",
+    "completed_at": "2026-10-01T05:50:13.096355",
+    "created_at": "2026-10-01T05:50:13"
+  },
+  "actual_new_score": 79
+}

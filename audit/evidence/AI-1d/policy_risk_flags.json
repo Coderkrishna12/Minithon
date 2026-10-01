@@ -1,0 +1,13 @@
+{
+  "summary": "Flags data selling, indefinite retention, cross-border transfers, government disclosures via regex pattern matching.",
+  "risk_flags": {
+    "data_selling": false,
+    "indefinite_retention": false,
+    "cross_border": false,
+    "government_disclosure": false,
+    "biometric_data": false,
+    "location_tracking": false,
+    "data_sharing_partners": false,
+    "behavioral_tracking": false
+  }
+}

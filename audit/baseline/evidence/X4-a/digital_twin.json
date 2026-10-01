@@ -1,0 +1,50 @@
+{
+  "summary": "Digital Twin simulation stress-tests user's account graph and identifies critical exposure chains.",
+  "response": {
+    "overall_risk_score": 79,
+    "total_attack_vectors": 3,
+    "attack_vectors": [
+      {
+        "vector": "Credential Stuffing",
+        "targets": [
+          "ProtonMail Secure",
+          "GitHub",
+          "Dropbox",
+          "Slack Enterprise",
+          "Reddit"
+        ],
+        "success_probability": 86,
+        "description": "7 accounts lack 2FA and are vulnerable to credential stuffing attacks using leaked password databases."
+      },
+      {
+        "vector": "Password Reuse Chain",
+        "targets": [
+          "ProtonMail Secure",
+          "Slack Enterprise",
+          "Reddit"
+        ],
+        "success_probability": 80,
+        "description": "Password group 'alpha_reuse' shared across 3 accounts. Compromising one gives access to all."
+      },
+      {
+        "vector": "Email Account Takeover",
+        "targets": [
+          "ProtonMail Secure",
+          "Google Workspace",
+          "Keystone Master Email"
+        ],
+        "success_probability": 70,
+        "description": "Primary email controls password resets for 7 dependent accounts. HIGH RISK: No 2FA on email!",
+        "cascade_count": 7
+      }
+    ],
+    "ai_analysis": "Found 3 attack vectors with 79% average success probability. Priority: enable 2FA on all accounts, eliminate password reuse, and review excessive permissions.",
+    "recommendations": [
+      "Enable 2FA on all accounts, especially email and finance",
+      "Use unique passwords for every account (use a password manager)",
+      "Revoke unnecessary app permissions",
+      "Monitor accounts for suspicious activity",
+      "Set up breach monitoring alerts"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "summary": "Attack simulation re-runs against current graph state, but lacks dedicated side-by-side comparison screen.",
+  "tested": true
+}

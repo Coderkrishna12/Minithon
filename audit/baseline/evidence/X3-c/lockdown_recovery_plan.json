@@ -1,0 +1,10 @@
+{
+  "summary": "Provides 5-step emergency recovery checklist prioritized by keystone dependencies.",
+  "steps": [
+    "1. Change password on primary email FIRST",
+    "2. Enable 2FA on all accounts without it",
+    "3. Revoke all active sessions on financial accounts",
+    "4. Check for unauthorized account recovery changes",
+    "5. Monitor accounts for suspicious activity for 72 hours"
+  ]
+}

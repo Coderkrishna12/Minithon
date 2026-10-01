@@ -1,0 +1,4 @@
+{
+  "summary": "Completing a fix hashes the event to the blockchain audit log and returns a tx_hash.",
+  "tx_hash": "7f44d1cb467adf86545588e73a27f8591c00b133961e09bb4f3fe00b4d321646"
+}

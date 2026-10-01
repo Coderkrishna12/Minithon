@@ -1,0 +1,17 @@
+{
+  "summary": "PDF claims automatic form submission. Actual code returns opt-out URLs with 'action_required' instructions for manual user submission.",
+  "results": [
+    {
+      "broker": "Spokeo",
+      "status": "action_required",
+      "opt_out_url": "https://www.spokeo.com/optout",
+      "estimated_processing": "30-60 days"
+    },
+    {
+      "broker": "Whitepages",
+      "status": "action_required",
+      "opt_out_url": "https://www.whitepages.com/suppression-requests",
+      "estimated_processing": "30-60 days"
+    }
+  ]
+}

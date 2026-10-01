@@ -1,0 +1,54 @@
+{
+  "summary": "Imported accounts via fixture mailbox. Verified accounts added with confidence and uncertainty flags.",
+  "scan_response": {
+    "mode": "fixture",
+    "label": "DEMO DATA \u2014 no real mailbox connected",
+    "message": "Only account signup/security signals are candidates. Newsletter-only domains are excluded.",
+    "discovered": [
+      {
+        "service_name": "GitHub",
+        "service_url": "github.com",
+        "confidence": 0.96,
+        "source": "DEMO DATA \u00b7 security alert",
+        "reason": "Account security notification",
+        "already_tracked": false,
+        "importable": true
+      },
+      {
+        "service_name": "Dropbox",
+        "service_url": "dropbox.com",
+        "confidence": 0.91,
+        "source": "DEMO DATA \u00b7 signup receipt",
+        "reason": "Account creation receipt",
+        "already_tracked": false,
+        "importable": true
+      },
+      {
+        "service_name": "Example Newsletter",
+        "service_url": "newsletter.example.invalid",
+        "confidence": 0.18,
+        "source": "DEMO DATA \u00b7 newsletter",
+        "reason": "Newsletter only; not treated as an account",
+        "already_tracked": false,
+        "importable": false
+      }
+    ]
+  },
+  "bulk_add_response": {
+    "added": [
+      {
+        "id": 70,
+        "service_name": "GitHub",
+        "category": null,
+        "risk_score": 7.5
+      },
+      {
+        "id": 71,
+        "service_name": "Dropbox",
+        "category": null,
+        "risk_score": 7.5
+      }
+    ],
+    "skipped": []
+  }
+}

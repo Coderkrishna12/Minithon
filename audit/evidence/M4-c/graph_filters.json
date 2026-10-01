@@ -1,0 +1,9 @@
+{
+  "summary": "Graph page supports connection type filtering (SSO, Recovery, Password Reuse, Data Sharing) and category filtering in frontend Canvas.",
+  "connection_types_supported": [
+    "SSO",
+    "Recovery",
+    "Password Reuse",
+    "Data Sharing"
+  ]
+}

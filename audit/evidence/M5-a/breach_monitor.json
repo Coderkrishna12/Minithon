@@ -1,0 +1,5 @@
+{
+  "summary": "WebSocket server exists at /api/ws/breach-monitor with auth token verification. Web browser push notifications (Web Push / Service Worker) are not implemented.",
+  "websocket_endpoint": "/api/ws/breach-monitor",
+  "browser_push": "Not implemented"
+}

@@ -1,0 +1,18 @@
+{
+  "summary": "Chain validation recalculates SHA-256 hashes of all blocks from genesis. Verified block 1 intact and chain valid.",
+  "verification_response": {
+    "block": {
+      "index": 1,
+      "timestamp": "2026-10-01T05:50:11Z",
+      "data": {
+        "action": "inventory_audit",
+        "data_hash": "f6e0f379e1b032d2e34f3da497f2f671df14ac5fef279aac0408f847f2272a43"
+      },
+      "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "d5dddb96d4d94151ef29b4c89ec30ab0095ff404c576b8b3a5734be7d987201a",
+      "intact": true,
+      "anchor": null
+    },
+    "chain_valid": true
+  }
+}

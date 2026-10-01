@@ -1,0 +1,5 @@
+{
+  "summary": "Tracks fixes_completed and fixes_pending counts, but lacks completion ring and time estimate promised in PDF.",
+  "completed": 1,
+  "pending": 11
+}

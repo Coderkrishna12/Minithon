@@ -1,0 +1,7 @@
+{
+  "summary": "Single Point of Failure accurately detected account with 5+ downstream dependencies.",
+  "spofs_detected": [
+    "Keystone Master Email"
+  ],
+  "target_detected": true
+}

@@ -1,0 +1,22 @@
+{
+  "summary": "Fetches policy text and indexes into RAG pipeline.",
+  "analysis": {
+    "url": "https://example.com/privacy",
+    "status": "no_content",
+    "summary": "Could not fetch policy content.",
+    "risk_flags": {
+      "data_selling": false,
+      "indefinite_retention": false,
+      "cross_border": false,
+      "government_disclosure": false,
+      "biometric_data": false,
+      "location_tracking": false,
+      "data_sharing_partners": false,
+      "behavioral_tracking": false
+    },
+    "risk_score": 0,
+    "severity": "low",
+    "key_concerns": [],
+    "recommendation": "No major red flags detected."
+  }
+}

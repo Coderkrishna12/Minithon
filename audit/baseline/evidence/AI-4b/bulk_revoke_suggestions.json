@@ -1,0 +1,7 @@
+{
+  "summary": "Identifies unnecessary permissions per service for user review.",
+  "sample": [
+    [],
+    []
+  ]
+}

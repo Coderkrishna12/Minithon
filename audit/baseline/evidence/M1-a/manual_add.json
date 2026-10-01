@@ -1,0 +1,97 @@
+{
+  "summary": "Created account manually and verified persistence.",
+  "request": {
+    "service_name": "ProtonMail",
+    "service_url": "https://proton.me",
+    "email_used": "auditor@pm.me",
+    "category": "email",
+    "has_2fa": true,
+    "password_group": "alpha_reuse",
+    "recovery_email": "backup@gmail.com",
+    "permissions": [
+      "contacts",
+      "storage"
+    ],
+    "login_method": "password"
+  },
+  "create_response": {
+    "id": 69,
+    "service_name": "ProtonMail",
+    "service_url": "https://proton.me",
+    "email_used": "auditor@pm.me",
+    "username_used": null,
+    "category": "email",
+    "has_2fa": true,
+    "password_group": "alpha_reuse",
+    "login_method": "password",
+    "twofa_method": null,
+    "added_via": "manual",
+    "import_confidence": null,
+    "evidence_source": null,
+    "recovery_email": "backup@gmail.com",
+    "recovery_phone": null,
+    "permissions": [
+      "contacts",
+      "storage"
+    ],
+    "risk_score": 6.6,
+    "risk_components": {
+      "model_version": "deterministic-2",
+      "breach": 0.0,
+      "permission_scope": 18,
+      "password_reuse": 15.0,
+      "missing_2fa": 0,
+      "cascading_impact": 0.0,
+      "base_score": 6.6,
+      "keystone": false,
+      "reachable_accounts": 0,
+      "keystone_floor": null,
+      "top_paths": []
+    },
+    "breach_count": 0,
+    "last_breach_date": null,
+    "is_active": true,
+    "notes": null,
+    "created_at": "2026-10-01T05:50:10"
+  },
+  "get_response": {
+    "id": 69,
+    "service_name": "ProtonMail",
+    "service_url": "https://proton.me",
+    "email_used": "auditor@pm.me",
+    "username_used": null,
+    "category": "email",
+    "has_2fa": true,
+    "password_group": "alpha_reuse",
+    "login_method": "password",
+    "twofa_method": null,
+    "added_via": "manual",
+    "import_confidence": null,
+    "evidence_source": null,
+    "recovery_email": "backup@gmail.com",
+    "recovery_phone": null,
+    "permissions": [
+      "contacts",
+      "storage"
+    ],
+    "risk_score": 6.6,
+    "risk_components": {
+      "model_version": "deterministic-2",
+      "breach": 0.0,
+      "permission_scope": 18,
+      "password_reuse": 15.0,
+      "missing_2fa": 0,
+      "cascading_impact": 0.0,
+      "base_score": 6.6,
+      "keystone": false,
+      "reachable_accounts": 0,
+      "keystone_floor": null,
+      "top_paths": []
+    },
+    "breach_count": 0,
+    "last_breach_date": null,
+    "is_active": true,
+    "notes": null,
+    "created_at": "2026-10-01T05:50:10"
+  }
+}

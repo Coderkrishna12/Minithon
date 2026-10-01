@@ -1,0 +1,5 @@
+{
+  "summary": "Graph endpoint returns nodes with risk scores/levels and edges with connection types. Canvas frontend.",
+  "node_count": 8,
+  "edge_count": 6
+}

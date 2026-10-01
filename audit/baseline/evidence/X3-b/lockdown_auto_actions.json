@@ -1,0 +1,21 @@
+{
+  "summary": "PDF promises remote session revocation and password resets. In reality, returns a simulated checklist of recommendations without performing any third-party API revocations.",
+  "actions_returned": [
+    {
+      "service": "ProtonMail Secure",
+      "actions": [
+        "Session revocation requested",
+        "Password reset triggered",
+        "2FA setup urgently recommended"
+      ]
+    },
+    {
+      "service": "GitHub",
+      "actions": [
+        "Session revocation requested",
+        "Password change recommended",
+        "2FA setup urgently recommended"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "summary": "Panic button triggers emergency review notification, audit entry, and recovery checklist.",
+  "response": {
+    "status": "lockdown_activated",
+    "accounts_affected": 14,
+    "actions": [
+      {
+        "service": "ProtonMail Secure",
+        "actions": [
+          "Session revocation requested",
+          "Password reset triggered",
+          "2FA setup urgently recommended"
+        ]
+      },
+      {
+        "service": "GitHub",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA setup urgently recommended"
+        ]
+      },
+      {
+        "service": "Dropbox",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA setup urgently recommended"
+        ]
+      },
+      {
+        "service": "Google Workspace",
+        "actions": [
+          "Session revocation requested",
+          "Password reset triggered",
+          "2FA verification enforced"
+        ]
+      },
+      {
+        "service": "Slack Enterprise",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA setup urgently recommended"
+        ]
+      },
+      {
+        "service": "Reddit",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA setup urgently recommended"
+        ]
+      },
+      {
+        "service": "",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA setup urgently recommended"
+        ]
+      },
+      {
+        "service": "Test",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA setup urgently recommended"
+        ]
+      },
+      {
+        "service": "Keystone Master Email",
+        "actions": [
+          "Session revocation requested",
+          "Password reset triggered",
+          "2FA verification enforced"
+        ]
+      },
+      {
+        "service": "Dependent App 0",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA verification enforced"
+        ]
+      },
+      {
+        "service": "Dependent App 1",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA verification enforced"
+        ]
+      },
+      {
+        "service": "Dependent App 2",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA verification enforced"
+        ]
+      },
+      {
+        "service": "Dependent App 3",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA verification enforced"
+        ]
+      },
+      {
+        "service": "Dependent App 4",
+        "actions": [
+          "Session revocation requested",
+          "Password change recommended",
+          "2FA verification enforced"
+        ]
+      }
+    ],
+    "message": "Emergency lockdown initiated. Review each service's security settings immediately.",
+    "recovery_steps": [
+      "1. Change password on primary email FIRST",
+      "2. Enable 2FA on all accounts without it",
+      "3. Revoke all active sessions on financial accounts",
+      "4. Check for unauthorized account recovery changes",
+      "5. Monitor accounts for suspicious activity for 72 hours"
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "summary": "PDF claims Graph Neural Network (PyTorch Geometric). Actual code uses a deterministic mathematical formula with blast radius calculation in risk_engine.py. Header explicitly states 'No trained model is claimed.'",
+  "claimed": "PyTorch Geometric GNN",
+  "actual": "Deterministic graph BFS blast radius formula"
+}

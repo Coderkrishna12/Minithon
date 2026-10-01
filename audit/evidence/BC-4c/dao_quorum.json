@@ -1,0 +1,4 @@
+{
+  "summary": "Proposal status transitions to 'confirmed' when votes_for reaches 5 in dao.py.",
+  "quorum_rule": "votes_for >= 5 -> confirmed"
+}

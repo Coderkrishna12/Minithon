@@ -1,0 +1,8 @@
+{
+  "summary": "PDF promises one-tap deep links to security settings pages. Fixes only provide text descriptions without URLs.",
+  "sample_descriptions": [
+    "Enable two-factor authentication on Keystone Master Email",
+    "Replace the reused password with a unique password on ProtonMail Secure",
+    "Replace the reused password with a unique password on Slack Enterprise"
+  ]
+}

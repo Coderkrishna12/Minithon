@@ -1,0 +1,5 @@
+{
+  "summary": "Accurately computes total reachable accounts and financial accounts at risk via BFS graph traversal.",
+  "totalCompromised": 6,
+  "financialAccountsAtRisk": 0
+}

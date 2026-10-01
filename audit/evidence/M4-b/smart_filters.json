@@ -1,0 +1,8 @@
+{
+  "summary": "Filters support category and risk_level. Filters for data shared, 2FA status, and last activity are missing.",
+  "email_accounts": [
+    "Keystone Master Email",
+    "ProtonMail Secure",
+    "Google Workspace"
+  ]
+}

@@ -1,0 +1,1166 @@
+{
+  "summary": "POST /api/breaches/scan-all integrates with HIBP/XposedOrNot with fallback to mock/local database when offline.",
+  "response": {
+    "total_accounts_scanned": 8,
+    "affected_accounts": 1,
+    "total_breaches_found": 1,
+    "confirmed_account_breaches": 0,
+    "unlisted_exposures": [
+      {
+        "name": "ManchesterAirportsGroup",
+        "domain": "magairports.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Phone numbers",
+          "IP addresses",
+          "Vehicle registration numbers",
+          "Geographic locations",
+          "Browser user agents"
+        ],
+        "records": 8379476,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Paidwork",
+        "domain": "paidwork.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Passwords",
+          "Dates of birth",
+          "Device information",
+          "Genders",
+          "IP addresses",
+          "Phone numbers",
+          "Physical addresses"
+        ],
+        "records": 23322371,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "AlienStealerLogs",
+        "domain": "",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 299646818,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "R2GamesForum",
+        "domain": "r2games.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords"
+        ],
+        "records": 5189891,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "VimeWorld",
+        "domain": "vimeworld.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 3148075,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "CSDN",
+        "domain": "csdn.net",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords"
+        ],
+        "records": 6427771,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "UnderArmour",
+        "domain": "underarmour.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Genders",
+          "Geographic locations",
+          "Dates of birth"
+        ],
+        "records": 73065604,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Storenvy",
+        "domain": "storenvy.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords",
+          "IP addresses",
+          "Dates of birth",
+          "Geographic locations"
+        ],
+        "records": 1736814,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "SoundCloud",
+        "domain": "soundcloud.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Geographic locations",
+          "Usernames"
+        ],
+        "records": 29968497,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "WIRED",
+        "domain": "wired.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Dates of birth",
+          "Names",
+          "Geographic locations",
+          "Phone numbers",
+          "Physical addresses"
+        ],
+        "records": 2370369,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Dominos",
+        "domain": "pizza.dominos.be",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Phone numbers",
+          "Physical addresses",
+          "Passwords"
+        ],
+        "records": 649031,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Naz.API",
+        "domain": "",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 71064705,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Zacks-2024",
+        "domain": "zacks.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Passwords",
+          "Usernames",
+          "Physical addresses",
+          "Phone numbers",
+          "IP addresses"
+        ],
+        "records": 12031659,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Tracelo",
+        "domain": "tracelo.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Passwords",
+          "Phone numbers",
+          "Physical addresses"
+        ],
+        "records": 812055,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Trello",
+        "domain": "trello.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Usernames"
+        ],
+        "records": 15115458,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "KasperskyFanClub",
+        "domain": "kasperskyclub.ru",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 56091,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Eye4fraud",
+        "domain": "eye4fraud.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Phone numbers",
+          "Physical addresses"
+        ],
+        "records": 16032780,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Pemiblanc",
+        "domain": "pemiblanc.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 114015423,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "SpecialKDataFeedSpamList",
+        "domain": "data4marketers.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Physical addresses",
+          "IP addresses",
+          "Dates of birth"
+        ],
+        "records": 45084900,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "JD",
+        "domain": "jd.com",
+        "date": null,
+        "data": [
+          "Names",
+          "Email addresses",
+          "Physical addresses",
+          "Government IDs",
+          "Phone numbers"
+        ],
+        "records": 78171293,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Tumblr",
+        "domain": "tumblr.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 73524878,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "7k7k",
+        "domain": "7k7k.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 7489411,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "MyPertamina",
+        "domain": "mypertamina.id",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Dates of birth",
+          "Phone numbers",
+          "Physical addresses"
+        ],
+        "records": 5991050,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "VK",
+        "domain": "vk.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 90679566,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "000webhost",
+        "domain": "000webhost.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 14936538,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Cointracker",
+        "domain": "cointracker.io",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Phone numbers"
+        ],
+        "records": 1557155,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Duolingo",
+        "domain": "duolingo.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Usernames"
+        ],
+        "records": 2676686,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Payhere",
+        "domain": "payhere.lk",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Phone numbers",
+          "Names",
+          "Physical addresses"
+        ],
+        "records": 1578545,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "CDEK",
+        "domain": "cdek.ru",
+        "date": null,
+        "data": [
+          "Names",
+          "Email addresses",
+          "Phone numbers"
+        ],
+        "records": 19216659,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Epik",
+        "domain": "epik.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 15389296,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "SlideTeam",
+        "domain": "slideteam.net",
+        "date": null,
+        "data": [
+          "Names",
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 1464409,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Luxottica",
+        "domain": "luxottica.com",
+        "date": null,
+        "data": [
+          "Names",
+          "Physical addresses",
+          "Email addresses",
+          "Phone numbers"
+        ],
+        "records": 74411022,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "AnimalJam",
+        "domain": "animaljam.com",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Email addresses",
+          "Passwords",
+          "IP addresses",
+          "Physical addresses",
+          "Dates of birth"
+        ],
+        "records": 7105266,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Shopback",
+        "domain": "shopback.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords",
+          "Names",
+          "Phone numbers",
+          "Geographic locations",
+          "IP addresses"
+        ],
+        "records": 20653700,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Nitro",
+        "domain": "gonitro.com",
+        "date": null,
+        "data": [
+          "Names",
+          "Passwords",
+          "Email addresses"
+        ],
+        "records": 77165608,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Cit0day",
+        "domain": "cit0day.in",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 226803683,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Sitepoint",
+        "domain": "sitepoint.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Passwords",
+          "Usernames",
+          "IP addresses"
+        ],
+        "records": 1021625,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Wattpad",
+        "domain": "wattpad.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Usernames",
+          "Dates of birth",
+          "Passwords",
+          "IP addresses",
+          "Genders",
+          "Social media profiles",
+          "Geographic locations"
+        ],
+        "records": 268113400,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Appen",
+        "domain": "appen.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Passwords",
+          "Phone numbers",
+          "IP addresses"
+        ],
+        "records": 5888383,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "StarTribune",
+        "domain": "startribune.com",
+        "date": null,
+        "data": [
+          "Names",
+          "Passwords",
+          "Email addresses",
+          "Usernames",
+          "Physical addresses",
+          "Genders"
+        ],
+        "records": 2193233,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "GameSprite",
+        "domain": "forums.gamesprite.me",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Email addresses",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 6161749,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Mathway",
+        "domain": "mathway.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords",
+          "Names",
+          "Social media profiles"
+        ],
+        "records": 25694866,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Zynga",
+        "domain": "zynga.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords",
+          "Phone numbers"
+        ],
+        "records": 172817913,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "InstantCheckmate",
+        "domain": "instantcheckmate.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords",
+          "Names",
+          "Phone numbers"
+        ],
+        "records": 11945811,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Canva",
+        "domain": "canva.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Usernames"
+        ],
+        "records": 137504762,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Deezer",
+        "domain": "deezer.com",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Names",
+          "Email addresses",
+          "Dates of birth"
+        ],
+        "records": 244007616,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "GameSalad",
+        "domain": "gamesalad.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 1507603,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Verifications",
+        "domain": "verifications.io",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Dates of birth",
+          "Genders",
+          "Geographic locations",
+          "Phone numbers",
+          "Physical addresses"
+        ],
+        "records": 762579945,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Collection-1",
+        "domain": "",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 790803860,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Dubsmash",
+        "domain": "dubsmash.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords"
+        ],
+        "records": 161835382,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Zoomcar",
+        "domain": "zoomcar.com",
+        "date": null,
+        "data": [
+          "Names",
+          "Email addresses",
+          "Phone numbers",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 3589270,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "500px",
+        "domain": "500px.com",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Email addresses",
+          "Passwords",
+          "Names",
+          "Dates of birth",
+          "Genders",
+          "Geographic locations"
+        ],
+        "records": 14875273,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Animoto",
+        "domain": "animoto.com",
+        "date": null,
+        "data": [
+          "Passwords",
+          "Email addresses",
+          "Geographic locations",
+          "Dates of birth",
+          "Names"
+        ],
+        "records": 22453559,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "ShareThis",
+        "domain": "sharethis.com",
+        "date": null,
+        "data": [
+          "Names",
+          "Usernames",
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 40952354,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Artsy",
+        "domain": "artsy.net",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "IP addresses",
+          "Passwords",
+          "Names"
+        ],
+        "records": 1080470,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "MyFitnessPal",
+        "domain": "myfitnesspal.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 143570814,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Chegg",
+        "domain": "chegg.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords"
+        ],
+        "records": 39736948,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "MyHeritage",
+        "domain": "myheritage.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 91997033,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "1.4BillionRecords",
+        "domain": "",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names"
+        ],
+        "records": 1114303554,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Livejournal",
+        "domain": "livejournal.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords"
+        ],
+        "records": 26368201,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Youku",
+        "domain": "youku.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 91891665,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "SubaGames",
+        "domain": "subagames.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 6131624,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Dailymotion",
+        "domain": "dailymotion.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords"
+        ],
+        "records": 85277547,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "AntiPublicCombo",
+        "domain": "",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 457399902,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "ExploitIN",
+        "domain": "exploit.in",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 592919058,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Leet",
+        "domain": "leet.cc",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords",
+          "Usernames",
+          "IP addresses"
+        ],
+        "records": 5077846,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "D3Scene",
+        "domain": "d3scene.com",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Email addresses",
+          "IP addresses",
+          "Passwords"
+        ],
+        "records": 568578,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "ProgrammingForums",
+        "domain": "programmingforums.org",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Email addresses",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 707577,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "NetEase",
+        "domain": "163.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 232857074,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "LizardSquad",
+        "domain": "lizardsquad.org",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 17021,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "PokemonCreed",
+        "domain": "pokemoncreed.net",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Email addresses",
+          "Passwords",
+          "IP addresses"
+        ],
+        "records": 116043,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Bitly",
+        "domain": "bit.ly",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords",
+          "Usernames"
+        ],
+        "records": 9313175,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Kickstarter",
+        "domain": "kickstarter.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 5177453,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Imesh",
+        "domain": "imesh.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords",
+          "Usernames",
+          "IP addresses"
+        ],
+        "records": 49594661,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Adobe",
+        "domain": "adobe.com",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Passwords",
+          "Email addresses"
+        ],
+        "records": 152403035,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Neopets",
+        "domain": "neopets.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Passwords",
+          "Dates of birth",
+          "Genders",
+          "Geographic locations"
+        ],
+        "records": 26893291,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "WHMCS",
+        "domain": "whmcs.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Names",
+          "Passwords",
+          "Physical addresses",
+          "IP addresses"
+        ],
+        "records": 134845,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Disqus",
+        "domain": "disqus.com",
+        "date": null,
+        "data": [
+          "Usernames",
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 17557543,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Dropbox",
+        "domain": "dropbox.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 68760320,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Gamigo",
+        "domain": "gamigo.com",
+        "date": null,
+        "data": [
+          "Names",
+          "Email addresses",
+          "Social media profiles",
+          "Usernames"
+        ],
+        "records": 8210802,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Tianya",
+        "domain": "tianya.cn",
+        "date": null,
+        "data": [
+          "Names",
+          "Usernames",
+          "Email addresses"
+        ],
+        "records": 28936872,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "Last.fm",
+        "domain": "last.fm",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Usernames",
+          "Passwords"
+        ],
+        "records": 37240736,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      },
+      {
+        "name": "LinkedIn",
+        "domain": "linkedin.com",
+        "date": null,
+        "data": [
+          "Email addresses",
+          "Passwords"
+        ],
+        "records": 160042644,
+        "source": "xposedornot",
+        "email": "admin@google.com"
+      }
+    ],
+    "sources": {
+      "catalog": "hibp",
+      "email": "xposedornot"
+    },
+    "errors": [],
+    "new_breaches": 1
+  }
+}

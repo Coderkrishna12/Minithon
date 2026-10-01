@@ -1,0 +1,5 @@
+{
+  "summary": "Attestation verification correctly accepts genuine signatures and rejects mutated signatures.",
+  "valid_signature_accepted": true,
+  "mutated_signature_rejected": true
+}

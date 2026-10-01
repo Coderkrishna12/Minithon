@@ -1,0 +1,11 @@
+{
+  "summary": "Eligibility logic checks criteria (score >= 90, 2FA everywhere, zero reuse, breach free).",
+  "available_badges": [
+    "privacy_champion",
+    "security_pro",
+    "two_fa_everywhere",
+    "zero_reuse",
+    "breach_free",
+    "first_audit"
+  ]
+}

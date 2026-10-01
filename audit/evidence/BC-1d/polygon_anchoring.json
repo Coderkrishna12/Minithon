@@ -1,0 +1,4 @@
+{
+  "summary": "Web3 Polygon anchoring logic is implemented in blockchain.py, but disabled by default because POLYGON_PRIVATE_KEY is empty in configuration.",
+  "anchoring_active": false
+}

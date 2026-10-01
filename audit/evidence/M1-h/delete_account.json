@@ -1,0 +1,5 @@
+{
+  "summary": "Account deletion verified: returned 204 and subsequent lookup returned 404.",
+  "delete_status": 204,
+  "lookup_status": 404
+}

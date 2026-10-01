@@ -1,0 +1,452 @@
+{
+  "summary": "PDF promises custom Tor-based dark web scraper. Actual code queries HaveIBeenPwned / XposedOrNot pastes with local simulated exposures when no API key.",
+  "response": {
+    "scan_time": "2026-10-01T05:50:15.611036+00:00",
+    "emails_checked": 5,
+    "total_alerts": 63,
+    "alerts": [
+      {
+        "email": "admin@google.com",
+        "source": "Paidwork",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Passwords, Dates of birth, Device information, Genders, IP addresses, Phone numbers, Physical addresses from the Paidwork breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "AlienStealerLogs",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the AlienStealerLogs breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "R2GamesForum",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords from the R2GamesForum breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "VimeWorld",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords, IP addresses from the VimeWorld breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "CSDN",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords from the CSDN breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Storenvy",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords, IP addresses, Dates of birth, Geographic locations from the Storenvy breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Dominos",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Phone numbers, Physical addresses, Passwords from the Dominos breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Naz.API",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the Naz.API breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Zacks-2024",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Passwords, Usernames, Physical addresses, Phone numbers, IP addresses from the Zacks-2024 breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Tracelo",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Passwords, Phone numbers, Physical addresses from the Tracelo breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "KasperskyFanClub",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords, IP addresses from the KasperskyFanClub breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Pemiblanc",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the Pemiblanc breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Tumblr",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the Tumblr breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "7k7k",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the 7k7k breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "VK",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the VK breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "000webhost",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords, IP addresses from the 000webhost breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Epik",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords, IP addresses from the Epik breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "SlideTeam",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Names, Email addresses, Passwords from the SlideTeam breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "AnimalJam",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Email addresses, Passwords, IP addresses, Physical addresses, Dates of birth from the AnimalJam breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Shopback",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords, Names, Phone numbers, Geographic locations, IP addresses from the Shopback breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Nitro",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Names, Passwords, Email addresses from the Nitro breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Cit0day",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the Cit0day breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Sitepoint",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Passwords, Usernames, IP addresses from the Sitepoint breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Wattpad",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Usernames, Dates of birth, Passwords, IP addresses, Genders, Social media profiles, Geographic locations from the Wattpad breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Appen",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Passwords, Phone numbers, IP addresses from the Appen breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "StarTribune",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Names, Passwords, Email addresses, Usernames, Physical addresses, Genders from the StarTribune breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "GameSprite",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Email addresses, Passwords, IP addresses from the GameSprite breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Mathway",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords, Names, Social media profiles from the Mathway breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Zynga",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords, Phone numbers from the Zynga breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "InstantCheckmate",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords, Names, Phone numbers from the InstantCheckmate breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "GameSalad",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords, IP addresses from the GameSalad breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Collection-1",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the Collection-1 breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Dubsmash",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords from the Dubsmash breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Zoomcar",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Names, Email addresses, Phone numbers, Passwords, IP addresses from the Zoomcar breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "500px",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Email addresses, Passwords, Names, Dates of birth, Genders, Geographic locations from the 500px breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Animoto",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Passwords, Email addresses, Geographic locations, Dates of birth, Names from the Animoto breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "ShareThis",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Names, Usernames, Email addresses, Passwords from the ShareThis breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Artsy",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, IP addresses, Passwords, Names from the Artsy breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "MyFitnessPal",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords, IP addresses from the MyFitnessPal breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Chegg",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords from the Chegg breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "MyHeritage",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the MyHeritage breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Livejournal",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords from the Livejournal breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Youku",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the Youku breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "SubaGames",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the SubaGames breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Dailymotion",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords from the Dailymotion breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "AntiPublicCombo",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the AntiPublicCombo breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "ExploitIN",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the ExploitIN breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Leet",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords, Usernames, IP addresses from the Leet breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "D3Scene",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Email addresses, IP addresses, Passwords from the D3Scene breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "ProgrammingForums",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Email addresses, Passwords, IP addresses from the ProgrammingForums breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "NetEase",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the NetEase breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "LizardSquad",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Email addresses, Passwords from the LizardSquad breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "PokemonCreed",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Email addresses, Passwords, IP addresses from the PokemonCreed breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Bitly",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords, Usernames from the Bitly breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Kickstarter",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the Kickstarter breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Imesh",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords, Usernames, IP addresses from the Imesh breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Adobe",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Passwords, Email addresses from the Adobe breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Neopets",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Passwords, Dates of birth, Genders, Geographic locations from the Neopets breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "WHMCS",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Names, Passwords, Physical addresses, IP addresses from the WHMCS breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Disqus",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Usernames, Email addresses, Passwords from the Disqus breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Dropbox",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the Dropbox breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "Last.fm",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Usernames, Passwords from the Last.fm breach is circulating in credential dumps",
+        "severity": "critical"
+      },
+      {
+        "email": "admin@google.com",
+        "source": "LinkedIn",
+        "source_type": "credential_dump",
+        "detail": "admin@google.com with Email addresses, Passwords from the LinkedIn breach is circulating in credential dumps",
+        "severity": "critical"
+      }
+    ],
+    "errors": []
+  }
+}

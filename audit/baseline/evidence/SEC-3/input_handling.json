@@ -1,0 +1,4 @@
+{
+  "summary": "SQLAlchemy ORM parametrizes all queries (SQLi protected). React escapes JSX rendered text (XSS protected).",
+  "created_service_name": "<script>alert('xss')</script>"
+}

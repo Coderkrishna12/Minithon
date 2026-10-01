@@ -1,0 +1,7 @@
+{
+  "summary": "PDF claims every account addition/snapshot is auto-anchored on-chain. In reality, POST /accounts/ does not record audit hashes; hash chain only appends when explicit audit endpoints or fix completions are triggered.",
+  "pre_audit_chain_length": 0,
+  "post_audit_chain_length": 1,
+  "chain_valid": true,
+  "audit_trigger_status": 200
+}

@@ -1,0 +1,20 @@
+{
+  "summary": "PDF claims ZK-SNARK cryptographic proofs (circom / snarkjs). Implementation is an Ed25519 digital signature attestation (not zero-knowledge).",
+  "attestation": {
+    "verified": true,
+    "claim": "Privacy score meets or exceeds 70",
+    "timestamp": "2026-10-01T05:50:18Z",
+    "statement": {
+      "issuer": "did:key:z6Mkv1Hhw8VUWdL3h8qXpy1KVeWrVLsDzsCqgkGYaWoaQL6a",
+      "subject": "privacyshield:user:12",
+      "claim": "privacy_score >= 70",
+      "result": true,
+      "issued_at": "2026-10-01T05:50:18Z"
+    },
+    "proof": {
+      "type": "Ed25519Signature2020",
+      "verificationMethod": "did:key:z6Mkv1Hhw8VUWdL3h8qXpy1KVeWrVLsDzsCqgkGYaWoaQL6a#z6Mkv1Hhw8VUWdL3h8qXpy1KVeWrVLsDzsCqgkGYaWoaQL6a",
+      "proofValue": "gkd_4rGxLr_Fo_gc-XMoy6N5hZQryEbTh5xy78hbfyeGVXxRWHn27QvrpeJNGt_g2XN3neh8oy7Ib7uwpswDDQ"
+    }
+  }
+}

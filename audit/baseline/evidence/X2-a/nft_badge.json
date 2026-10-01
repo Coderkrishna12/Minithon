@@ -1,0 +1,11 @@
+{
+  "summary": "Badge minting creates a local database record with a pseudo-token_id. It is not an ERC-721 token on Polygon blockchain.",
+  "mint_response": {
+    "id": 2,
+    "token_id": "PS-12-first_audit-6",
+    "title": "First Audit",
+    "tx_hash": "e02421764a2898443e3260cd338c81d16a41fddafc717862b8bbb20866259171",
+    "metadata_uri": null,
+    "score_at_mint": 79
+  }
+}
