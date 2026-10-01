@@ -94,6 +94,18 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
               'Keep the phone on the same Wi-Fi as the PC, then search again.',
               style: TextStyle(color: AppColors.textSecondary, height: 1.4),
             ),
+            const SizedBox(height: 12),
+            const Text(
+              "If the phone's browser says the site can't be reached, the Wi-Fi is blocking it. Run this instead "
+              'and type the https address it prints below:',
+              style: TextStyle(color: AppColors.textSecondary, height: 1.4),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              color: AppColors.ink,
+              child: Text('python run.py --public', style: AppText.mono(size: 14, color: AppColors.surface)),
+            ),
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _busy ? null : _search, child: const Text('Search again')),
             const SizedBox(height: 28),
@@ -103,7 +115,7 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
               controller: _controller,
               keyboardType: TextInputType.url,
               autocorrect: false,
-              decoration: const InputDecoration(hintText: '192.168.1.5 or http://192.168.1.5:8000/api'),
+              decoration: const InputDecoration(hintText: '192.168.1.5 or https://name.trycloudflare.com'),
               onSubmitted: (_) => _connect(),
             ),
             const SizedBox(height: 12),

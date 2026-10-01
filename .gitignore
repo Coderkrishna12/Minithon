@@ -55,3 +55,4 @@ replay_pid*
 
 # Scratch files
 backend/.tmp/
+backend/.tools/

@@ -18,6 +18,8 @@ void main() {
     expect(ServerDiscovery.normalize('192.168.1.5'), 'http://192.168.1.5:8000/api');
     expect(ServerDiscovery.normalize(' 192.168.1.5:9000 '), 'http://192.168.1.5:9000/api');
     expect(ServerDiscovery.normalize('http://10.0.0.7:8000/api/'), 'http://10.0.0.7:8000/api');
+    expect(ServerDiscovery.normalize('https://brave-otter.trycloudflare.com'), 'https://brave-otter.trycloudflare.com/api');
+    expect(ServerDiscovery.normalize('brave-otter.trycloudflare.com/api'), 'https://brave-otter.trycloudflare.com/api');
   });
 
   test('probe only accepts a PrivacyShield server', () async {

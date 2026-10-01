@@ -23,14 +23,21 @@ class ServerDiscovery {
     return ApiConstants.localBaseUrl;
   }
 
-  /// Accepts "192.168.1.5", "192.168.1.5:8000", "http://host:8000/api" and similar.
+  /// Accepts "192.168.1.5", "192.168.1.5:8000", "http://host:8000/api" and public tunnel URLs such as
+  /// "https://name.trycloudflare.com". Port 8000 is only assumed for plain-http local addresses.
   static String normalize(String input) {
     var text = input.trim();
-    if (!text.contains('://')) text = 'http://$text';
+    if (!text.contains('://')) {
+      final hostOnly = text.split('/').first;
+      final isLocal = RegExp(r'^(\d{1,3}\.){3}\d{1,3}(:\d+)?$').hasMatch(hostOnly) || hostOnly.startsWith('localhost');
+      text = '${isLocal ? 'http' : 'https'}://$text';
+    }
     final uri = Uri.tryParse(text);
     if (uri == null || uri.host.isEmpty) return input.trim();
     final path = (uri.path.isEmpty || uri.path == '/') ? '/api' : uri.path.replaceAll(RegExp(r'/+$'), '');
-    return '${uri.scheme}://${uri.host}:${uri.hasPort ? uri.port : port}$path';
+    final local = uri.scheme == 'http' && (RegExp(r'^(\d{1,3}\.){3}\d{1,3}$').hasMatch(uri.host) || uri.host == 'localhost');
+    final authority = uri.hasPort ? '${uri.host}:${uri.port}' : (local ? '${uri.host}:$port' : uri.host);
+    return '${uri.scheme}://$authority$path';
   }
 
   static Future<bool> probe(String base, {Duration timeout = const Duration(milliseconds: 1500)}) async {

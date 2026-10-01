@@ -1,21 +1,37 @@
-"""Start the PrivacyShield API so a phone on the same network (or USB) can reach it.
+"""Start the PrivacyShield API so a phone can reach it.
 
-    python run.py
+    python run.py            # same Wi-Fi or USB
+    python run.py --public   # any network: opens a free Cloudflare tunnel with an https URL
 
 Installs missing requirements, opens the port in Windows Firewall when it can, sets up
 `adb reverse` for a USB-connected phone, prints the URLs to use, then serves on 0.0.0.0.
 """
+import atexit
 import importlib.util
 import os
+import platform
+import re
 import shutil
 import socket
 import subprocess
 import sys
+import threading
+import time
+import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 PORT = int(os.environ.get("PORT", "8000"))
 RULE_NAME = "PrivacyShield API"
+TOOLS = HERE / ".tools"
+CLOUDFLARED_RELEASE = "https://github.com/cloudflare/cloudflared/releases/latest/download/"
+CLOUDFLARED_ASSETS = {
+    ("windows", "amd64"): "cloudflared-windows-amd64.exe",
+    ("windows", "x86_64"): "cloudflared-windows-amd64.exe",
+    ("linux", "x86_64"): "cloudflared-linux-amd64",
+    ("linux", "aarch64"): "cloudflared-linux-arm64",
+}
+TUNNEL_URL = re.compile(r"https://[a-z0-9-]+\.trycloudflare\.com")
 
 # import name -> pip requirement that provides it
 REQUIRED = {
@@ -107,6 +123,59 @@ def adb_reverse() -> str:
     return "active: a USB phone can use http://localhost:%d/api" % PORT if result.returncode == 0 else "no USB phone connected"
 
 
+def cloudflared_binary() -> str | None:
+    found = shutil.which("cloudflared")
+    if found:
+        return found
+    asset = CLOUDFLARED_ASSETS.get((platform.system().lower(), platform.machine().lower()))
+    if not asset:
+        return None  # e.g. macOS: brew install cloudflared
+    target = TOOLS / asset
+    if not target.exists():
+        TOOLS.mkdir(exist_ok=True)
+        print(f"  Downloading cloudflared ({asset}) ...")
+        urllib.request.urlretrieve(CLOUDFLARED_RELEASE + asset, target)
+        target.chmod(0o755)
+    return str(target)
+
+
+def find_tunnel_url(lines) -> str | None:
+    for line in lines:
+        match = TUNNEL_URL.search(line)
+        if match:
+            return match.group(0)
+    return None
+
+
+def start_tunnel(timeout: float = 60) -> str | None:
+    """Expose localhost:PORT at a public https URL (no account needed) and keep it open while we run."""
+    try:
+        binary = cloudflared_binary()
+    except OSError as e:
+        print(f"  Could not download cloudflared: {e}")
+        return None
+    if not binary:
+        print("  Install cloudflared first (macOS: brew install cloudflared).")
+        return None
+    proc = subprocess.Popen(
+        [binary, "tunnel", "--url", f"http://localhost:{PORT}", "--no-autoupdate"],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1,
+    )
+    atexit.register(proc.terminate)
+    found: list[str] = []
+
+    def pump():
+        for line in proc.stdout:
+            if not found and (url := find_tunnel_url([line])):
+                found.append(url)
+
+    threading.Thread(target=pump, daemon=True).start()
+    deadline = time.time() + timeout
+    while not found and time.time() < deadline and proc.poll() is None:
+        time.sleep(0.2)
+    return found[0] if found else None
+
+
 def main() -> None:
     os.chdir(HERE)
     sys.path.insert(0, str(HERE))
@@ -123,6 +192,20 @@ def main() -> None:
         print(f"  Check from the phone's browser: http://{addresses[0]}:{PORT}/api/health")
     else:
         print("  No network address found; is this PC on Wi-Fi?")
+
+    if "--public" in sys.argv:
+        print("  Public   : opening a Cloudflare tunnel ...")
+        url = start_tunnel()
+        if url:
+            print("\n  " + "=" * 60)
+            print(f"  In the app, tap SERVER and enter:  {url}/api")
+            print(f"  Test in the phone's browser:       {url}/api/health")
+            print("  Anyone with this link can reach the API while this window is open.")
+            print("  " + "=" * 60)
+        else:
+            print("  Tunnel did not start. Check this PC's internet connection.")
+    else:
+        print("  Phone on a different or locked-down Wi-Fi? Run: python run.py --public")
     print()
 
     import uvicorn
