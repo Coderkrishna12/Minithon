@@ -3,6 +3,6 @@
   "sample_descriptions": [
     "Enable two-factor authentication on Keystone Master Email",
     "Replace the reused password with a unique password on ProtonMail Secure",
-    "Replace the reused password with a unique password on Slack Enterprise"
+    "Enable two-factor authentication on ProtonMail Secure"
   ]
 }

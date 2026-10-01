@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-
 from app.db.session import get_db
 from app.models.user import User
-from app.models.account import Account, FixAction, ScoreHistory
+from app.core.time import utcnow
+from app.models.account import Account, FixAction, ScoreHistory, AccountConnection
+from sqlalchemy import select, func, delete, or_
 from app.schemas.account import DashboardResponse, AccountResponse, FixActionResponse
 from app.core.security import get_current_user
 from app.services.risk_engine import (
@@ -109,11 +109,17 @@ async def complete_fix(
         account.has_2fa, account.twofa_method = True, "totp"
     elif fix.action_type == "change_password":
         account.password_group = None
+        await db.execute(
+            delete(AccountConnection).where(
+                AccountConnection.connection_type == "password_reuse",
+                or_(AccountConnection.from_account_id == account.id, AccountConnection.to_account_id == account.id),
+            )
+        )
     elif fix.action_type == "revoke_permission":
         account.permissions = []
 
     fix.status = "completed"
-    fix.completed_at = datetime.now(timezone.utc)
+    fix.completed_at = utcnow()
     await db.commit()
     new_score = await calculate_privacy_score(user.id, db)
     user.privacy_score = new_score

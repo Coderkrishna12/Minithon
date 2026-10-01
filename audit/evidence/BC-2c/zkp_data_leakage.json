@@ -1,10 +1,10 @@
 {
   "summary": "Attestation reveals boolean result (score >= threshold) without leaking the exact privacy score or account inventory in the statement.",
   "statement": {
-    "issuer": "did:key:z6Mkt7dyQoqLsVnZW48epkdQZtVJTX9sRpHbYz2pEFW8qdJ9",
-    "subject": "privacyshield:user:16",
+    "issuer": "did:key:z6MkfTqiXHzsu8TscSVPMEMQE4cLysPBuFWnmqDWJTmjqDkW",
+    "subject": "privacyshield:user:18",
     "claim": "privacy_score >= 70",
     "result": true,
-    "issued_at": "2026-10-01T06:11:56Z"
+    "issued_at": "2026-10-01T06:26:11Z"
   }
 }

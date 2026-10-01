@@ -3,18 +3,18 @@
   "attestation": {
     "verified": true,
     "claim": "Privacy score meets or exceeds 70",
-    "timestamp": "2026-10-01T06:11:56Z",
+    "timestamp": "2026-10-01T06:26:11Z",
     "statement": {
-      "issuer": "did:key:z6Mkt7dyQoqLsVnZW48epkdQZtVJTX9sRpHbYz2pEFW8qdJ9",
-      "subject": "privacyshield:user:16",
+      "issuer": "did:key:z6MkfTqiXHzsu8TscSVPMEMQE4cLysPBuFWnmqDWJTmjqDkW",
+      "subject": "privacyshield:user:18",
       "claim": "privacy_score >= 70",
       "result": true,
-      "issued_at": "2026-10-01T06:11:56Z"
+      "issued_at": "2026-10-01T06:26:11Z"
     },
     "proof": {
       "type": "Ed25519Signature2020",
-      "verificationMethod": "did:key:z6Mkt7dyQoqLsVnZW48epkdQZtVJTX9sRpHbYz2pEFW8qdJ9#z6Mkt7dyQoqLsVnZW48epkdQZtVJTX9sRpHbYz2pEFW8qdJ9",
-      "proofValue": "oFa6Gslr42NAT32CaVcsji_e6Ztklm9e5d2ckb0r0X57pHUmtfcEeReux9uzVql9eRcnrxLKa8-dTXcdS4x6CQ"
+      "verificationMethod": "did:key:z6MkfTqiXHzsu8TscSVPMEMQE4cLysPBuFWnmqDWJTmjqDkW#z6MkfTqiXHzsu8TscSVPMEMQE4cLysPBuFWnmqDWJTmjqDkW",
+      "proofValue": "2U5_2SPkP0niEkgZRR12HSRJdB_Z8blRaZtayWcpJC-51QI06CfceLSMAFLlPvNsF7Gco0QW5-vgIQGhQorSCg"
     }
   }
 }

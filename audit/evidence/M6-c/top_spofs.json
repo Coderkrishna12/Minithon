@@ -2,7 +2,7 @@
   "summary": "Top SPOFs rendered from single_points_of_failure API data.",
   "spofs": [
     {
-      "id": 107,
+      "id": 122,
       "service_name": "Keystone Master Email",
       "service_url": null,
       "email_used": "keystone_master@example.com",
@@ -25,31 +25,31 @@
         "permission_scope": 0,
         "password_reuse": 0.0,
         "missing_2fa": 20,
-        "cascading_impact": 17.83,
-        "base_score": 5.67,
+        "cascading_impact": 22.92,
+        "base_score": 6.44,
         "keystone": true,
         "reachable_accounts": 5,
         "keystone_floor": 60.0,
         "top_paths": [
           {
-            "account_id": 112,
-            "probability": 0.63
+            "account_id": 124,
+            "probability": 0.81
           },
           {
-            "account_id": 108,
-            "probability": 0.63
+            "account_id": 126,
+            "probability": 0.81
           },
           {
-            "account_id": 109,
-            "probability": 0.63
+            "account_id": 127,
+            "probability": 0.81
           },
           {
-            "account_id": 110,
-            "probability": 0.63
+            "account_id": 125,
+            "probability": 0.81
           },
           {
-            "account_id": 111,
-            "probability": 0.63
+            "account_id": 123,
+            "probability": 0.81
           }
         ]
       },
@@ -57,7 +57,7 @@
       "last_breach_date": null,
       "is_active": true,
       "notes": null,
-      "created_at": "2026-10-01T06:11:52Z"
+      "created_at": "2026-10-01T06:26:04Z"
     }
   ]
 }

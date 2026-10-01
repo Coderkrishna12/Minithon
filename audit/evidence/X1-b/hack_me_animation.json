@@ -1,11 +1,11 @@
 {
   "summary": "Frontend Canvas highlights compromised nodes and edges in red (#C8321A). Step-by-step timed propagation animation from PDF is not implemented.",
   "compromised_ids": [
-    "107",
-    "108",
-    "109",
-    "110",
-    "111",
-    "112"
+    "122",
+    "123",
+    "124",
+    "125",
+    "126",
+    "127"
   ]
 }

@@ -6,22 +6,22 @@
   ],
   "sample": [
     {
-      "id": 767,
+      "id": 916,
       "title": "Exposure found: LinkedIn",
       "message": "admin@google.com with Email addresses, Passwords from the LinkedIn breach is circulating in credential dumps",
       "severity": "critical",
       "is_read": false,
       "related_account_id": null,
-      "created_at": "2026-10-01T06:11:54+00:00"
+      "created_at": "2026-10-01T06:26:07+00:00"
     },
     {
-      "id": 705,
-      "title": "Exposure found: Paidwork",
-      "message": "admin@google.com with Email addresses, Names, Passwords, Dates of birth, Device information, Genders, IP addresses, Phone numbers, Physical addresses from the Paidwork breach is circulating in credential dumps",
+      "id": 874,
+      "title": "Exposure found: Nitro",
+      "message": "admin@google.com with Names, Passwords, Email addresses from the Nitro breach is circulating in credential dumps",
       "severity": "critical",
       "is_read": false,
       "related_account_id": null,
-      "created_at": "2026-10-01T06:11:53+00:00"
+      "created_at": "2026-10-01T06:26:06+00:00"
     }
   ]
 }

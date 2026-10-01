@@ -28,7 +28,7 @@
         "type": "account",
         "label": "Your account",
         "url": null,
-        "snippet": "ProtonMail Secure (https://proton.me) is a email account. Signed up with auditor@pm.me; logs in with password. Two-factor authentication is OFF. Risk score 37/100; 0 known breach(es). Uses the same password as: Slack Enterprise, Reddit. Recovery email: backup@gmail.com. Granted p",
+        "snippet": "ProtonMail Secure (https://proton.me) is a email account. Signed up with auditor@pm.me; logs in with password. Two-factor authentication is OFF. Risk score 38/100; 0 known breach(es). Uses the same password as: Slack Enterprise, Reddit. Recovery email: backup@gmail.com. Granted p",
         "cited": false
       },
       {
@@ -79,7 +79,7 @@
     ],
     "retrieval": {
       "mode": "keyword",
-      "searched": 1138,
+      "searched": 1134,
       "warnings": []
     }
   }

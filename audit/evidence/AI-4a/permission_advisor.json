@@ -2,7 +2,7 @@
   "summary": "Category-to-permission mapping analyzes unnecessary permissions and flags mismatches.",
   "recommendations": [
     {
-      "account_id": 99,
+      "account_id": 114,
       "service_name": "ProtonMail Secure",
       "category": "email",
       "current_permissions": [
@@ -22,7 +22,7 @@
       "priority": "high"
     },
     {
-      "account_id": 103,
+      "account_id": 118,
       "service_name": "Slack Enterprise",
       "category": "productivity",
       "current_permissions": [],

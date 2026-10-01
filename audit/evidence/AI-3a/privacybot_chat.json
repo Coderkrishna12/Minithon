@@ -10,38 +10,11 @@
         "type": "overview",
         "label": "Your risk overview",
         "url": null,
-        "snippet": "Biggest risks and overall summary: you track 14 accounts, 1 breach record(s), 63 unresolved exposure(s) and 11 pending fix(es). Highest risk first: Keystone Master Email 60, ProtonMail Secure 37, Slack Enterprise 33, Reddit 32, Dropbox 10. Without two-factor authentication: Proto",
+        "snippet": "Biggest risks and overall summary: you track 14 accounts, 1 breach record(s), 63 unresolved exposure(s) and 7 pending fix(es). Highest risk first: Keystone Master Email 60, ProtonMail Secure 38, Slack Enterprise 33, Reddit 32, Dropbox 10. Without two-factor authentication: Proton",
         "cited": false
       },
       {
         "n": 2,
-        "title": "Fix: enable 2fa on ",
-        "type": "fix",
-        "label": "Recommended fix",
-        "url": null,
-        "snippet": "Enable two-factor authentication on Priority 10; removes about 1 points of risk.",
-        "cited": false
-      },
-      {
-        "n": 3,
-        "title": "Fix: enable 2fa on GitHub",
-        "type": "fix",
-        "label": "Recommended fix",
-        "url": null,
-        "snippet": "Enable two-factor authentication on GitHub Priority 10; removes about 1 points of risk.",
-        "cited": false
-      },
-      {
-        "n": 4,
-        "title": "Fix: enable 2fa on Dropbox",
-        "type": "fix",
-        "label": "Recommended fix",
-        "url": null,
-        "snippet": "Enable two-factor authentication on Dropbox Priority 10; removes about 1 points of risk.",
-        "cited": false
-      },
-      {
-        "n": 5,
         "title": "Fix: enable 2fa on Reddit",
         "type": "fix",
         "label": "Recommended fix",
@@ -50,36 +23,63 @@
         "cited": false
       },
       {
-        "n": 6,
-        "title": "Fix: enable 2fa on Test",
-        "type": "fix",
-        "label": "Recommended fix",
-        "url": null,
-        "snippet": "Enable two-factor authentication on Test Priority 10; removes about 1 points of risk.",
-        "cited": false
-      },
-      {
-        "n": 7,
+        "n": 3,
         "title": "Fix: change password on Reddit",
         "type": "fix",
         "label": "Recommended fix",
         "url": null,
-        "snippet": "Replace the reused password with a unique password on Reddit Priority 20; removes about 3 points of risk.",
+        "snippet": "Replace the reused password with a unique password on Reddit Priority 13; removes about 2 points of risk.",
         "cited": false
       },
       {
-        "n": 8,
+        "n": 4,
         "title": "Fix: enable 2fa on ProtonMail Secure",
         "type": "fix",
         "label": "Recommended fix",
         "url": null,
         "snippet": "Enable two-factor authentication on ProtonMail Secure Priority 20; removes about 2 points of risk.",
         "cited": false
+      },
+      {
+        "n": 5,
+        "title": "Fix: enable 2fa on Slack Enterprise",
+        "type": "fix",
+        "label": "Recommended fix",
+        "url": null,
+        "snippet": "Enable two-factor authentication on Slack Enterprise Priority 10; removes about 1 points of risk.",
+        "cited": false
+      },
+      {
+        "n": 6,
+        "title": "Fix: change password on ProtonMail Secure",
+        "type": "fix",
+        "label": "Recommended fix",
+        "url": null,
+        "snippet": "Replace the reused password with a unique password on ProtonMail Secure Priority 20; removes about 3 points of risk.",
+        "cited": false
+      },
+      {
+        "n": 7,
+        "title": "Fix: change password on Slack Enterprise",
+        "type": "fix",
+        "label": "Recommended fix",
+        "url": null,
+        "snippet": "Replace the reused password with a unique password on Slack Enterprise Priority 13; removes about 2 points of risk.",
+        "cited": false
+      },
+      {
+        "n": 8,
+        "title": "Fix: revoke permission on ProtonMail Secure",
+        "type": "fix",
+        "label": "Recommended fix",
+        "url": null,
+        "snippet": "Review and revoke permissions you do not need on ProtonMail Secure Priority 12; removes about 1 points of risk.",
+        "cited": false
       }
     ],
     "retrieval": {
       "mode": "keyword",
-      "searched": 1138,
+      "searched": 1134,
       "warnings": []
     }
   }

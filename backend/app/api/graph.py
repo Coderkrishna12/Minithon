@@ -7,6 +7,7 @@ from app.models.user import User
 from app.models.account import Account, AccountConnection
 from app.core.security import get_current_user
 from app.services.connections import refresh_user_graph
+from app.services.risk_engine import find_single_points_of_failure
 
 router = APIRouter(prefix="/graph", tags=["graph"])
 
@@ -36,6 +37,7 @@ async def get_graph_data(
         elif a.risk_score >= 25:
             risk_level = "medium"
 
+        components = a.risk_components or {}
         nodes.append({
             "id": str(a.id),
             "label": a.service_name,
@@ -43,8 +45,15 @@ async def get_graph_data(
             "riskScore": a.risk_score,
             "riskLevel": risk_level,
             "has2fa": a.has_2fa,
+            "twofaMethod": a.twofa_method,
             "loginMethod": a.login_method,
             "breachCount": a.breach_count,
+            "blastRadius": components.get("cascading_impact", 0.0),
+            "isKeystone": components.get("keystone", False),
+            "reachableAccounts": components.get("reachable_accounts", 0),
+            "riskComponents": components,
+            "topPaths": components.get("top_paths", []),
+            "permissions": a.permissions or [],
         })
 
     edges = []
@@ -56,7 +65,24 @@ async def get_graph_data(
             "type": c.connection_type,
         })
 
-    return {"nodes": nodes, "edges": edges}
+    spofs_accounts = await find_single_points_of_failure(user.id, db)
+    spofs = [
+        {
+            "id": str(s.id),
+            "service_name": s.service_name,
+            "reachable_accounts": (s.risk_components or {}).get("reachable_accounts", 0),
+            "risk_score": s.risk_score,
+            "blast_radius": (s.risk_components or {}).get("cascading_impact", 0.0),
+        }
+        for s in spofs_accounts
+    ]
+
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "spofs": spofs,
+        "privacyScore": user.privacy_score,
+    }
 
 
 @router.post("/simulate-attack")

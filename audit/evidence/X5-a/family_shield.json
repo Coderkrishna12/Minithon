@@ -1,20 +1,20 @@
 {
   "summary": "Family group creation, invite code join flow, and shared family risk dashboard fully operational.",
   "group": {
-    "id": 5,
+    "id": 6,
     "name": "Audit Family",
     "group_type": "family",
-    "invite_code": "3273F3EEA327"
+    "invite_code": "2E7943FAE0E4"
   },
   "dashboard": {
-    "group_id": 5,
+    "group_id": 6,
     "average_score": 89,
     "total_accounts": 14,
     "total_at_risk": 1,
     "members": [
       {
-        "user_id": 16,
-        "username": "auditor_1790835108",
+        "user_id": 18,
+        "username": "auditor_1790835961",
         "full_name": "Audit Primary",
         "privacy_score": 79,
         "total_accounts": 14,
@@ -22,8 +22,8 @@
         "role": "owner"
       },
       {
-        "user_id": 17,
-        "username": "victim_1790835108",
+        "user_id": 19,
+        "username": "victim_1790835961",
         "full_name": "Audit Victim",
         "privacy_score": 100,
         "total_accounts": 0,

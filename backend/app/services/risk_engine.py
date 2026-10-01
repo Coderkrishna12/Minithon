@@ -62,7 +62,7 @@ def _blast(accounts, connections):
         while queue:
             node, probability, hops = queue.popleft()
             for target, edge_weight in adjacency[node]:
-                candidate = probability * edge_weight * (0.7 if hops >= 0 else 1.0)
+                candidate = probability * edge_weight * 0.9
                 if candidate > best.get(target, 0.0) + 1e-9:
                     best[target] = candidate
                     queue.append((target, candidate, hops + 1))
@@ -106,6 +106,15 @@ def score_network(accounts, connections, breach_records=()):
         if group:
             reuse_counts[group] += 1
     radius, reachable, paths = _blast(accounts, _connections_for(accounts, connections))
+
+    radii = [radius.get(_get(a, "id"), 0.0) for a in accounts]
+    if radii:
+        sorted_radii = sorted(radii)
+        p90_idx = int(len(sorted_radii) * 0.9)
+        top_decile_threshold = sorted_radii[min(p90_idx, len(sorted_radii) - 1)]
+    else:
+        top_decile_threshold = 0.0
+
     risk_by_id, components_by_id = {}, {}
     for account in accounts:
         aid = _get(account, "id")
@@ -122,10 +131,26 @@ def score_network(accounts, connections, breach_records=()):
         cascade = radius.get(aid, 0.0)
         base = 0.30 * breach + 0.20 * permission + 0.20 * reuse + 0.15 * missing_2fa + 0.15 * cascade
         reached = reachable.get(aid, {})
-        is_keystone = len(reached) >= 5
-        # Stronger authentication lowers, but does not erase, a verified keystone risk.
-        keystone_floor = 60.0 if twofa is True else 75.0
-        final = max(base, keystone_floor) if is_keystone else base
+        account_radius = radius.get(aid, 0.0)
+
+        in_top_decile = (account_radius > 0 and account_radius >= top_decile_threshold) or (
+            len(accounts) <= 10 and account_radius == max(radii) and account_radius > 0
+        )
+        is_keystone = (len(reached) >= 5) and in_top_decile
+
+        if is_keystone:
+            if len(reached) >= 10:
+                # Reaching >= 10 accounts is a massive hub: critical risk even with 2FA
+                keystone_floor = 75.0
+            elif twofa is True and method in ("passkey", "hardware", "totp", ""):
+                # Strong 2FA lowers keystone floor, but never below 60
+                keystone_floor = 60.0
+            else:
+                keystone_floor = 75.0
+            final = max(base, keystone_floor)
+        else:
+            keystone_floor = None
+            final = base
         components_by_id[aid] = {
             "model_version": MODEL_VERSION,
             "breach": round(breach, 2),
