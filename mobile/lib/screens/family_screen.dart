@@ -9,7 +9,8 @@ class FamilyScreen extends StatefulWidget {
   State<FamilyScreen> createState() => _FamilyScreenState();
 }
 
-class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderStateMixin {
+class _FamilyScreenState extends State<FamilyScreen>
+    with SingleTickerProviderStateMixin {
   final _api = ApiService();
   late TabController _tabCtrl;
   List<dynamic> _groups = [];
@@ -34,9 +35,9 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
   Future<void> _loadGroups() async {
     setState(() => _loading = true);
     try {
-      final data = await _api.get('/family/groups');
+      final data = await _api.getList('/family/groups');
       setState(() {
-        _groups = (data['groups'] as List?) ?? [];
+        _groups = data;
         _loading = false;
       });
     } catch (_) {
@@ -48,7 +49,10 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
     if (_inviteCodeCtrl.text.trim().isEmpty) return;
     setState(() => _joining = true);
     try {
-      await _api.post('/family/join', body: {'invite_code': _inviteCodeCtrl.text.trim()});
+      await _api.post(
+        '/family/join',
+        body: {'invite_code': _inviteCodeCtrl.text.trim()},
+      );
       _inviteCodeCtrl.clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -59,9 +63,9 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
       _tabCtrl.animateTo(0);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to join: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to join: $e')));
       }
     }
     setState(() => _joining = false);
@@ -82,7 +86,12 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -104,32 +113,47 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
                     initialValue: selectedType,
                     decoration: const InputDecoration(
                       labelText: 'Group Type',
-                      prefixIcon: Icon(Icons.category, color: AppColors.textMuted),
+                      prefixIcon: Icon(
+                        Icons.category,
+                        color: AppColors.textMuted,
+                      ),
                     ),
                     dropdownColor: AppColors.surface,
                     items: const [
                       DropdownMenuItem(value: 'family', child: Text('Family')),
-                      DropdownMenuItem(value: 'friends', child: Text('Friends')),
+                      DropdownMenuItem(
+                        value: 'friends',
+                        child: Text('Friends'),
+                      ),
                       DropdownMenuItem(value: 'team', child: Text('Team')),
-                      DropdownMenuItem(value: 'organization', child: Text('Organization')),
+                      DropdownMenuItem(
+                        value: 'organization',
+                        child: Text('Organization'),
+                      ),
                     ],
-                    onChanged: (v) => setSheetState(() => selectedType = v ?? 'family'),
+                    onChanged: (v) =>
+                        setSheetState(() => selectedType = v ?? 'family'),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () async {
                       if (nameCtrl.text.trim().isEmpty) return;
                       try {
-                        await _api.post('/family/groups', body: {
-                          'name': nameCtrl.text.trim(),
-                          'type': selectedType,
-                        });
+                        await _api.post(
+                          '/family/groups',
+                          body: {
+                            'name': nameCtrl.text.trim(),
+                            'type': selectedType,
+                          },
+                        );
                         if (ctx.mounted) Navigator.pop(ctx);
                         _loadGroups();
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to create group: $e')),
+                            SnackBar(
+                              content: Text('Failed to create group: $e'),
+                            ),
                           );
                         }
                       }
@@ -148,9 +172,7 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
   void _showGroupDetails(dynamic group) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => _GroupDetailScreen(group: group),
-      ),
+      MaterialPageRoute(builder: (_) => _GroupDetailScreen(group: group)),
     );
   }
 
@@ -191,7 +213,9 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
 
   Widget _buildGroupsTab() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
     if (_groups.isEmpty) {
       return const Center(
@@ -202,7 +226,10 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
             SizedBox(height: 12),
             Text('No groups yet', style: TextStyle(color: AppColors.textMuted)),
             SizedBox(height: 4),
-            Text('Create or join a group to get started', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+            Text(
+              'Create or join a group to get started',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
           ],
         ),
       );
@@ -234,7 +261,11 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
                       color: AppColors.green.withAlpha(30),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.group, color: AppColors.green, size: 24),
+                    child: const Icon(
+                      Icons.group,
+                      color: AppColors.green,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -243,12 +274,18 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
                       children: [
                         Text(
                           group['name'] ?? 'Unnamed Group',
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${group['member_count'] ?? 0} members  |  ${group['type'] ?? 'group'}',
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -275,7 +312,11 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
               shape: BoxShape.circle,
               color: AppColors.purple.withAlpha(30),
             ),
-            child: const Icon(Icons.group_add, size: 48, color: AppColors.purple),
+            child: const Icon(
+              Icons.group_add,
+              size: 48,
+              color: AppColors.purple,
+            ),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -307,7 +348,10 @@ class _FamilyScreenState extends State<FamilyScreen> with SingleTickerProviderSt
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Text('Join Group'),
             ),
@@ -341,7 +385,7 @@ class _GroupDetailScreenState extends State<_GroupDetailScreen> {
   Future<void> _loadDetails() async {
     try {
       final groupId = widget.group['id'];
-      final data = await _api.get('/family/groups/$groupId');
+      final data = await _api.get('/family/dashboard/$groupId');
       setState(() {
         _details = data;
         _loading = false;
@@ -356,7 +400,9 @@ class _GroupDetailScreenState extends State<_GroupDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.group['name'] ?? 'Group')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.blue))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.blue),
+            )
           : _buildContent(),
     );
   }
@@ -377,14 +423,21 @@ class _GroupDetailScreenState extends State<_GroupDetailScreen> {
           ),
           child: Column(
             children: [
-              const Text('Group Average Score', style: TextStyle(color: AppColors.textSecondary)),
+              const Text(
+                'Group Average Score',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
               const SizedBox(height: 8),
               Text(
                 '${avgScore.toInt()}',
                 style: TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
-                  color: avgScore >= 70 ? AppColors.green : avgScore >= 40 ? AppColors.orange : AppColors.red,
+                  color: avgScore >= 70
+                      ? AppColors.green
+                      : avgScore >= 40
+                      ? AppColors.orange
+                      : AppColors.red,
                 ),
               ),
               const SizedBox(height: 8),
@@ -396,11 +449,19 @@ class _GroupDetailScreenState extends State<_GroupDetailScreen> {
           ),
         ),
         const SizedBox(height: 20),
-        const Text('Members', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+          'Members',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 12),
         ...members.map((member) {
-          final score = (member['privacy_score'] ?? member['score'] ?? 0).toDouble();
-          final color = score >= 70 ? AppColors.green : score >= 40 ? AppColors.orange : AppColors.red;
+          final score = (member['privacy_score'] ?? member['score'] ?? 0)
+              .toDouble();
+          final color = score >= 70
+              ? AppColors.green
+              : score >= 40
+              ? AppColors.orange
+              : AppColors.red;
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(14),
@@ -416,7 +477,10 @@ class _GroupDetailScreenState extends State<_GroupDetailScreen> {
                   backgroundColor: AppColors.blue.withAlpha(30),
                   child: Text(
                     (member['name'] ?? member['email'] ?? '?')[0].toUpperCase(),
-                    style: const TextStyle(color: AppColors.blue, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: AppColors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -431,20 +495,30 @@ class _GroupDetailScreenState extends State<_GroupDetailScreen> {
                       if (member['role'] != null)
                         Text(
                           member['role'],
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 12,
+                          ),
                         ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withAlpha(30),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '${score.toInt()}',
-                    style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ],

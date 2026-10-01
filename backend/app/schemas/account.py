@@ -8,9 +8,13 @@ class AccountCreate(BaseModel):
     email_used: str | None = None
     username_used: str | None = None
     category: str | None = None
-    has_2fa: bool = False
+    has_2fa: bool | None = None
     password_group: str | None = None
-    login_method: str = "password"
+    login_method: str = "unknown"
+    twofa_method: str | None = None
+    added_via: str = "manual"
+    import_confidence: float | None = None
+    evidence_source: str | None = None
     recovery_email: str | None = None
     recovery_phone: str | None = None
     permissions: list[str] = []
@@ -26,6 +30,7 @@ class AccountUpdate(BaseModel):
     has_2fa: bool | None = None
     password_group: str | None = None
     login_method: str | None = None
+    twofa_method: str | None = None
     recovery_email: str | None = None
     recovery_phone: str | None = None
     permissions: list[str] | None = None
@@ -39,13 +44,18 @@ class AccountResponse(BaseModel):
     email_used: str | None
     username_used: str | None
     category: str | None
-    has_2fa: bool
+    has_2fa: bool | None
     password_group: str | None
-    login_method: str
+    login_method: str | None
+    twofa_method: str | None = None
+    added_via: str = "manual"
+    import_confidence: float | None = None
+    evidence_source: str | None = None
     recovery_email: str | None
     recovery_phone: str | None
     permissions: list[str]
     risk_score: float
+    risk_components: dict = {}
     breach_count: int
     last_breach_date: datetime | None
     is_active: bool

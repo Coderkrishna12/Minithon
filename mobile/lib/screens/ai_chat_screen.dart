@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import '../config/theme.dart';
 import '../services/api_service.dart';
 
@@ -14,7 +16,8 @@ class _ChatMessage {
   final bool isUser;
   final DateTime time;
 
-  _ChatMessage({required this.text, required this.isUser}) : time = DateTime.now();
+  _ChatMessage({required this.text, required this.isUser})
+    : time = DateTime.now();
 }
 
 class _AiChatScreenState extends State<AiChatScreen> {
@@ -23,6 +26,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final _scrollCtrl = ScrollController();
   final List<_ChatMessage> _messages = [];
   bool _isTyping = false;
+  bool _isListening = false;
+  static const _voiceChannel = MethodChannel('privacyshield/voice');
 
   final _quickQuestions = [
     'Which of my accounts are most at risk?',
@@ -34,10 +39,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
   @override
   void initState() {
     super.initState();
-    _messages.add(_ChatMessage(
-      text: "Hi! I'm PrivacyBot, your AI security assistant. Ask me anything about your digital security.",
-      isUser: false,
-    ));
+    _messages.add(
+      _ChatMessage(
+        text:
+            "Hi! I'm PrivacyBot, your AI security assistant. Ask me anything about your digital security.",
+        isUser: false,
+      ),
+    );
   }
 
   @override
@@ -59,26 +67,63 @@ class _AiChatScreenState extends State<AiChatScreen> {
     try {
       final history = _messages
           .where((m) => m != _messages.first)
-          .map((m) => {'role': m.isUser ? 'user' : 'assistant', 'content': m.text})
+          .map(
+            (m) => {'role': m.isUser ? 'user' : 'assistant', 'content': m.text},
+          )
           .toList();
 
-      final data = await _api.post('/ai/chat', body: {
-        'message': text.trim(),
-        'history': history.length > 10 ? history.sublist(history.length - 10) : history,
-      });
+      final data = await _api.post(
+        '/ai/chat',
+        body: {
+          'message': text.trim(),
+          'history': history.length > 10
+              ? history.sublist(history.length - 10)
+              : history,
+        },
+      );
 
       setState(() {
-        _messages.add(_ChatMessage(text: data['response'] ?? 'I could not process that.', isUser: false));
+        _messages.add(
+          _ChatMessage(
+            text: data['response'] ?? 'I could not process that.',
+            isUser: false,
+          ),
+        );
         _isTyping = false;
       });
     } catch (e) {
       setState(() {
-        final text = e is ApiException ? e.message : "Couldn't reach PrivacyBot. Please try again.";
+        final text = e is ApiException
+            ? e.message
+            : "Couldn't reach PrivacyBot. Please try again.";
         _messages.add(_ChatMessage(text: text, isUser: false));
         _isTyping = false;
       });
     }
     _scrollToBottom();
+  }
+
+  Future<void> _listen() async {
+    setState(() => _isListening = true);
+    try {
+      final phrase = await _voiceChannel.invokeMethod<String>('listen');
+      if (!mounted || phrase == null || phrase.trim().isEmpty) return;
+      final prefix = _msgCtrl.text.trim();
+      _msgCtrl.text = prefix.isEmpty
+          ? phrase.trim()
+          : '$prefix ${phrase.trim()}';
+      _msgCtrl.selection = TextSelection.collapsed(
+        offset: _msgCtrl.text.length,
+      );
+    } on PlatformException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Voice input is unavailable.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isListening = false);
+    }
   }
 
   void _scrollToBottom() {
@@ -129,7 +174,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     alignment: Alignment.center,
                     child: Text(
                       _quickQuestions[i],
-                      style: const TextStyle(color: AppColors.blue, fontSize: 12),
+                      style: const TextStyle(
+                        color: AppColors.blue,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 );
@@ -153,12 +201,33 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     decoration: const InputDecoration(
                       hintText: 'Ask PrivacyBot...',
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                     maxLines: null,
                     textInputAction: TextInputAction.send,
                     onSubmitted: _sendMessage,
                   ),
+                ),
+                IconButton(
+                  tooltip: _isListening ? 'Listening…' : 'Ask with voice',
+                  icon: _isListening
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.mic_none, color: AppColors.blue),
+                  onPressed:
+                      _isListening ||
+                          !{
+                            TargetPlatform.android,
+                            TargetPlatform.iOS,
+                          }.contains(defaultTargetPlatform)
+                      ? null
+                      : _listen,
                 ),
                 IconButton(
                   icon: const Icon(Icons.send, color: AppColors.blue),
@@ -176,7 +245,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: msg.isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!msg.isUser) ...[
@@ -185,7 +256,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
               height: 32,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(colors: [AppColors.blue, AppColors.purple]),
+                gradient: LinearGradient(
+                  colors: [AppColors.blue, AppColors.purple],
+                ),
               ),
               child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
             ),
@@ -229,7 +302,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
             height: 32,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(colors: [AppColors.blue, AppColors.purple]),
+              gradient: LinearGradient(
+                colors: [AppColors.blue, AppColors.purple],
+              ),
             ),
             child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
           ),
@@ -264,13 +339,17 @@ class _TypingDot extends StatefulWidget {
   State<_TypingDot> createState() => _TypingDotState();
 }
 
-class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMixin {
+class _TypingDotState extends State<_TypingDot>
+    with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))..repeat(reverse: true);
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
   }
 
   @override
@@ -288,7 +367,9 @@ class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMi
         height: 8,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.textMuted.withAlpha((100 + 155 * _ctrl.value).toInt()),
+          color: AppColors.textMuted.withAlpha(
+            (100 + 155 * _ctrl.value).toInt(),
+          ),
         ),
       ),
     );

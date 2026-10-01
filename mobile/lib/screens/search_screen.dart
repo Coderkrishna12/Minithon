@@ -30,7 +30,9 @@ class _SearchScreenState extends State<SearchScreen> {
       _hasSearched = true;
     });
     try {
-      final data = await _api.get('/search?q=$query');
+      final data = await _api.get(
+        '/search?q=${Uri.encodeQueryComponent(query)}',
+      );
       setState(() {
         _results = data;
         _loading = false;
@@ -55,7 +57,10 @@ class _SearchScreenState extends State<SearchScreen> {
               controller: _searchCtrl,
               decoration: InputDecoration(
                 hintText: 'Search accounts, breaches, notifications...',
-                prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppColors.textMuted,
+                ),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.send, color: AppColors.blue),
                   onPressed: _search,
@@ -73,7 +78,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
 
     if (!_hasSearched) {
@@ -83,7 +90,10 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             Icon(Icons.search, size: 64, color: AppColors.textMuted),
             SizedBox(height: 12),
-            Text('Search your privacy data', style: TextStyle(color: AppColors.textMuted, fontSize: 16)),
+            Text(
+              'Search your privacy data',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 16),
+            ),
           ],
         ),
       );
@@ -91,22 +101,33 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (_results == null) {
       return const Center(
-        child: Text('Something went wrong', style: TextStyle(color: AppColors.textMuted)),
+        child: Text(
+          'Something went wrong',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
       );
     }
 
-    final accounts = (_results!['accounts'] as List?) ?? [];
-    final breaches = (_results!['breaches'] as List?) ?? [];
-    final notifications = (_results!['notifications'] as List?) ?? [];
+    final groups = (_results!['results'] as Map<String, dynamic>?) ?? _results!;
+    final accounts = (groups['accounts'] as List?) ?? [];
+    final breaches = (groups['breaches'] as List?) ?? [];
+    final notifications = (groups['notifications'] as List?) ?? [];
+    final auditLogs = (groups['audit_logs'] as List?) ?? [];
 
-    if (accounts.isEmpty && breaches.isEmpty && notifications.isEmpty) {
+    if (accounts.isEmpty &&
+        breaches.isEmpty &&
+        notifications.isEmpty &&
+        auditLogs.isEmpty) {
       return const Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.search_off, size: 48, color: AppColors.textMuted),
             SizedBox(height: 12),
-            Text('No results found', style: TextStyle(color: AppColors.textMuted)),
+            Text(
+              'No results found',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
           ],
         ),
       );
@@ -116,46 +137,91 @@ class _SearchScreenState extends State<SearchScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
         if (accounts.isNotEmpty) ...[
-          _buildSectionHeader('Accounts', Icons.apps, AppColors.blue, accounts.length),
-          ...accounts.map((a) => _buildResultItem(
-                a['service_name'] ?? a['title'] ?? 'Account',
-                a['email'] ?? a['subtitle'] ?? '',
-                Icons.apps,
-                AppColors.blue,
-              )),
+          _buildSectionHeader(
+            'Accounts',
+            Icons.apps,
+            AppColors.blue,
+            accounts.length,
+          ),
+          ...accounts.map(
+            (a) => _buildResultItem(
+              a['service_name'] ?? a['title'] ?? 'Account',
+              a['email'] ?? a['subtitle'] ?? '',
+              Icons.apps,
+              AppColors.blue,
+            ),
+          ),
           const SizedBox(height: 16),
         ],
         if (breaches.isNotEmpty) ...[
-          _buildSectionHeader('Breaches', Icons.warning_amber, AppColors.red, breaches.length),
-          ...breaches.map((b) => _buildResultItem(
-                b['breach_name'] ?? b['title'] ?? 'Breach',
-                b['service_name'] ?? b['subtitle'] ?? '',
-                Icons.warning_amber,
-                AppColors.red,
-              )),
+          _buildSectionHeader(
+            'Breaches',
+            Icons.warning_amber,
+            AppColors.red,
+            breaches.length,
+          ),
+          ...breaches.map(
+            (b) => _buildResultItem(
+              b['breach_name'] ?? b['title'] ?? 'Breach',
+              b['service_name'] ?? b['subtitle'] ?? '',
+              Icons.warning_amber,
+              AppColors.red,
+            ),
+          ),
           const SizedBox(height: 16),
         ],
         if (notifications.isNotEmpty) ...[
-          _buildSectionHeader('Notifications', Icons.notifications, AppColors.orange, notifications.length),
-          ...notifications.map((n) => _buildResultItem(
-                n['title'] ?? 'Notification',
-                n['message'] ?? n['subtitle'] ?? '',
-                Icons.notifications,
-                AppColors.orange,
-              )),
+          _buildSectionHeader(
+            'Notifications',
+            Icons.notifications,
+            AppColors.orange,
+            notifications.length,
+          ),
+          ...notifications.map(
+            (n) => _buildResultItem(
+              n['title'] ?? 'Notification',
+              n['message'] ?? n['subtitle'] ?? '',
+              Icons.notifications,
+              AppColors.orange,
+            ),
+          ),
+        ],
+        if (auditLogs.isNotEmpty) ...[
+          _buildSectionHeader(
+            'Audit trail',
+            Icons.link,
+            AppColors.purple,
+            auditLogs.length,
+          ),
+          ...auditLogs.map(
+            (entry) => _buildResultItem(
+              entry['title'] ?? 'Audit entry',
+              entry['subtitle'] ?? '',
+              Icons.link,
+              AppColors.purple,
+            ),
+          ),
         ],
       ],
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon, Color color, int count) {
+  Widget _buildSectionHeader(
+    String title,
+    IconData icon,
+    Color color,
+    int count,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, top: 4),
       child: Row(
         children: [
           Icon(icon, color: color, size: 18),
           const SizedBox(width: 8),
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -163,14 +229,26 @@ class _SearchScreenState extends State<SearchScreen> {
               color: color.withAlpha(30),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text('$count', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+            child: Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildResultItem(String title, String subtitle, IconData icon, Color color) {
+  Widget _buildResultItem(
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
@@ -187,9 +265,18 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
                 if (subtitle.isNotEmpty)
-                  Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
               ],
             ),
           ),

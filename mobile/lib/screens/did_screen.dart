@@ -59,17 +59,23 @@ class _DIDScreenState extends State<DIDScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('This is shown once. PrivacyShield does not keep it, and it proves you control this DID.'),
+                const Text(
+                  'This is shown once. PrivacyShield does not keep it, and it proves you control this DID.',
+                ),
                 const SizedBox(height: 12),
                 SelectableText(privateKey, style: AppText.mono(size: 12)),
               ],
             ),
             actions: [
               TextButton(
-                onPressed: () => Clipboard.setData(ClipboardData(text: privateKey)),
+                onPressed: () =>
+                    Clipboard.setData(ClipboardData(text: privateKey)),
                 child: const Text('Copy'),
               ),
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('I saved it')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('I saved it'),
+              ),
             ],
           ),
         );
@@ -77,9 +83,9 @@ class _DIDScreenState extends State<DIDScreen> {
     } catch (e) {
       setState(() => _creating = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create DID: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to create DID: $e')));
       }
     }
   }
@@ -89,21 +95,27 @@ class _DIDScreenState extends State<DIDScreen> {
     if (didString == null) return;
     setState(() => _verifying = true);
     try {
-      final data = await _api.post('/did/verify?did_string=$didString');
+      final data = await _api.post(
+        '/did/verify?did_string=${Uri.encodeQueryComponent(didString.toString())}',
+      );
       if (mounted) {
         final verified = data['verified'] ?? data['valid'] ?? false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(verified ? 'DID verified successfully' : 'DID verification failed'),
+            content: Text(
+              verified
+                  ? 'DID verified successfully'
+                  : 'DID verification failed',
+            ),
             backgroundColor: verified ? AppColors.green : AppColors.red,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Verification error: $e')));
       }
     }
     setState(() => _verifying = false);
@@ -134,10 +146,14 @@ class _DIDScreenState extends State<DIDScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('DID Identity')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.blue))
-          : _didData == null || _didData!.isEmpty || _didData!['did'] == null && _didData!['did_string'] == null
-              ? _buildCreateView()
-              : _buildIdentityView(),
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.blue),
+            )
+          : _didData == null ||
+                _didData!.isEmpty ||
+                _didData!['did'] == null && _didData!['did_string'] == null
+          ? _buildCreateView()
+          : _buildIdentityView(),
     );
   }
 
@@ -154,7 +170,11 @@ class _DIDScreenState extends State<DIDScreen> {
                 shape: BoxShape.circle,
                 color: AppColors.cyan.withAlpha(30),
               ),
-              child: const Icon(Icons.fingerprint, size: 64, color: AppColors.cyan),
+              child: const Icon(
+                Icons.fingerprint,
+                size: 64,
+                color: AppColors.cyan,
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -174,13 +194,19 @@ class _DIDScreenState extends State<DIDScreen> {
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.add_circle_outline),
               label: Text(_creating ? 'Creating...' : 'Create DID'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.cyan,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 14,
+                ),
               ),
             ),
           ],
@@ -222,52 +248,92 @@ class _DIDScreenState extends State<DIDScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.fingerprint, color: AppColors.cyan, size: 28),
+                      const Icon(
+                        Icons.fingerprint,
+                        color: AppColors.cyan,
+                        size: 28,
+                      ),
                       const SizedBox(width: 10),
                       const Expanded(
                         child: Text(
                           'Digital Identity Card',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.green.withAlpha(30),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           'Active',
-                          style: TextStyle(color: AppColors.green, fontSize: 11, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: AppColors.green,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Text('DID', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                  const Text(
+                    'DID',
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     did.toString(),
-                    style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: AppColors.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'monospace',
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   if (publicKey.toString().isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    const Text('Public Key', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                    const Text(
+                      'Public Key',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       publicKey.toString().length > 64
                           ? '${publicKey.toString().substring(0, 64)}...'
                           : publicKey.toString(),
-                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                   if (verificationMethod.toString().isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    const Text('Verification Method', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                    const Text(
+                      'Verification Method',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       verificationMethod.toString(),
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ],
@@ -284,7 +350,10 @@ class _DIDScreenState extends State<DIDScreen> {
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(Icons.verified, size: 18),
                   label: Text(_verifying ? 'Verifying...' : 'Verify DID'),
@@ -302,7 +371,10 @@ class _DIDScreenState extends State<DIDScreen> {
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(Icons.badge, size: 18),
                   label: Text(_issuing ? 'Issuing...' : 'Issue Credential'),
@@ -316,50 +388,70 @@ class _DIDScreenState extends State<DIDScreen> {
           ),
           if (credentials.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const Text('Credentials', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Credentials',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
-            ...credentials.map((cred) => Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.verified_user, color: AppColors.cyan, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+            ...credentials.map(
+              (cred) => Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.verified_user,
+                      color: AppColors.cyan,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cred['type'] ?? cred['name'] ?? 'Credential',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          if (cred['issued_at'] != null ||
+                              cred['issuer'] != null)
                             Text(
-                              cred['type'] ?? cred['name'] ?? 'Credential',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            if (cred['issued_at'] != null || cred['issuer'] != null)
-                              Text(
-                                cred['issuer'] ?? cred['issued_at'] ?? '',
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                              cred['issuer'] ?? cred['issued_at'] ?? '',
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 12,
                               ),
-                          ],
+                            ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.green.withAlpha(30),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        cred['status'] ?? 'valid',
+                        style: const TextStyle(
+                          color: AppColors.green,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.green.withAlpha(30),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          cred['status'] ?? 'valid',
-                          style: const TextStyle(color: AppColors.green, fontSize: 11, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ],
       ),

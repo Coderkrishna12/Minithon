@@ -9,7 +9,8 @@ class BreachesScreen extends StatefulWidget {
   State<BreachesScreen> createState() => _BreachesScreenState();
 }
 
-class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProviderStateMixin {
+class _BreachesScreenState extends State<BreachesScreen>
+    with SingleTickerProviderStateMixin {
   final _api = ApiService();
   late TabController _tabCtrl;
   List<dynamic> _history = [];
@@ -49,7 +50,8 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
     try {
       final data = await _api.get('/ai/breach-predictions');
       setState(() {
-        _predictions = (data['predictions'] as List?) ?? [];
+        _predictions =
+            (data['data'] as List?) ?? (data['predictions'] as List?) ?? [];
         _loadingPredictions = false;
       });
     } catch (_) {
@@ -92,7 +94,11 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
         Expanded(
           child: TabBarView(
             controller: _tabCtrl,
-            children: [_buildScanTab(), _buildHistoryTab(), _buildPredictionsTab()],
+            children: [
+              _buildScanTab(),
+              _buildHistoryTab(),
+              _buildPredictionsTab(),
+            ],
           ),
         ),
       ],
@@ -129,12 +135,22 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
             ElevatedButton.icon(
               onPressed: _scanning ? null : _scanAll,
               icon: _scanning
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : const Icon(Icons.search),
               label: Text(_scanning ? 'Scanning...' : 'Scan All Accounts'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.red,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
               ),
             ),
             if (_scanResult != null) ...[
@@ -150,12 +166,39 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
                   children: [
                     Text(
                       'Found ${_scanResult!['total_breaches_found'] ?? 0} breaches',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
-                      '${_scanResult!['accounts_scanned'] ?? 0} accounts scanned',
+                      '${_scanResult!['total_accounts_scanned'] ?? _scanResult!['accounts_scanned'] ?? 0} accounts scanned',
                       style: const TextStyle(color: AppColors.textSecondary),
                     ),
+                    if ((_scanResult!['unlisted_exposures'] as List?)
+                            ?.isNotEmpty ==
+                        true) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        '${(_scanResult!['unlisted_exposures'] as List).length} exposure(s) found for an email outside your account list.',
+                        style: const TextStyle(
+                          color: AppColors.orange,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                    if ((_scanResult!['errors'] as List?)?.isNotEmpty ==
+                        true) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        (_scanResult!['errors'] as List).join('\n'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.orange,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -168,10 +211,17 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
 
   Widget _buildHistoryTab() {
     if (_loadingHistory) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
     if (_history.isEmpty) {
-      return const Center(child: Text('No breaches found', style: TextStyle(color: AppColors.textMuted)));
+      return const Center(
+        child: Text(
+          'No breaches found',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
+      );
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -191,7 +241,11 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
             children: [
               Row(
                 children: [
-                  const Icon(Icons.warning_amber, color: AppColors.red, size: 18),
+                  const Icon(
+                    Icons.warning_amber,
+                    color: AppColors.red,
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -203,13 +257,19 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
               ),
               const SizedBox(height: 8),
               Text(
-                'Service: ${b['service_name'] ?? 'N/A'}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                'Service: ${b['account_name'] ?? b['service_name'] ?? 'N/A'}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
               ),
               if (b['breach_date'] != null)
                 Text(
                   'Date: ${b['breach_date']}',
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                  ),
                 ),
               if (b['data_exposed'] != null)
                 Padding(
@@ -219,12 +279,21 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
                     runSpacing: 4,
                     children: (b['data_exposed'] as List).map((d) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.red.withAlpha(30),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Text(d.toString(), style: const TextStyle(color: AppColors.red, fontSize: 11)),
+                        child: Text(
+                          d.toString(),
+                          style: const TextStyle(
+                            color: AppColors.red,
+                            fontSize: 11,
+                          ),
+                        ),
                       );
                     }).toList(),
                   ),
@@ -238,18 +307,32 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
 
   Widget _buildPredictionsTab() {
     if (_loadingPredictions) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
     if (_predictions.isEmpty) {
-      return const Center(child: Text('No predictions available', style: TextStyle(color: AppColors.textMuted)));
+      return const Center(
+        child: Text(
+          'No predictions available',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
+      );
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _predictions.length,
       itemBuilder: (_, i) {
         final p = _predictions[i];
-        final prob = ((p['probability'] ?? 0) * 100).toDouble();
-        final color = prob >= 70 ? AppColors.red : prob >= 40 ? AppColors.orange : AppColors.green;
+        final prob =
+            ((p['probability_6_months'] as num?) ??
+                    ((p['probability'] as num? ?? 0) * 100))
+                .toDouble();
+        final color = prob >= 70
+            ? AppColors.red
+            : prob >= 40
+            ? AppColors.orange
+            : AppColors.green;
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(14),
@@ -264,16 +347,28 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(p['service_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      p['service'] ?? p['service_name'] ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: color.withAlpha(30),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       '${prob.toInt()}%',
-                      style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -288,11 +383,14 @@ class _BreachesScreenState extends State<BreachesScreen> with SingleTickerProvid
                   minHeight: 6,
                 ),
               ),
-              if (p['risk_factors'] != null) ...[
+              if (p['factors'] is Map) ...[
                 const SizedBox(height: 8),
                 Text(
-                  (p['risk_factors'] as List).join(', '),
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                  'Risk level: ${p['risk_level'] ?? 'unknown'} · ${p['recommendation'] ?? ''}',
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ],

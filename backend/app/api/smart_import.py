@@ -2,7 +2,7 @@ import re
 
 import httpx
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -54,7 +54,81 @@ class EmailImportRequest(BaseModel):
 
 class BulkImportRequest(BaseModel):
     services: list[str]
-    email: str
+    email: str | None = None
+    added_via: str = "manual_review"
+    import_confidence: float | None = None
+    evidence_source: str = "user_confirmed_import_candidate"
+
+
+class PasswordCsvService(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    service_name: str
+    password_group: str | None = None
+
+
+class PasswordCsvImportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    services: list[PasswordCsvService]
+
+
+@router.post("/fixture-mailbox/scan")
+async def scan_fixture_mailbox(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Opt-in local demo fixture representing signup/security receipts; no mailbox is accessed."""
+    tracked = await _tracked_names(user.id, db)
+    signals = [
+        {"service_name": "GitHub", "service_url": "github.com", "confidence": 0.96,
+         "source": "DEMO DATA · security alert", "reason": "Account security notification"},
+        {"service_name": "Dropbox", "service_url": "dropbox.com", "confidence": 0.91,
+         "source": "DEMO DATA · signup receipt", "reason": "Account creation receipt"},
+        {"service_name": "Example Newsletter", "service_url": "newsletter.example.invalid", "confidence": 0.18,
+         "source": "DEMO DATA · newsletter", "reason": "Newsletter only; not treated as an account"},
+    ]
+    for item in signals:
+        item["already_tracked"] = item["service_name"].lower() in tracked or item["service_url"] in tracked
+        item["importable"] = item["confidence"] >= 0.75 and not item["already_tracked"]
+    return {
+        "mode": "fixture",
+        "label": "DEMO DATA — no real mailbox connected",
+        "message": "Only account signup/security signals are candidates. Newsletter-only domains are excluded.",
+        "discovered": signals,
+    }
+
+
+@router.post("/password-manager-csv")
+async def import_password_manager_csv(
+    data: PasswordCsvImportRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Accept only client-derived account names and reuse labels; plaintext is rejected by schema."""
+    tracked = await _tracked_names(user.id, db)
+    added, skipped = [], []
+    for row in data.services:
+        name = row.service_name.strip()[:200]
+        if not name or name.lower() in tracked:
+            skipped.append(name)
+            continue
+        account = Account(
+            user_id=user.id, service_name=name, service_url=None, email_used=None,
+            category=None, has_2fa=None, login_method="unknown", twofa_method=None,
+            password_group=(row.password_group[:100] if row.password_group else None),
+            permissions=[], added_via="local_password_manager_csv",
+            import_confidence=1.0, evidence_source="password_manager_csv_processed_on_device",
+        )
+        db.add(account)
+        await db.flush()
+        tracked.add(name.lower())
+        added.append({"id": account.id, "service_name": name, "password_group": account.password_group})
+    await db.commit()
+    await refresh_user_graph(user.id, db)
+    return {
+        "added": added, "skipped": skipped,
+        "plaintext_received": False,
+        "message": "Only service names and locally generated reuse-group labels were accepted.",
+    }
 
 
 @router.post("/scan-email")
@@ -126,10 +200,14 @@ async def bulk_add_accounts(
             user_id=user.id,
             service_name=name,
             service_url=domain,
-            email_used=data.email,
-            category="other",
+            email_used=(data.email if data.added_via == "fixture_mailbox" else (data.email or user.email)),
+            category=None,
             permissions=[],
-            login_method="password",
+            login_method="unknown",
+            has_2fa=None,
+            added_via=data.added_via,
+            import_confidence=data.import_confidence,
+            evidence_source=data.evidence_source,
         )
         db.add(account)
         await db.commit()
