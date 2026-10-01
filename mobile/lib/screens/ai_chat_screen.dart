@@ -12,9 +12,12 @@ class AiChatScreen extends StatefulWidget {
 class _ChatMessage {
   final String text;
   final bool isUser;
+  final bool isError;
+  final List<Map<String, dynamic>> sources;
   final DateTime time;
 
-  _ChatMessage({required this.text, required this.isUser}) : time = DateTime.now();
+  _ChatMessage({required this.text, required this.isUser, this.isError = false, this.sources = const []})
+      : time = DateTime.now();
 }
 
 class _AiChatScreenState extends State<AiChatScreen> {
@@ -35,7 +38,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   void initState() {
     super.initState();
     _messages.add(_ChatMessage(
-      text: "Hi! I'm PrivacyBot, your AI security assistant. Ask me anything about your digital security.",
+      text: 'Ask about your accounts, breaches or fixes. Answers come from your own records and the Have I Been Pwned breach catalog, with sources.',
       isUser: false,
     ));
   }
@@ -49,6 +52,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
+    final history = _messages
+        .skip(1)
+        .where((m) => !m.isError && m.text.isNotEmpty)
+        .map((m) => {'role': m.isUser ? 'user' : 'assistant', 'content': m.text})
+        .toList();
     setState(() {
       _messages.add(_ChatMessage(text: text.trim(), isUser: true));
       _isTyping = true;
@@ -57,24 +65,25 @@ class _AiChatScreenState extends State<AiChatScreen> {
     _scrollToBottom();
 
     try {
-      final history = _messages
-          .where((m) => m != _messages.first)
-          .map((m) => {'role': m.isUser ? 'user' : 'assistant', 'content': m.text})
-          .toList();
-
       final data = await _api.post('/ai/chat', body: {
         'message': text.trim(),
         'history': history.length > 10 ? history.sublist(history.length - 10) : history,
       });
 
+      final answer = data['response'] as String?;
       setState(() {
-        _messages.add(_ChatMessage(text: data['response'] ?? 'I could not process that.', isUser: false));
+        _messages.add(_ChatMessage(
+          text: answer ?? data['error'] as String? ?? '',
+          isUser: false,
+          isError: answer == null,
+          sources: List<Map<String, dynamic>>.from(data['sources'] as List? ?? const []),
+        ));
         _isTyping = false;
       });
     } catch (e) {
       setState(() {
         final text = e is ApiException ? e.message : "Couldn't reach PrivacyBot. Please try again.";
-        _messages.add(_ChatMessage(text: text, isUser: false));
+        _messages.add(_ChatMessage(text: text, isUser: false, isError: true));
         _isTyping = false;
       });
     }
@@ -179,38 +188,54 @@ class _AiChatScreenState extends State<AiChatScreen> {
         mainAxisAlignment: msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!msg.isUser) ...[
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(colors: [AppColors.blue, AppColors.purple]),
-              ),
-              child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
-            ),
-            const SizedBox(width: 8),
-          ],
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: msg.isUser ? AppColors.blue : AppColors.surface,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
-                  bottomRight: Radius.circular(msg.isUser ? 4 : 16),
-                ),
+                color: msg.isUser ? AppColors.ink : AppColors.surface,
+                borderRadius: BorderRadius.circular(4),
                 border: msg.isUser ? null : Border.all(color: AppColors.border),
               ),
-              child: Text(
-                msg.text,
-                style: TextStyle(
-                  color: msg.isUser ? Colors.white : AppColors.textPrimary,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    msg.text.replaceAll('**', ''),
+                    style: TextStyle(
+                      color: msg.isUser ? AppColors.surface : (msg.isError ? AppColors.red : AppColors.textPrimary),
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
+                  if (msg.sources.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text('RETRIEVED RECORDS', style: AppText.eyebrow()),
+                    const SizedBox(height: 6),
+                    for (final s in msg.sources)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(width: 20, child: Text('${s['n']}', style: AppText.mono(size: 11, color: AppColors.textMuted))),
+                            Expanded(
+                              child: Text.rich(TextSpan(children: [
+                                TextSpan(
+                                  text: '${s['title']}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.5,
+                                    color: s['cited'] == true || msg.isError ? AppColors.textPrimary : AppColors.textMuted,
+                                  ),
+                                ),
+                                TextSpan(text: '  ${s['label']}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                              ])),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ],
               ),
             ),
           ),
@@ -222,75 +247,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   Widget _buildTypingIndicator() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(colors: [AppColors.blue, AppColors.purple]),
-            ),
-            child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(3, (i) {
-                return Padding(
-                  padding: EdgeInsets.only(left: i > 0 ? 4 : 0),
-                  child: const _TypingDot(),
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TypingDot extends StatefulWidget {
-  const _TypingDot();
-
-  @override
-  State<_TypingDot> createState() => _TypingDotState();
-}
-
-class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, child) => Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.textMuted.withAlpha((100 + 155 * _ctrl.value).toInt()),
-        ),
-      ),
+      child: Text('SEARCHING YOUR RECORDS…', style: AppText.eyebrow()),
     );
   }
 }

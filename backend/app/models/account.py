@@ -67,6 +67,23 @@ class ChainAnchor(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class RagChunk(Base):
+    __tablename__ = "rag_chunks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)  # NULL = shared corpus
+    source_type = Column(String(50), nullable=False, index=True)
+    source_id = Column(String(300), nullable=False)
+    source_hash = Column(String(64), nullable=False)
+    chunk_no = Column(Integer, nullable=False)
+    title = Column(String(300), nullable=False)
+    text = Column(String, nullable=False)
+    url = Column(String(500))
+    embedding = Column(JSON)
+    embedding_model = Column(String(100))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class FixAction(Base):
     __tablename__ = "fix_actions"
 

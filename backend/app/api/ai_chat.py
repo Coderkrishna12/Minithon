@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.models.user import User
 from app.core.security import get_current_user
+from app.services.rag import pipeline as rag
 from app.services.ai_engine import (
-    AIUnavailable, chat_with_ai, analyze_privacy_policy, predict_breach_probability,
+    analyze_privacy_policy, fetch_policy_text, predict_breach_probability,
     smart_permission_advisor, digital_twin_simulation,
 )
 from sqlalchemy import select
@@ -30,20 +31,36 @@ async def ai_chat(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    try:
-        response = await chat_with_ai(user.id, data.message, data.history, db)
-    except AIUnavailable as e:
-        raise HTTPException(status_code=503, detail=str(e))
-    return {"response": response}
+    """Retrieve the user's records and HIBP breach entries relevant to the question, then answer with citations."""
+    return await rag.answer(user.id, data.message, data.history, db)
+
+
+@router.get("/rag/status")
+async def rag_status(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await rag.index_status(user.id, db)
+
+
+@router.post("/rag/reindex")
+async def rag_reindex(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    warnings = await rag.ensure_indexed(user.id, db)
+    return {**(await rag.index_status(user.id, db)), "warnings": warnings}
 
 
 @router.post("/analyze-policy")
 async def analyze_policy(
     data: PolicyAnalysisRequest,
     user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    result = await analyze_privacy_policy(data.url)
-    return result
+    text = await fetch_policy_text(data.url)
+    await rag.index_policy(user.id, data.url, text, db)
+    return await analyze_privacy_policy(data.url, text)
 
 
 @router.get("/breach-predictions")
