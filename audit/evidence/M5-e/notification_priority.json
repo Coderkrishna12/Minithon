@@ -1,27 +1,27 @@
 {
   "summary": "Notifications categorize alerts with severity: critical, warning, info.",
   "severities_found": [
-    "warning",
-    "critical"
+    "critical",
+    "warning"
   ],
   "sample": [
     {
-      "id": 916,
-      "title": "Exposure found: LinkedIn",
-      "message": "admin@google.com with Email addresses, Passwords from the LinkedIn breach is circulating in credential dumps",
+      "id": 1007,
+      "title": "Exposure found: CSDN",
+      "message": "admin@google.com with Email addresses, Usernames, Passwords from the CSDN breach is circulating in credential dumps",
       "severity": "critical",
       "is_read": false,
       "related_account_id": null,
-      "created_at": "2026-10-01T06:26:07+00:00"
+      "created_at": "2026-10-01T06:26:45+00:00"
     },
     {
-      "id": 874,
-      "title": "Exposure found: Nitro",
-      "message": "admin@google.com with Names, Passwords, Email addresses from the Nitro breach is circulating in credential dumps",
+      "id": 1008,
+      "title": "Exposure found: Storenvy",
+      "message": "admin@google.com with Email addresses, Usernames, Passwords, IP addresses, Dates of birth, Geographic locations from the Storenvy breach is circulating in credential dumps",
       "severity": "critical",
       "is_read": false,
       "related_account_id": null,
-      "created_at": "2026-10-01T06:26:06+00:00"
+      "created_at": "2026-10-01T06:26:45+00:00"
     }
   ]
 }

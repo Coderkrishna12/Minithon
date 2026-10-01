@@ -1,7 +1,7 @@
 {
   "summary": "Updated account service name and 2FA status successfully.",
   "response": {
-    "id": 114,
+    "id": 129,
     "service_name": "ProtonMail Secure",
     "service_url": "https://proton.me",
     "email_used": "auditor@pm.me",
@@ -34,11 +34,11 @@
       "keystone_floor": null,
       "top_paths": [
         {
-          "account_id": 119,
+          "account_id": 134,
           "probability": 0.81
         },
         {
-          "account_id": 118,
+          "account_id": 133,
           "probability": 0.72
         }
       ]
@@ -47,6 +47,6 @@
     "last_breach_date": null,
     "is_active": true,
     "notes": null,
-    "created_at": "2026-10-01T06:26:01Z"
+    "created_at": "2026-10-01T06:26:41Z"
   }
 }

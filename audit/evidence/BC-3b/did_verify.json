@@ -2,7 +2,7 @@
   "summary": "Verifies DID key format and issued verifiable credential.",
   "verification": {
     "verified": true,
-    "did": "did:key:z6MkpdxstgJXTCkY1u37ubeo32K122TCj5h5k7yaigypBKWw",
+    "did": "did:key:z6MkrFgtvpjVm8D1PvqteYBqVyAiHvJhrasKXnoEK83BEdzy",
     "is_active": true,
     "issuer": "did:key:z6MkfTqiXHzsu8TscSVPMEMQE4cLysPBuFWnmqDWJTmjqDkW",
     "credentials_count": 1,

@@ -3,8 +3,8 @@
   "fixes_count": 8,
   "top_fixes": [
     {
-      "id": 81,
-      "account_id": 122,
+      "id": 89,
+      "account_id": 137,
       "action_type": "enable_2fa",
       "description": "Enable two-factor authentication on Keystone Master Email",
       "priority": 80,
@@ -12,11 +12,11 @@
       "status": "pending",
       "blockchain_tx_hash": null,
       "completed_at": null,
-      "created_at": "2026-10-01T06:26:05Z"
+      "created_at": "2026-10-01T06:26:44Z"
     },
     {
-      "id": 82,
-      "account_id": 114,
+      "id": 90,
+      "account_id": 129,
       "action_type": "change_password",
       "description": "Replace the reused password with a unique password on ProtonMail Secure",
       "priority": 20,
@@ -24,11 +24,11 @@
       "status": "pending",
       "blockchain_tx_hash": null,
       "completed_at": null,
-      "created_at": "2026-10-01T06:26:05Z"
+      "created_at": "2026-10-01T06:26:44Z"
     },
     {
-      "id": 83,
-      "account_id": 114,
+      "id": 91,
+      "account_id": 129,
       "action_type": "enable_2fa",
       "description": "Enable two-factor authentication on ProtonMail Secure",
       "priority": 20,
@@ -36,7 +36,7 @@
       "status": "pending",
       "blockchain_tx_hash": null,
       "completed_at": null,
-      "created_at": "2026-10-01T06:26:05Z"
+      "created_at": "2026-10-01T06:26:44Z"
     }
   ]
 }

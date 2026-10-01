@@ -3,18 +3,18 @@
   "attestation": {
     "verified": true,
     "claim": "Privacy score meets or exceeds 70",
-    "timestamp": "2026-10-01T06:26:11Z",
+    "timestamp": "2026-10-01T06:26:49Z",
     "statement": {
       "issuer": "did:key:z6MkfTqiXHzsu8TscSVPMEMQE4cLysPBuFWnmqDWJTmjqDkW",
-      "subject": "privacyshield:user:18",
+      "subject": "privacyshield:user:20",
       "claim": "privacy_score >= 70",
       "result": true,
-      "issued_at": "2026-10-01T06:26:11Z"
+      "issued_at": "2026-10-01T06:26:49Z"
     },
     "proof": {
       "type": "Ed25519Signature2020",
       "verificationMethod": "did:key:z6MkfTqiXHzsu8TscSVPMEMQE4cLysPBuFWnmqDWJTmjqDkW#z6MkfTqiXHzsu8TscSVPMEMQE4cLysPBuFWnmqDWJTmjqDkW",
-      "proofValue": "2U5_2SPkP0niEkgZRR12HSRJdB_Z8blRaZtayWcpJC-51QI06CfceLSMAFLlPvNsF7Gco0QW5-vgIQGhQorSCg"
+      "proofValue": "_vHIOdIzOrUl2_DCIlaQ8Qv56Y3Cu007o9xuzKP6X3_ChWSuuby4xkLZgR73d5GeiVEbXVwb0ISX4dSRuDAFBA"
     }
   }
 }

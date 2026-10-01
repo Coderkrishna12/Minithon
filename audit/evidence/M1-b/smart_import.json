@@ -37,13 +37,13 @@
   "bulk_add_response": {
     "added": [
       {
-        "id": 115,
+        "id": 130,
         "service_name": "GitHub",
         "category": null,
         "risk_score": 7.5
       },
       {
-        "id": 116,
+        "id": 131,
         "service_name": "Dropbox",
         "category": null,
         "risk_score": 7.5

@@ -1,12 +1,12 @@
 {
   "summary": "Review reminders CRUD functional with scheduled next_trigger date calculation.",
   "created": {
-    "id": 16,
+    "id": 17,
     "title": "Quarterly Password Review"
   },
   "all_reminders": [
     {
-      "id": 16,
+      "id": 17,
       "reminder_type": "password_review",
       "title": "Quarterly Password Review",
       "description": "Check for weak or reused passwords across accounts",
@@ -14,7 +14,7 @@
       "is_active": true,
       "is_due": false,
       "last_triggered": null,
-      "next_trigger": "2026-12-30T06:26:05.557449+00:00"
+      "next_trigger": "2026-12-30T06:26:44.409281+00:00"
     }
   ]
 }

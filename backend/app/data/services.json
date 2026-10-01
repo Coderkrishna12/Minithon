@@ -1,0 +1,1432 @@
+[
+  {
+    "id": "google",
+    "name": "Google",
+    "domains": [
+      "google.com",
+      "gmail.com",
+      "accounts.google.com"
+    ],
+    "category": "email",
+    "securityUrl": "https://myaccount.google.com/security",
+    "twoFAUrl": "https://myaccount.google.com/signinoptions/two-step-verification",
+    "passwordUrl": "https://myaccount.google.com/signinoptions/password",
+    "deleteUrl": "https://myaccount.google.com/delete-services-or-account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "microsoft",
+    "name": "Microsoft",
+    "domains": [
+      "microsoft.com",
+      "live.com",
+      "outlook.com"
+    ],
+    "category": "email",
+    "securityUrl": "https://account.microsoft.com/security",
+    "twoFAUrl": "https://account.live.com/proofs/manage/additional",
+    "passwordUrl": "https://account.live.com/password/change",
+    "deleteUrl": "https://account.live.com/closeaccount.aspx",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "apple",
+    "name": "Apple",
+    "domains": [
+      "apple.com",
+      "icloud.com"
+    ],
+    "category": "cloud",
+    "securityUrl": "https://appleid.apple.com/account/manage",
+    "twoFAUrl": "https://appleid.apple.com/account/manage",
+    "passwordUrl": "https://iforgot.apple.com/password/verify/appleid",
+    "deleteUrl": "https://privacy.apple.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "github",
+    "name": "GitHub",
+    "domains": [
+      "github.com"
+    ],
+    "category": "developer",
+    "securityUrl": "https://github.com/settings/security",
+    "twoFAUrl": "https://github.com/settings/security",
+    "passwordUrl": "https://github.com/settings/security",
+    "deleteUrl": "https://github.com/settings/admin",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "amazon",
+    "name": "Amazon",
+    "domains": [
+      "amazon.com",
+      "amazon.in",
+      "amazon.co.uk"
+    ],
+    "category": "shopping",
+    "securityUrl": "https://www.amazon.com/your-account",
+    "twoFAUrl": "https://www.amazon.com/a/settings/approval",
+    "passwordUrl": "https://www.amazon.com/ap/cnep",
+    "deleteUrl": "https://www.amazon.com/gp/help/customer/display.html?nodeId=G5AYJJJQ8ZT4PFVR",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "meta",
+    "name": "Meta",
+    "domains": [
+      "facebook.com",
+      "meta.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://accountscenter.facebook.com/password_and_security",
+    "twoFAUrl": "https://accountscenter.facebook.com/password_and_security/two_factor",
+    "passwordUrl": "https://accountscenter.facebook.com/password_and_security/change_password",
+    "deleteUrl": "https://accountscenter.facebook.com/personal_info/account_ownership_and_control",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "instagram",
+    "name": "Instagram",
+    "domains": [
+      "instagram.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://accountscenter.instagram.com/password_and_security",
+    "twoFAUrl": "https://accountscenter.instagram.com/password_and_security/two_factor",
+    "passwordUrl": "https://accountscenter.instagram.com/password_and_security/change_password",
+    "deleteUrl": "https://www.instagram.com/accounts/remove/request/permanent/",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "twitter",
+    "name": "Twitter",
+    "domains": [
+      "twitter.com",
+      "x.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://twitter.com/settings/security",
+    "twoFAUrl": "https://twitter.com/settings/account/login_verification",
+    "passwordUrl": "https://twitter.com/settings/password",
+    "deleteUrl": "https://twitter.com/settings/deactivate",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "linkedin",
+    "name": "LinkedIn",
+    "domains": [
+      "linkedin.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://www.linkedin.com/psettings/sign-in-and-security",
+    "twoFAUrl": "https://www.linkedin.com/psettings/two-step-verification",
+    "passwordUrl": "https://www.linkedin.com/psettings/change-password",
+    "deleteUrl": "https://www.linkedin.com/psettings/account-closure",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "netflix",
+    "name": "Netflix",
+    "domains": [
+      "netflix.com"
+    ],
+    "category": "entertainment",
+    "securityUrl": "https://www.netflix.com/youraccount",
+    "twoFAUrl": "https://www.netflix.com/account/security",
+    "passwordUrl": "https://www.netflix.com/password",
+    "deleteUrl": "https://www.netflix.com/account/delete",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "spotify",
+    "name": "Spotify",
+    "domains": [
+      "spotify.com"
+    ],
+    "category": "entertainment",
+    "securityUrl": "https://www.spotify.com/account/overview/",
+    "twoFAUrl": "https://support.spotify.com",
+    "passwordUrl": "https://www.spotify.com/account/change-password/",
+    "deleteUrl": "https://support.spotify.com/article/close-account/",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "discord",
+    "name": "Discord",
+    "domains": [
+      "discord.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://discord.com/channels/@me",
+    "twoFAUrl": "https://discord.com/channels/@me",
+    "passwordUrl": "https://discord.com/channels/@me",
+    "deleteUrl": "https://discord.com/channels/@me",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "slack",
+    "name": "Slack",
+    "domains": [
+      "slack.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://my.slack.com/account/settings",
+    "twoFAUrl": "https://my.slack.com/account/settings#two_factor",
+    "passwordUrl": "https://my.slack.com/account/settings#password",
+    "deleteUrl": "https://my.slack.com/account/settings#deactivate",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "zoom",
+    "name": "Zoom",
+    "domains": [
+      "zoom.us"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://zoom.us/profile",
+    "twoFAUrl": "https://zoom.us/profile/security",
+    "passwordUrl": "https://zoom.us/profile/security",
+    "deleteUrl": "https://zoom.us/account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "dropbox",
+    "name": "Dropbox",
+    "domains": [
+      "dropbox.com"
+    ],
+    "category": "cloud",
+    "securityUrl": "https://www.dropbox.com/account/security",
+    "twoFAUrl": "https://www.dropbox.com/account/security#two_factor_auth",
+    "passwordUrl": "https://www.dropbox.com/account/security#change_password",
+    "deleteUrl": "https://www.dropbox.com/account/delete",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "canva",
+    "name": "Canva",
+    "domains": [
+      "canva.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://www.canva.com/settings/login-and-security",
+    "twoFAUrl": "https://www.canva.com/settings/login-and-security",
+    "passwordUrl": "https://www.canva.com/settings/login-and-security",
+    "deleteUrl": "https://www.canva.com/settings/your-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "paypal",
+    "name": "PayPal",
+    "domains": [
+      "paypal.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.paypal.com/myaccount/security/",
+    "twoFAUrl": "https://www.paypal.com/myaccount/security/two-step-verification",
+    "passwordUrl": "https://www.paypal.com/myaccount/security/password",
+    "deleteUrl": "https://www.paypal.com/myaccount/settings/close-account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "stripe",
+    "name": "Stripe",
+    "domains": [
+      "stripe.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://dashboard.stripe.com/settings/user",
+    "twoFAUrl": "https://dashboard.stripe.com/settings/user/two-factor",
+    "passwordUrl": "https://dashboard.stripe.com/settings/user/password",
+    "deleteUrl": "https://dashboard.stripe.com/settings/user/delete",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "coinbase",
+    "name": "Coinbase",
+    "domains": [
+      "coinbase.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.coinbase.com/settings/security_settings",
+    "twoFAUrl": "https://www.coinbase.com/settings/security_settings",
+    "passwordUrl": "https://www.coinbase.com/settings/security_settings",
+    "deleteUrl": "https://www.coinbase.com/settings/manage_account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "binance",
+    "name": "Binance",
+    "domains": [
+      "binance.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.binance.com/en/my/security",
+    "twoFAUrl": "https://www.binance.com/en/my/security/2fa",
+    "passwordUrl": "https://www.binance.com/en/my/security/change-password",
+    "deleteUrl": "https://www.binance.com/en/my/security/account-activity",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "uber",
+    "name": "Uber",
+    "domains": [
+      "uber.com"
+    ],
+    "category": "travel",
+    "securityUrl": "https://myprivacy.uber.com/privacy/dashboard",
+    "twoFAUrl": "https://myprivacy.uber.com/privacy/dashboard",
+    "passwordUrl": "https://auth.uber.com/login/forgot-password",
+    "deleteUrl": "https://myprivacy.uber.com/privacy/delete-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "airbnb",
+    "name": "Airbnb",
+    "domains": [
+      "airbnb.com"
+    ],
+    "category": "travel",
+    "securityUrl": "https://www.airbnb.com/account-settings/privacy-and-sharing",
+    "twoFAUrl": "https://www.airbnb.com/account-settings/login-and-security",
+    "passwordUrl": "https://www.airbnb.com/account-settings/login-and-security",
+    "deleteUrl": "https://www.airbnb.com/help/article/240",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "reddit",
+    "name": "Reddit",
+    "domains": [
+      "reddit.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://www.reddit.com/settings/privacy",
+    "twoFAUrl": "https://www.reddit.com/settings/privacy",
+    "passwordUrl": "https://www.reddit.com/settings/privacy",
+    "deleteUrl": "https://www.reddit.com/settings/deactivate",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "notion",
+    "name": "Notion",
+    "domains": [
+      "notion.so"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://www.notion.so/my-account",
+    "twoFAUrl": "https://www.notion.so/my-account",
+    "passwordUrl": "https://www.notion.so/my-account",
+    "deleteUrl": "https://www.notion.so/my-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "figma",
+    "name": "Figma",
+    "domains": [
+      "figma.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://www.figma.com/settings",
+    "twoFAUrl": "https://www.figma.com/settings",
+    "passwordUrl": "https://www.figma.com/settings",
+    "deleteUrl": "https://www.figma.com/settings",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "adobe",
+    "name": "Adobe",
+    "domains": [
+      "adobe.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://account.adobe.com/security",
+    "twoFAUrl": "https://account.adobe.com/security",
+    "passwordUrl": "https://account.adobe.com/security",
+    "deleteUrl": "https://account.adobe.com/privacy",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "steam",
+    "name": "Steam",
+    "domains": [
+      "steampowered.com"
+    ],
+    "category": "gaming",
+    "securityUrl": "https://store.steampowered.com/account/",
+    "twoFAUrl": "https://store.steampowered.com/twofactor/manage",
+    "passwordUrl": "https://help.steampowered.com/en/wizard/HelpWithPassword",
+    "deleteUrl": "https://help.steampowered.com/en/wizard/HelpDeleteAccount",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "twitch",
+    "name": "Twitch",
+    "domains": [
+      "twitch.tv"
+    ],
+    "category": "entertainment",
+    "securityUrl": "https://www.twitch.tv/settings/security",
+    "twoFAUrl": "https://www.twitch.tv/settings/security",
+    "passwordUrl": "https://www.twitch.tv/settings/security",
+    "deleteUrl": "https://www.twitch.tv/settings/profile",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "pinterest",
+    "name": "Pinterest",
+    "domains": [
+      "pinterest.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://www.pinterest.com/settings/privacy-and-data/",
+    "twoFAUrl": "https://www.pinterest.com/settings/security/",
+    "passwordUrl": "https://www.pinterest.com/settings/account-settings/",
+    "deleteUrl": "https://www.pinterest.com/settings/account-settings/",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "tiktok",
+    "name": "TikTok",
+    "domains": [
+      "tiktok.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://www.tiktok.com/setting",
+    "twoFAUrl": "https://www.tiktok.com/setting",
+    "passwordUrl": "https://www.tiktok.com/setting",
+    "deleteUrl": "https://www.tiktok.com/setting",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "ebay",
+    "name": "eBay",
+    "domains": [
+      "ebay.com"
+    ],
+    "category": "shopping",
+    "securityUrl": "https://accountsettings.ebay.com/uas",
+    "twoFAUrl": "https://accountsettings.ebay.com/uas",
+    "passwordUrl": "https://accountsettings.ebay.com/uas",
+    "deleteUrl": "https://www.ebay.com/help/account/changing-account-settings/closing-account?id=4198",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "shopify",
+    "name": "Shopify",
+    "domains": [
+      "shopify.com"
+    ],
+    "category": "shopping",
+    "securityUrl": "https://accounts.shopify.com/security",
+    "twoFAUrl": "https://accounts.shopify.com/security",
+    "passwordUrl": "https://accounts.shopify.com/security",
+    "deleteUrl": "https://help.shopify.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "whatsapp",
+    "name": "WhatsApp",
+    "domains": [
+      "whatsapp.com"
+    ],
+    "category": "social",
+    "securityUrl": "https://faq.whatsapp.com/1273957243343355",
+    "twoFAUrl": "https://faq.whatsapp.com/1273957243343355",
+    "passwordUrl": "https://faq.whatsapp.com",
+    "deleteUrl": "https://faq.whatsapp.com/492472659775073",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "telegram",
+    "name": "Telegram",
+    "domains": [
+      "telegram.org"
+    ],
+    "category": "social",
+    "securityUrl": "https://my.telegram.org",
+    "twoFAUrl": "https://telegram.org/faq#q-how-does-2-step-verification-work",
+    "passwordUrl": "https://my.telegram.org",
+    "deleteUrl": "https://my.telegram.org/auth?to=delete",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "signal",
+    "name": "Signal",
+    "domains": [
+      "signal.org"
+    ],
+    "category": "social",
+    "securityUrl": "https://support.signal.org",
+    "twoFAUrl": "https://support.signal.org/hc/en-us/articles/360007059792-Signal-PIN",
+    "passwordUrl": "https://support.signal.org",
+    "deleteUrl": "https://support.signal.org/hc/en-us/articles/360007062012-Delete-Account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "bitwarden",
+    "name": "Bitwarden",
+    "domains": [
+      "bitwarden.com"
+    ],
+    "category": "security",
+    "securityUrl": "https://vault.bitwarden.com/#/settings/security",
+    "twoFAUrl": "https://vault.bitwarden.com/#/settings/security/two-factor",
+    "passwordUrl": "https://vault.bitwarden.com/#/settings/security/change-master-password",
+    "deleteUrl": "https://vault.bitwarden.com/#/settings/account/delete",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "1password",
+    "name": "1Password",
+    "domains": [
+      "1password.com"
+    ],
+    "category": "security",
+    "securityUrl": "https://my.1password.com/profile",
+    "twoFAUrl": "https://my.1password.com/profile",
+    "passwordUrl": "https://my.1password.com/profile",
+    "deleteUrl": "https://support.1password.com/delete-account/",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "lastpass",
+    "name": "LastPass",
+    "domains": [
+      "lastpass.com"
+    ],
+    "category": "security",
+    "securityUrl": "https://lastpass.com/my.php",
+    "twoFAUrl": "https://lastpass.com/my.php?m=mfa",
+    "passwordUrl": "https://lastpass.com/change_password.php",
+    "deleteUrl": "https://lastpass.com/delete_account.php",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "dashlane",
+    "name": "Dashlane",
+    "domains": [
+      "dashlane.com"
+    ],
+    "category": "security",
+    "securityUrl": "https://app.dashlane.com/settings/security",
+    "twoFAUrl": "https://app.dashlane.com/settings/security",
+    "passwordUrl": "https://app.dashlane.com/settings/security",
+    "deleteUrl": "https://support.dashlane.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "protonmail",
+    "name": "ProtonMail",
+    "domains": [
+      "proton.me",
+      "protonmail.com"
+    ],
+    "category": "email",
+    "securityUrl": "https://account.proton.me/u/0/mail/security",
+    "twoFAUrl": "https://account.proton.me/u/0/mail/security#two-factor",
+    "passwordUrl": "https://account.proton.me/u/0/mail/security#password",
+    "deleteUrl": "https://account.proton.me/u/0/mail/account-password#delete",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "tuta",
+    "name": "Tuta",
+    "domains": [
+      "tuta.com",
+      "tutanota.com"
+    ],
+    "category": "email",
+    "securityUrl": "https://mail.tutanota.com/login",
+    "twoFAUrl": "https://mail.tutanota.com/login",
+    "passwordUrl": "https://mail.tutanota.com/login",
+    "deleteUrl": "https://tuta.com/support/#delete-account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "yahoo",
+    "name": "Yahoo",
+    "domains": [
+      "yahoo.com"
+    ],
+    "category": "email",
+    "securityUrl": "https://login.yahoo.com/account/security",
+    "twoFAUrl": "https://login.yahoo.com/account/security",
+    "passwordUrl": "https://login.yahoo.com/account/change-password",
+    "deleteUrl": "https://edit.yahoo.com/config/delete_user",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "aws",
+    "name": "AWS",
+    "domains": [
+      "aws.amazon.com"
+    ],
+    "category": "cloud",
+    "securityUrl": "https://us-east-1.console.aws.amazon.com/iam/home#/security_credentials",
+    "twoFAUrl": "https://us-east-1.console.aws.amazon.com/iam/home#/security_credentials?section=mfa",
+    "passwordUrl": "https://us-east-1.console.aws.amazon.com/iam/home#/security_credentials",
+    "deleteUrl": "https://aws.amazon.com/premiumsupport/knowledge-center/close-aws-account/",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "digitalocean",
+    "name": "DigitalOcean",
+    "domains": [
+      "digitalocean.com"
+    ],
+    "category": "cloud",
+    "securityUrl": "https://cloud.digitalocean.com/account/security",
+    "twoFAUrl": "https://cloud.digitalocean.com/account/security",
+    "passwordUrl": "https://cloud.digitalocean.com/account/security",
+    "deleteUrl": "https://cloud.digitalocean.com/account/settings",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "cloudflare",
+    "name": "Cloudflare",
+    "domains": [
+      "cloudflare.com"
+    ],
+    "category": "cloud",
+    "securityUrl": "https://dash.cloudflare.com/profile/authentication",
+    "twoFAUrl": "https://dash.cloudflare.com/profile/authentication",
+    "passwordUrl": "https://dash.cloudflare.com/profile/authentication",
+    "deleteUrl": "https://support.cloudflare.com/hc/en-us/articles/360037807212",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "heroku",
+    "name": "Heroku",
+    "domains": [
+      "heroku.com"
+    ],
+    "category": "cloud",
+    "securityUrl": "https://dashboard.heroku.com/account/billing",
+    "twoFAUrl": "https://dashboard.heroku.com/account#two-factor-authentication",
+    "passwordUrl": "https://dashboard.heroku.com/account#password",
+    "deleteUrl": "https://dashboard.heroku.com/account/close",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "vercel",
+    "name": "Vercel",
+    "domains": [
+      "vercel.com"
+    ],
+    "category": "cloud",
+    "securityUrl": "https://vercel.com/account",
+    "twoFAUrl": "https://vercel.com/account/tokens",
+    "passwordUrl": "https://vercel.com/account",
+    "deleteUrl": "https://vercel.com/account/delete",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "supabase",
+    "name": "Supabase",
+    "domains": [
+      "supabase.com"
+    ],
+    "category": "cloud",
+    "securityUrl": "https://supabase.com/dashboard/account/security",
+    "twoFAUrl": "https://supabase.com/dashboard/account/security",
+    "passwordUrl": "https://supabase.com/dashboard/account/security",
+    "deleteUrl": "https://supabase.com/dashboard/account/security",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "atlassian",
+    "name": "Atlassian",
+    "domains": [
+      "atlassian.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://id.atlassian.com/manage-profile/security",
+    "twoFAUrl": "https://id.atlassian.com/manage-profile/security/two-step-verification",
+    "passwordUrl": "https://id.atlassian.com/manage-profile/security/change-password",
+    "deleteUrl": "https://id.atlassian.com/manage-profile/account-deletion",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "trello",
+    "name": "Trello",
+    "domains": [
+      "trello.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://id.atlassian.com/manage-profile/security",
+    "twoFAUrl": "https://id.atlassian.com/manage-profile/security/two-step-verification",
+    "passwordUrl": "https://id.atlassian.com/manage-profile/security/change-password",
+    "deleteUrl": "https://trello.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "asana",
+    "name": "Asana",
+    "domains": [
+      "asana.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://app.asana.com/-/account_settings",
+    "twoFAUrl": "https://app.asana.com/-/account_settings",
+    "passwordUrl": "https://app.asana.com/-/account_settings",
+    "deleteUrl": "https://help.asana.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "gitlab",
+    "name": "GitLab",
+    "domains": [
+      "gitlab.com"
+    ],
+    "category": "developer",
+    "securityUrl": "https://gitlab.com/-/profile/account",
+    "twoFAUrl": "https://gitlab.com/-/profile/two_factor_auth",
+    "passwordUrl": "https://gitlab.com/-/profile/password/edit",
+    "deleteUrl": "https://gitlab.com/-/profile/account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "bitbucket",
+    "name": "Bitbucket",
+    "domains": [
+      "bitbucket.org"
+    ],
+    "category": "developer",
+    "securityUrl": "https://id.atlassian.com/manage-profile/security",
+    "twoFAUrl": "https://id.atlassian.com/manage-profile/security/two-step-verification",
+    "passwordUrl": "https://id.atlassian.com/manage-profile/security/change-password",
+    "deleteUrl": "https://bitbucket.org",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "docker",
+    "name": "Docker",
+    "domains": [
+      "docker.com",
+      "hub.docker.com"
+    ],
+    "category": "developer",
+    "securityUrl": "https://hub.docker.com/settings/security",
+    "twoFAUrl": "https://hub.docker.com/settings/security",
+    "passwordUrl": "https://hub.docker.com/settings/security",
+    "deleteUrl": "https://hub.docker.com/settings/deactivate",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "openai",
+    "name": "OpenAI",
+    "domains": [
+      "openai.com"
+    ],
+    "category": "ai",
+    "securityUrl": "https://platform.openai.com/account/security",
+    "twoFAUrl": "https://platform.openai.com/account/security",
+    "passwordUrl": "https://platform.openai.com/account/security",
+    "deleteUrl": "https://help.openai.com/en/articles/6378407-how-can-i-delete-my-account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "anthropic",
+    "name": "Anthropic",
+    "domains": [
+      "anthropic.com",
+      "claude.ai"
+    ],
+    "category": "ai",
+    "securityUrl": "https://console.anthropic.com/settings/account",
+    "twoFAUrl": "https://console.anthropic.com/settings/account",
+    "passwordUrl": "https://console.anthropic.com/settings/account",
+    "deleteUrl": "https://support.anthropic.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "medium",
+    "name": "Medium",
+    "domains": [
+      "medium.com"
+    ],
+    "category": "content",
+    "securityUrl": "https://medium.com/me/settings/security",
+    "twoFAUrl": "https://medium.com/me/settings/security",
+    "passwordUrl": "https://medium.com/me/settings/security",
+    "deleteUrl": "https://help.medium.com/hc/en-us/articles/214343167-Deactivate-or-delete-your-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "quora",
+    "name": "Quora",
+    "domains": [
+      "quora.com"
+    ],
+    "category": "content",
+    "securityUrl": "https://www.quora.com/settings/privacy",
+    "twoFAUrl": "https://www.quora.com/settings",
+    "passwordUrl": "https://www.quora.com/settings",
+    "deleteUrl": "https://help.quora.com/hc/en-us/articles/115004245646-How-do-I-delete-my-Quora-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "stackoverflow",
+    "name": "StackOverflow",
+    "domains": [
+      "stackoverflow.com"
+    ],
+    "category": "developer",
+    "securityUrl": "https://stackoverflow.com/users/preferences/current",
+    "twoFAUrl": "https://stackoverflow.com/users/preferences/current",
+    "passwordUrl": "https://stackoverflow.com/users/preferences/current",
+    "deleteUrl": "https://stackoverflow.com/help/user-deletion",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "wordpress",
+    "name": "WordPress",
+    "domains": [
+      "wordpress.com"
+    ],
+    "category": "content",
+    "securityUrl": "https://wordpress.com/me/security",
+    "twoFAUrl": "https://wordpress.com/me/security/two-step",
+    "passwordUrl": "https://wordpress.com/me/security/password",
+    "deleteUrl": "https://wordpress.com/me/account/close",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "squarespace",
+    "name": "Squarespace",
+    "domains": [
+      "squarespace.com"
+    ],
+    "category": "content",
+    "securityUrl": "https://account.squarespace.com/security",
+    "twoFAUrl": "https://account.squarespace.com/security",
+    "passwordUrl": "https://account.squarespace.com/security",
+    "deleteUrl": "https://support.squarespace.com/hc/en-us/articles/206537287-Deleting-your-Squarespace-account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "wix",
+    "name": "Wix",
+    "domains": [
+      "wix.com"
+    ],
+    "category": "content",
+    "securityUrl": "https://manage.wix.com/account/security",
+    "twoFAUrl": "https://manage.wix.com/account/security",
+    "passwordUrl": "https://manage.wix.com/account/security",
+    "deleteUrl": "https://support.wix.com/en/article/closing-your-wix-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "mailchimp",
+    "name": "Mailchimp",
+    "domains": [
+      "mailchimp.com"
+    ],
+    "category": "marketing",
+    "securityUrl": "https://admin.mailchimp.com/account/security/",
+    "twoFAUrl": "https://admin.mailchimp.com/account/security/",
+    "passwordUrl": "https://admin.mailchimp.com/account/security/",
+    "deleteUrl": "https://mailchimp.com/help/close-account/",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "sendgrid",
+    "name": "SendGrid",
+    "domains": [
+      "sendgrid.com"
+    ],
+    "category": "marketing",
+    "securityUrl": "https://app.sendgrid.com/settings/two_factor_auth",
+    "twoFAUrl": "https://app.sendgrid.com/settings/two_factor_auth",
+    "passwordUrl": "https://app.sendgrid.com/settings/password",
+    "deleteUrl": "https://support.sendgrid.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "twilio",
+    "name": "Twilio",
+    "domains": [
+      "twilio.com"
+    ],
+    "category": "developer",
+    "securityUrl": "https://console.twilio.com/us1/account/manage-account/user-settings",
+    "twoFAUrl": "https://console.twilio.com/us1/account/manage-account/user-settings",
+    "passwordUrl": "https://console.twilio.com/us1/account/manage-account/user-settings",
+    "deleteUrl": "https://help.twilio.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "zendesk",
+    "name": "Zendesk",
+    "domains": [
+      "zendesk.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://support.zendesk.com",
+    "twoFAUrl": "https://support.zendesk.com",
+    "passwordUrl": "https://support.zendesk.com",
+    "deleteUrl": "https://support.zendesk.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "salesforce",
+    "name": "Salesforce",
+    "domains": [
+      "salesforce.com"
+    ],
+    "category": "productivity",
+    "securityUrl": "https://login.salesforce.com",
+    "twoFAUrl": "https://help.salesforce.com/s/articleView?id=sf.mfa_enable.htm",
+    "passwordUrl": "https://login.salesforce.com",
+    "deleteUrl": "https://help.salesforce.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "hubspot",
+    "name": "HubSpot",
+    "domains": [
+      "hubspot.com"
+    ],
+    "category": "marketing",
+    "securityUrl": "https://app.hubspot.com/user-preferences",
+    "twoFAUrl": "https://app.hubspot.com/user-preferences/security",
+    "passwordUrl": "https://app.hubspot.com/user-preferences/security",
+    "deleteUrl": "https://knowledge.hubspot.com/account/how-do-i-delete-my-user-account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "intuit",
+    "name": "Intuit",
+    "domains": [
+      "intuit.com",
+      "turbotax.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://accounts.intuit.com/app/account-manager/security",
+    "twoFAUrl": "https://accounts.intuit.com/app/account-manager/security",
+    "passwordUrl": "https://accounts.intuit.com/app/account-manager/security",
+    "deleteUrl": "https://privacy.intuit.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "robinhood",
+    "name": "Robinhood",
+    "domains": [
+      "robinhood.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://robinhood.com/account/security",
+    "twoFAUrl": "https://robinhood.com/account/security",
+    "passwordUrl": "https://robinhood.com/account/security",
+    "deleteUrl": "https://robinhood.com/support/articles/360001214043/closing-your-account/",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "kraken",
+    "name": "Kraken",
+    "domains": [
+      "kraken.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://pro.kraken.com/app/settings/security",
+    "twoFAUrl": "https://pro.kraken.com/app/settings/security/2fa",
+    "passwordUrl": "https://pro.kraken.com/app/settings/security/password",
+    "deleteUrl": "https://support.kraken.com/hc/en-us/articles/360001206766-How-to-close-a-Kraken-account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "venmo",
+    "name": "Venmo",
+    "domains": [
+      "venmo.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://venmo.com/account/settings/security",
+    "twoFAUrl": "https://venmo.com/account/settings/security",
+    "passwordUrl": "https://venmo.com/account/settings/security",
+    "deleteUrl": "https://help.venmo.com/hc/en-us/articles/209681968-Closing-Your-Venmo-Account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "cashapp",
+    "name": "CashApp",
+    "domains": [
+      "cash.app"
+    ],
+    "category": "finance",
+    "securityUrl": "https://cash.app/account",
+    "twoFAUrl": "https://cash.app/help/gb/en-gb/3128-security-settings",
+    "passwordUrl": "https://cash.app/account",
+    "deleteUrl": "https://cash.app/help/us/en-us/6487-close-your-cash-app-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "bankofamerica",
+    "name": "BankOfAmerica",
+    "domains": [
+      "bankofamerica.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.bankofamerica.com/security-center/",
+    "twoFAUrl": "https://www.bankofamerica.com/security-center/",
+    "passwordUrl": "https://www.bankofamerica.com",
+    "deleteUrl": "https://www.bankofamerica.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "chase",
+    "name": "Chase",
+    "domains": [
+      "chase.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.chase.com/digital/resources/privacy-security",
+    "twoFAUrl": "https://www.chase.com/digital/resources/privacy-security",
+    "passwordUrl": "https://www.chase.com",
+    "deleteUrl": "https://www.chase.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "wellsfargo",
+    "name": "WellsFargo",
+    "domains": [
+      "wellsfargo.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.wellsfargo.com/privacy-security/",
+    "twoFAUrl": "https://www.wellsfargo.com/privacy-security/",
+    "passwordUrl": "https://www.wellsfargo.com",
+    "deleteUrl": "https://www.wellsfargo.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "citi",
+    "name": "Citi",
+    "domains": [
+      "citi.com",
+      "citibank.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://online.citi.com/US/JRS/pands/detail.do?ID=SecurityCenter",
+    "twoFAUrl": "https://online.citi.com",
+    "passwordUrl": "https://online.citi.com",
+    "deleteUrl": "https://online.citi.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "fidelity",
+    "name": "Fidelity",
+    "domains": [
+      "fidelity.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.fidelity.com/security/overview",
+    "twoFAUrl": "https://www.fidelity.com/security/extra-security-login",
+    "passwordUrl": "https://www.fidelity.com",
+    "deleteUrl": "https://www.fidelity.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "vanguard",
+    "name": "Vanguard",
+    "domains": [
+      "vanguard.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://investor.vanguard.com/security-center",
+    "twoFAUrl": "https://investor.vanguard.com/security-center",
+    "passwordUrl": "https://investor.vanguard.com",
+    "deleteUrl": "https://investor.vanguard.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "charlesschwab",
+    "name": "CharlesSchwab",
+    "domains": [
+      "schwab.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.schwab.com/schwabsafe",
+    "twoFAUrl": "https://www.schwab.com/schwabsafe/two-factor-authentication",
+    "passwordUrl": "https://www.schwab.com",
+    "deleteUrl": "https://www.schwab.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "americanexpress",
+    "name": "AmericanExpress",
+    "domains": [
+      "americanexpress.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.americanexpress.com/us/security-center/",
+    "twoFAUrl": "https://www.americanexpress.com/us/security-center/",
+    "passwordUrl": "https://www.americanexpress.com",
+    "deleteUrl": "https://www.americanexpress.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "capitalone",
+    "name": "CapitalOne",
+    "domains": [
+      "capitalone.com"
+    ],
+    "category": "finance",
+    "securityUrl": "https://www.capitalone.com/digital/security/",
+    "twoFAUrl": "https://www.capitalone.com/digital/security/",
+    "passwordUrl": "https://www.capitalone.com",
+    "deleteUrl": "https://www.capitalone.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "epicgames",
+    "name": "EpicGames",
+    "domains": [
+      "epicgames.com"
+    ],
+    "category": "gaming",
+    "securityUrl": "https://www.epicgames.com/account/password",
+    "twoFAUrl": "https://www.epicgames.com/account/password#two-factor",
+    "passwordUrl": "https://www.epicgames.com/account/password",
+    "deleteUrl": "https://www.epicgames.com/help/en-US/epic-accounts-c74/general-support-c79/how-do-i-delete-my-epic-account-a3249",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "playstation",
+    "name": "PlayStation",
+    "domains": [
+      "playstation.com",
+      "sony.com"
+    ],
+    "category": "gaming",
+    "securityUrl": "https://my.playstation.com",
+    "twoFAUrl": "https://www.playstation.com/en-us/support/account/2sv-psn-login/",
+    "passwordUrl": "https://my.playstation.com",
+    "deleteUrl": "https://www.playstation.com/en-us/support/account/close-account-for-psn/",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "xbox",
+    "name": "Xbox",
+    "domains": [
+      "xbox.com"
+    ],
+    "category": "gaming",
+    "securityUrl": "https://account.microsoft.com/security",
+    "twoFAUrl": "https://account.live.com/proofs/manage/additional",
+    "passwordUrl": "https://account.live.com/password/change",
+    "deleteUrl": "https://support.xbox.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "nintendo",
+    "name": "Nintendo",
+    "domains": [
+      "nintendo.com"
+    ],
+    "category": "gaming",
+    "securityUrl": "https://accounts.nintendo.com/security",
+    "twoFAUrl": "https://accounts.nintendo.com/security",
+    "passwordUrl": "https://accounts.nintendo.com/password/edit",
+    "deleteUrl": "https://accounts.nintendo.com/deactivate",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "hulu",
+    "name": "Hulu",
+    "domains": [
+      "hulu.com"
+    ],
+    "category": "entertainment",
+    "securityUrl": "https://secure.hulu.com/account",
+    "twoFAUrl": "https://secure.hulu.com/account",
+    "passwordUrl": "https://secure.hulu.com/account",
+    "deleteUrl": "https://help.hulu.com/s/article/cancel-hulu-subscription",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "disneyplus",
+    "name": "DisneyPlus",
+    "domains": [
+      "disneyplus.com"
+    ],
+    "category": "entertainment",
+    "securityUrl": "https://www.disneyplus.com/account",
+    "twoFAUrl": "https://www.disneyplus.com/account",
+    "passwordUrl": "https://www.disneyplus.com/account",
+    "deleteUrl": "https://help.disneyplus.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "hbomax",
+    "name": "HBOMax",
+    "domains": [
+      "max.com"
+    ],
+    "category": "entertainment",
+    "securityUrl": "https://auth.max.com",
+    "twoFAUrl": "https://auth.max.com",
+    "passwordUrl": "https://auth.max.com",
+    "deleteUrl": "https://help.max.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "paramountplus",
+    "name": "ParamountPlus",
+    "domains": [
+      "paramountplus.com"
+    ],
+    "category": "entertainment",
+    "securityUrl": "https://www.paramountplus.com/account/",
+    "twoFAUrl": "https://www.paramountplus.com/account/",
+    "passwordUrl": "https://www.paramountplus.com/account/",
+    "deleteUrl": "https://help.paramountplus.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "soundcloud",
+    "name": "SoundCloud",
+    "domains": [
+      "soundcloud.com"
+    ],
+    "category": "entertainment",
+    "securityUrl": "https://soundcloud.com/settings",
+    "twoFAUrl": "https://soundcloud.com/settings",
+    "passwordUrl": "https://soundcloud.com/settings",
+    "deleteUrl": "https://help.soundcloud.com/hc/en-us/articles/115003565548-Deleting-your-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "patreon",
+    "name": "Patreon",
+    "domains": [
+      "patreon.com"
+    ],
+    "category": "creator",
+    "securityUrl": "https://www.patreon.com/settings/account",
+    "twoFAUrl": "https://www.patreon.com/settings/account",
+    "passwordUrl": "https://www.patreon.com/settings/account",
+    "deleteUrl": "https://support.patreon.com/hc/en-us/articles/360021626071-Delete-my-Patreon-account",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "kickstarter",
+    "name": "Kickstarter",
+    "domains": [
+      "kickstarter.com"
+    ],
+    "category": "creator",
+    "securityUrl": "https://www.kickstarter.com/settings/account",
+    "twoFAUrl": "https://www.kickstarter.com/settings/security",
+    "passwordUrl": "https://www.kickstarter.com/settings/account",
+    "deleteUrl": "https://help.kickstarter.com/hc/en-us/articles/115005139034-How-do-I-delete-my-account-",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "gofundme",
+    "name": "GoFundMe",
+    "domains": [
+      "gofundme.com"
+    ],
+    "category": "creator",
+    "securityUrl": "https://www.gofundme.com/profile/settings",
+    "twoFAUrl": "https://www.gofundme.com/profile/settings",
+    "passwordUrl": "https://www.gofundme.com/profile/settings",
+    "deleteUrl": "https://support.gofundme.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "yelp",
+    "name": "Yelp",
+    "domains": [
+      "yelp.com"
+    ],
+    "category": "reviews",
+    "securityUrl": "https://www.yelp.com/user_details_settings",
+    "twoFAUrl": "https://www.yelp.com/user_details_settings",
+    "passwordUrl": "https://www.yelp.com/user_details_settings",
+    "deleteUrl": "https://www.yelp.com/support/contact/account_closure",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "tripadvisor",
+    "name": "TripAdvisor",
+    "domains": [
+      "tripadvisor.com"
+    ],
+    "category": "travel",
+    "securityUrl": "https://www.tripadvisor.com/Settings-cs",
+    "twoFAUrl": "https://www.tripadvisor.com/Settings-cs",
+    "passwordUrl": "https://www.tripadvisor.com/Settings-cs",
+    "deleteUrl": "https://www.tripadvisorsupport.com",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "booking",
+    "name": "Booking",
+    "domains": [
+      "booking.com"
+    ],
+    "category": "travel",
+    "securityUrl": "https://account.booking.com/mysettings/security",
+    "twoFAUrl": "https://account.booking.com/mysettings/security",
+    "passwordUrl": "https://account.booking.com/mysettings/security",
+    "deleteUrl": "https://secure.booking.com/help",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "expedia",
+    "name": "Expedia",
+    "domains": [
+      "expedia.com"
+    ],
+    "category": "travel",
+    "securityUrl": "https://www.expedia.com/user/profile",
+    "twoFAUrl": "https://www.expedia.com/user/profile",
+    "passwordUrl": "https://www.expedia.com/user/profile",
+    "deleteUrl": "https://www.expedia.com/service/",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "lyft",
+    "name": "Lyft",
+    "domains": [
+      "lyft.com"
+    ],
+    "category": "travel",
+    "securityUrl": "https://help.lyft.com/hc/en-us/articles/115012925567-Delete-my-account",
+    "twoFAUrl": "https://www.lyft.com",
+    "passwordUrl": "https://www.lyft.com",
+    "deleteUrl": "https://help.lyft.com/hc/en-us/articles/115012925567-Delete-my-account",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "doordash",
+    "name": "DoorDash",
+    "domains": [
+      "doordash.com"
+    ],
+    "category": "food",
+    "securityUrl": "https://www.doordash.com/consumer/manage-account/",
+    "twoFAUrl": "https://www.doordash.com/consumer/manage-account/",
+    "passwordUrl": "https://www.doordash.com/consumer/manage-account/",
+    "deleteUrl": "https://help.doordash.com",
+    "passkeySupport": true,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "instacart",
+    "name": "Instacart",
+    "domains": [
+      "instacart.com"
+    ],
+    "category": "food",
+    "securityUrl": "https://www.instacart.com/store/account_settings",
+    "twoFAUrl": "https://www.instacart.com/store/account_settings",
+    "passwordUrl": "https://www.instacart.com/store/account_settings",
+    "deleteUrl": "https://www.instacart.com/help/section/360007797992/360039164272",
+    "passkeySupport": false,
+    "verifiedAt": "2026-03-01T00:00:00Z"
+  }
+]
