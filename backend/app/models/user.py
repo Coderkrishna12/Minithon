@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
+from sqlalchemy import Column, Integer, String, Boolean, func
 from sqlalchemy.orm import relationship
 from app.db.base import Base
+from app.core.time import UTCDateTime
 
 
 class User(Base):
@@ -13,7 +14,7 @@ class User(Base):
     full_name = Column(String(200))
     is_active = Column(Boolean, default=True)
     privacy_score = Column(Integer, default=0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_at = Column(UTCDateTime, server_default=func.now())
+    updated_at = Column(UTCDateTime, server_default=func.now(), onupdate=func.now())
 
     accounts = relationship("Account", back_populates="user", cascade="all, delete-orphan")

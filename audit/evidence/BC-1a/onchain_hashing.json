@@ -2,13 +2,13 @@
   "summary": "Every audit event generates a SHA-256 block hash linked to the previous block hash.",
   "sample_block": {
     "index": 1,
-    "timestamp": "2026-10-01T05:50:11Z",
+    "timestamp": "2026-10-01T06:11:51Z",
     "data": {
       "action": "inventory_audit",
-      "data_hash": "f6e0f379e1b032d2e34f3da497f2f671df14ac5fef279aac0408f847f2272a43"
+      "data_hash": "2eecb58c0198a239bb550f8f6dba8c3d082e1875d24927f2f7037e4ba1679274"
     },
     "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
-    "hash": "d5dddb96d4d94151ef29b4c89ec30ab0095ff404c576b8b3a5734be7d987201a",
+    "hash": "9bf7edee408581e08dc349074fc7276fb78a74945af5e4a53cb1ca1f1b66089e",
     "intact": true,
     "anchor": null
   }

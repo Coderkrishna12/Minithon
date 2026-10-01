@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from datetime import datetime, timezone, timedelta
+from datetime import timedelta
 
+from app.core.time import utcnow, ensure_aware
 from app.db.session import get_db
 from app.models.user import User
 from app.models.account import (
@@ -20,7 +21,7 @@ async def get_score_history(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = utcnow() - timedelta(days=days)
     result = await db.execute(
         select(ScoreHistory)
         .where(ScoreHistory.user_id == user.id, ScoreHistory.created_at >= cutoff)
@@ -36,7 +37,7 @@ async def get_score_history(
             "breaches_total": h.breaches_total,
             "event_type": h.event_type,
             "event_description": h.event_description,
-            "created_at": h.created_at.isoformat() if h.created_at else None,
+            "created_at": ensure_aware(h.created_at).isoformat() if h.created_at else None,
         }
         for h in history
     ]
@@ -74,7 +75,7 @@ async def get_events_timeline(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = utcnow() - timedelta(days=days)
     events = []
 
     account_ids_result = await db.execute(select(Account.id).where(Account.user_id == user.id))
@@ -91,7 +92,7 @@ async def get_events_timeline(
                 "type": "breach",
                 "title": f"Breach detected: {b.breach_name}",
                 "severity": "critical",
-                "date": b.created_at.isoformat() if b.created_at else None,
+                "date": ensure_aware(b.created_at).isoformat() if b.created_at else None,
             })
 
     fix_result = await db.execute(
@@ -100,12 +101,13 @@ async def get_events_timeline(
         .order_by(FixAction.completed_at.desc())
     )
     for f in fix_result.scalars().all():
-        if f.completed_at and f.completed_at >= cutoff:
+        completed = ensure_aware(f.completed_at)
+        if completed and completed >= cutoff:
             events.append({
                 "type": "fix_completed",
                 "title": f"Fix completed: {f.description}",
                 "severity": "info",
-                "date": f.completed_at.isoformat(),
+                "date": completed.isoformat(),
             })
 
     audit_result = await db.execute(
@@ -118,7 +120,7 @@ async def get_events_timeline(
             "type": "audit",
             "title": a.details or a.action,
             "severity": "info",
-            "date": a.created_at.isoformat() if a.created_at else None,
+            "date": ensure_aware(a.created_at).isoformat() if a.created_at else None,
         })
 
     events.sort(key=lambda e: e["date"] or "", reverse=True)

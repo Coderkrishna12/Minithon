@@ -2,9 +2,9 @@
   "summary": "Verifies DID key format and issued verifiable credential.",
   "verification": {
     "verified": true,
-    "did": "did:key:z6MkegrGg8DtZgQNqzgqgMkngKvyBru2RhA6pwygFUWPzENB",
+    "did": "did:key:z6MkjbLZBW1SYorca5SphfHVjDfEo5GRcvPxVsZxZaNdGTtU",
     "is_active": true,
-    "issuer": "did:key:z6Mkv1Hhw8VUWdL3h8qXpy1KVeWrVLsDzsCqgkGYaWoaQL6a",
+    "issuer": "did:key:z6Mkt7dyQoqLsVnZW48epkdQZtVJTX9sRpHbYz2pEFW8qdJ9",
     "credentials_count": 1,
     "credentials_valid": 1
   }

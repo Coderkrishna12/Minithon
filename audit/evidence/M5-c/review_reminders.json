@@ -1,6 +1,20 @@
 {
-  "summary": "HTTP 500: Review reminders endpoint crashes with TypeError: can't compare offset-naive and offset-aware datetimes in reminders.py line 71 when checking r.next_trigger <= now.",
-  "create_status": 200,
-  "list_status": 500,
-  "response_text": "Internal Server Error"
+  "summary": "Review reminders CRUD functional with scheduled next_trigger date calculation.",
+  "created": {
+    "id": 15,
+    "title": "Quarterly Password Review"
+  },
+  "all_reminders": [
+    {
+      "id": 15,
+      "reminder_type": "password_review",
+      "title": "Quarterly Password Review",
+      "description": "Check for weak or reused passwords across accounts",
+      "frequency_days": 90,
+      "is_active": true,
+      "is_due": false,
+      "last_triggered": null,
+      "next_trigger": "2026-12-30T06:11:53.056849+00:00"
+    }
+  ]
 }

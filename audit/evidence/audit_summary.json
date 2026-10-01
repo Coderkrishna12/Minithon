@@ -3,474 +3,474 @@
     "status": "Working",
     "evidence_file": "evidence\\M1-a\\manual_add.json",
     "summary": "Created account manually and verified persistence.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:49Z"
   },
   "M1-b": {
     "status": "Working",
     "evidence_file": "evidence\\M1-b\\smart_import.json",
     "summary": "Imported accounts via fixture mailbox. Verified accounts added with confidence and uncertainty flags.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M1-c": {
     "status": "Out of scope: mobile",
     "evidence_file": "evidence\\M1-c\\mobile_scanner.json",
     "summary": "App Permission Scanner is marked mobile-exclusive in the specification matrix.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M1-d": {
     "status": "Working",
     "evidence_file": "evidence\\M1-d\\sso_recovery_mapping.json",
     "summary": "Derived SSO connection between Google Workspace and Slack Enterprise. Verified edge in graph API.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M1-e": {
     "status": "Working",
     "evidence_file": "evidence\\M1-e\\password_reuse_groups.json",
     "summary": "3 accounts mapped to reuse group 'alpha_reuse'. Verified count = 3.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M1-f": {
     "status": "Partial",
     "evidence_file": "evidence\\M1-f\\blockchain_anchor.json",
     "summary": "PDF claims every account addition/snapshot is auto-anchored on-chain. In reality, POST /accounts/ does not record audit hashes; hash chain only appends when explicit audit endpoints or fix completions are triggered.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M1-g": {
     "status": "Working",
     "evidence_file": "evidence\\M1-g\\edit_account.json",
     "summary": "Updated account service name and 2FA status successfully.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M1-h": {
     "status": "Working",
     "evidence_file": "evidence\\M1-h\\delete_account.json",
     "summary": "Account deletion verified: returned 204 and subsequent lookup returned 404.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M1-i": {
     "status": "Partial",
     "evidence_file": "evidence\\M1-i\\validation.json",
     "summary": "Pydantic validated email syntax (422). Empty service_name accepted unless min_length constraint added.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M2-a": {
     "status": "Working",
     "evidence_file": "evidence\\M2-a\\graph_rendering.json",
     "summary": "Graph endpoint returns nodes with risk scores/levels and edges with connection types. Canvas frontend.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M2-b": {
     "status": "Mocked/Simulated",
     "evidence_file": "evidence\\M2-b\\gnn_claim.json",
     "summary": "PDF claims Graph Neural Network (PyTorch Geometric). Actual code uses a deterministic mathematical formula with blast radius calculation in risk_engine.py. Header explicitly states 'No trained model is claimed.'",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M2-c": {
     "status": "Working",
     "evidence_file": "evidence\\M2-c\\risk_formula_weights.json",
     "summary": "Weights match PDF spec exactly: 0.30*breach + 0.20*permission + 0.20*reuse + 0.15*2fa + 0.15*cascade. Computed base=33.46, App base=33.46.",
-    "timestamp": "2026-10-01T11:20:11Z"
+    "timestamp": "2026-10-01T11:41:51Z"
   },
   "M2-d": {
     "status": "Working",
     "evidence_file": "evidence\\M2-d\\breach_history.json",
     "summary": "POST /api/breaches/scan-all integrates with HIBP/XposedOrNot with fallback to mock/local database when offline.",
-    "timestamp": "2026-10-01T11:20:12Z"
+    "timestamp": "2026-10-01T11:41:52Z"
   },
   "M2-e": {
     "status": "Working",
     "evidence_file": "evidence\\M2-e\\spof_detection.json",
     "summary": "Single Point of Failure accurately detected account with 5+ downstream dependencies.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:52Z"
   },
   "M2-f": {
     "status": "Working",
     "evidence_file": "evidence\\M2-f\\privacy_score.json",
     "summary": "Network-wide privacy score is 71 (0-100 scale), dynamically computed.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:52Z"
   },
   "M3-a": {
     "status": "Working",
     "evidence_file": "evidence\\M3-a\\fix_ranking.json",
     "summary": "Fixes are ranked by risk_reduction in descending order.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:52Z"
   },
   "M3-b": {
     "status": "Working",
     "evidence_file": "evidence\\M3-b\\fix_impact_preview.json",
     "summary": "Fix preview calculates projected score before completion; completion updates live score.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:52Z"
   },
   "M3-c": {
     "status": "Missing",
     "evidence_file": "evidence\\M3-c\\deep_links.json",
     "summary": "PDF promises one-tap deep links to security settings pages. Fixes only provide text descriptions without URLs.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:52Z"
   },
   "M3-d": {
     "status": "Missing",
     "evidence_file": "evidence\\M3-d\\guided_walkthroughs.json",
     "summary": "No guided step-by-step walkthrough modals or data exist in the codebase.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:52Z"
   },
   "M3-e": {
     "status": "Partial",
     "evidence_file": "evidence\\M3-e\\progress_tracking.json",
     "summary": "Tracks fixes_completed and fixes_pending counts, but lacks completion ring and time estimate promised in PDF.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M3-f": {
     "status": "Working",
     "evidence_file": "evidence\\M3-f\\fix_receipt.json",
     "summary": "Completing a fix hashes the event to the blockchain audit log and returns a tx_hash.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M4-a": {
     "status": "Working",
     "evidence_file": "evidence\\M4-a\\global_search.json",
     "summary": "Global search queries accounts, breaches, notifications, and audit logs.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M4-b": {
     "status": "Partial",
     "evidence_file": "evidence\\M4-b\\smart_filters.json",
     "summary": "Filters support category and risk_level. Filters for data shared, 2FA status, and last activity are missing.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M4-c": {
     "status": "Working",
     "evidence_file": "evidence\\M4-c\\graph_filters.json",
     "summary": "Graph page supports connection type filtering (SSO, Recovery, Password Reuse, Data Sharing) and category filtering in frontend Canvas.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M4-d": {
-    "status": "Broken",
+    "status": "Working",
     "evidence_file": "evidence\\M4-d\\timeline_view.json",
-    "summary": "HTTP 500: Timeline endpoint crashes with TypeError: can't compare offset-naive and offset-aware datetimes in timeline.py line 103/129 when completed fixes exist.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "summary": "Timeline endpoint /api/timeline/events aggregates account additions, audit entries, and breaches chronologically.",
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M5-a": {
     "status": "Partial",
     "evidence_file": "evidence\\M5-a\\breach_monitor.json",
     "summary": "WebSocket server exists at /api/ws/breach-monitor with auth token verification. Web browser push notifications (Web Push / Service Worker) are not implemented.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M5-b": {
     "status": "Missing",
     "evidence_file": "evidence\\M5-b\\cascade_alert.json",
     "summary": "General notifications are triggered on breach, but dedicated cascading risk alert with downstream impact mapping and emergency checklist is not implemented.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M5-c": {
-    "status": "Broken",
+    "status": "Working",
     "evidence_file": "evidence\\M5-c\\review_reminders.json",
-    "summary": "HTTP 500: Review reminders endpoint crashes with TypeError: can't compare offset-naive and offset-aware datetimes in reminders.py line 71 when checking r.next_trigger <= now.",
-    "timestamp": "2026-10-01T11:20:13Z"
+    "summary": "Review reminders CRUD functional with scheduled next_trigger date calculation.",
+    "timestamp": "2026-10-01T11:41:53Z"
   },
   "M5-d": {
     "status": "Mocked/Simulated",
     "evidence_file": "evidence\\M5-d\\dark_web_scanning.json",
     "summary": "PDF promises custom Tor-based dark web scraper. Actual code queries HaveIBeenPwned / XposedOrNot pastes with local simulated exposures when no API key.",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "M5-e": {
     "status": "Working",
     "evidence_file": "evidence\\M5-e\\notification_priority.json",
     "summary": "Notifications categorize alerts with severity: critical, warning, info.",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "M6-a": {
     "status": "Working",
     "evidence_file": "evidence\\M6-a\\score_gauge.json",
     "summary": "Score rendered in ScoreRing component from API privacy_score.",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "M6-b": {
     "status": "Working",
     "evidence_file": "evidence\\M6-b\\risk_heatmap.json",
     "summary": "Graph nodes colored by risk level (critical: #C8321A, high: #A8660F, medium: #23408E, low: #2E6B4E).",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "M6-c": {
     "status": "Working",
     "evidence_file": "evidence\\M6-c\\top_spofs.json",
     "summary": "Top SPOFs rendered from single_points_of_failure API data.",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "M6-d": {
     "status": "Partial",
     "evidence_file": "evidence\\M6-d\\fix_progress_ring.json",
     "summary": "Pending/completed counts rendered; SVG progress ring absent on dashboard page.",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "M6-e": {
     "status": "Working",
     "evidence_file": "evidence\\M6-e\\minimap.json",
     "summary": "Canvas minimap rendered in graph page.",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "M6-f": {
     "status": "Working",
     "evidence_file": "evidence\\M6-f\\improvement_timeline.json",
     "summary": "Score history tracked and retrievable via /timeline/score-history.",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "M6-g": {
     "status": "Partial",
     "evidence_file": "evidence\\M6-g\\breach_exposure_summary.json",
     "summary": "Reports total breaches_found, but not total individual records exposed or remediation status breakdown.",
-    "timestamp": "2026-10-01T11:20:15Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "AI-1a": {
     "status": "Working",
     "evidence_file": "evidence\\AI-1a\\policy_autoscan.json",
     "summary": "Fetches policy text and indexes into RAG pipeline.",
-    "timestamp": "2026-10-01T11:20:16Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "AI-1b": {
     "status": "Partial",
     "evidence_file": "evidence\\AI-1b\\plain_english_summary.json",
     "summary": "Returns risk summary. Without Anthropic Claude API key, generates structured keyword-based analysis summary.",
-    "timestamp": "2026-10-01T11:20:16Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "AI-1c": {
     "status": "Missing",
     "evidence_file": "evidence\\AI-1c\\policy_change_detection.json",
     "summary": "No historical policy storage or automated clause diffing mechanism found in codebase.",
-    "timestamp": "2026-10-01T11:20:16Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "AI-1d": {
     "status": "Working",
     "evidence_file": "evidence\\AI-1d\\policy_risk_flags.json",
     "summary": "Flags data selling, indefinite retention, cross-border transfers, government disclosures via regex pattern matching.",
-    "timestamp": "2026-10-01T11:20:16Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "AI-2a": {
     "status": "Partial",
     "evidence_file": "evidence\\AI-2a\\breach_probability.json",
     "summary": "Returns per-account 6-month breach probability. Note: Returned as a 0-100 percentage rather than a 0.0-1.0 probability value.",
-    "timestamp": "2026-10-01T11:20:16Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "AI-2b": {
     "status": "Mocked/Simulated",
     "evidence_file": "evidence\\AI-2b\\ml_model_claim.json",
     "summary": "PDF claims ML model trained on breach patterns and company size. Implementation is a deterministic heuristic formula based on category, breach history, 2FA, and password reuse.",
-    "timestamp": "2026-10-01T11:20:16Z"
+    "timestamp": "2026-10-01T11:41:54Z"
   },
   "AI-3a": {
     "status": "Working",
     "evidence_file": "evidence\\AI-3a\\privacybot_chat.json",
     "summary": "RAG-driven chat uses BM25 local keyword search + user account records + HIBP catalog to formulate answers.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "AI-3b": {
     "status": "Working",
     "evidence_file": "evidence\\AI-3b\\scenario_simulation.json",
     "summary": "Context-aware response retrieves linked accounts and recovery edges.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "AI-3c": {
     "status": "Working",
     "evidence_file": "evidence\\AI-3c\\prompt_injection_resistance.json",
     "summary": "Bot adhered to guardrails; did not output hijacked string.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "AI-4a": {
     "status": "Working",
     "evidence_file": "evidence\\AI-4a\\permission_advisor.json",
     "summary": "Category-to-permission mapping analyzes unnecessary permissions and flags mismatches.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "AI-4b": {
     "status": "Working",
     "evidence_file": "evidence\\AI-4b\\bulk_revoke_suggestions.json",
     "summary": "Identifies unnecessary permissions per service for user review.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "AI-4c": {
     "status": "Working",
     "evidence_file": "evidence\\AI-4c\\app_alternatives.json",
     "summary": "Suggests privacy-friendly open-source alternatives based on category.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-1a": {
     "status": "Working",
     "evidence_file": "evidence\\BC-1a\\onchain_hashing.json",
     "summary": "Every audit event generates a SHA-256 block hash linked to the previous block hash.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-1b": {
     "status": "Missing",
     "evidence_file": "evidence\\BC-1b\\merkle_batching.json",
     "summary": "PDF claims Merkle Tree batching. Implementation uses a sequential linear hash chain, not a Merkle tree.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-1c": {
     "status": "Working",
     "evidence_file": "evidence\\BC-1c\\tamper_detection.json",
     "summary": "Chain validation recalculates SHA-256 hashes of all blocks from genesis. Verified block 1 intact and chain valid.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-1d": {
     "status": "Partial",
     "evidence_file": "evidence\\BC-1d\\polygon_anchoring.json",
     "summary": "Web3 Polygon anchoring logic is implemented in blockchain.py, but disabled by default because POLYGON_PRIVATE_KEY is empty in configuration.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-2a": {
     "status": "Mocked/Simulated",
     "evidence_file": "evidence\\BC-2a\\zkp_certificates.json",
     "summary": "PDF claims ZK-SNARK cryptographic proofs (circom / snarkjs). Implementation is an Ed25519 digital signature attestation (not zero-knowledge).",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-2b": {
     "status": "Working",
     "evidence_file": "evidence\\BC-2b\\zkp_verification.json",
     "summary": "Attestation verification correctly accepts genuine signatures and rejects mutated signatures.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-2c": {
     "status": "Working",
     "evidence_file": "evidence\\BC-2c\\zkp_data_leakage.json",
     "summary": "Attestation reveals boolean result (score >= threshold) without leaking the exact privacy score or account inventory in the statement.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-3a": {
     "status": "Working",
     "evidence_file": "evidence\\BC-3a\\did_create.json",
     "summary": "Generates valid W3C standard did:key identifier using Ed25519 public key.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-3b": {
     "status": "Working",
     "evidence_file": "evidence\\BC-3b\\did_verify.json",
     "summary": "Verifies DID key format and issued verifiable credential.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-3c": {
     "status": "Missing",
     "evidence_file": "evidence\\BC-3c\\wallet_integration.json",
     "summary": "No Web3 wallet connector (MetaMask / WalletConnect / Wagmi) found in frontend UI.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-4a": {
     "status": "Working",
     "evidence_file": "evidence\\BC-4a\\dao_proposals.json",
     "summary": "Breach report proposal submitted successfully.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-4b": {
-    "status": "Broken",
+    "status": "Working",
     "evidence_file": "evidence\\BC-4b\\dao_voting.json",
     "summary": "Community validator vote recorded successfully.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-4c": {
     "status": "Working",
     "evidence_file": "evidence\\BC-4c\\dao_quorum.json",
     "summary": "Proposal status transitions to 'confirmed' when votes_for reaches 5 in dao.py.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "BC-4d": {
     "status": "Missing",
     "evidence_file": "evidence\\BC-4d\\dao_token_rewards.json",
     "summary": "No ERC-20 token contract or reward distribution mechanism exists.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X1-a": {
     "status": "Working",
     "evidence_file": "evidence\\X1-a\\hack_me_entry.json",
     "summary": "Simulates breach starting at chosen account node.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X1-b": {
     "status": "Partial",
     "evidence_file": "evidence\\X1-b\\hack_me_animation.json",
     "summary": "Frontend Canvas highlights compromised nodes and edges in red (#C8321A). Step-by-step timed propagation animation from PDF is not implemented.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X1-c": {
     "status": "Working",
     "evidence_file": "evidence\\X1-c\\hack_me_damage_report.json",
     "summary": "Accurately computes total reachable accounts and financial accounts at risk via BFS graph traversal.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X1-d": {
     "status": "Partial",
     "evidence_file": "evidence\\X1-d\\hack_me_before_after.json",
     "summary": "Attack simulation re-runs against current graph state, but lacks dedicated side-by-side comparison screen.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X2-a": {
     "status": "Mocked/Simulated",
     "evidence_file": "evidence\\X2-a\\nft_badge.json",
     "summary": "Badge minting creates a local database record with a pseudo-token_id. It is not an ERC-721 token on Polygon blockchain.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X2-b": {
     "status": "Working",
     "evidence_file": "evidence\\X2-b\\achievement_badges.json",
     "summary": "Eligibility logic checks criteria (score >= 90, 2FA everywhere, zero reuse, breach free).",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X3-a": {
     "status": "Working",
     "evidence_file": "evidence\\X3-a\\lockdown_panic_button.json",
     "summary": "Panic button triggers emergency review notification, audit entry, and recovery checklist.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X3-b": {
     "status": "Mocked/Simulated",
     "evidence_file": "evidence\\X3-b\\lockdown_auto_actions.json",
     "summary": "PDF promises remote session revocation and password resets. In reality, returns a simulated checklist of recommendations without performing any third-party API revocations.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X3-c": {
     "status": "Working",
     "evidence_file": "evidence\\X3-c\\lockdown_recovery_plan.json",
     "summary": "Provides 5-step emergency recovery checklist prioritized by keystone dependencies.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X4-a": {
     "status": "Working",
     "evidence_file": "evidence\\X4-a\\digital_twin.json",
     "summary": "Digital Twin simulation stress-tests user's account graph and identifies critical exposure chains.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X5-a": {
     "status": "Working",
     "evidence_file": "evidence\\X5-a\\family_shield.json",
     "summary": "Family group creation, invite code join flow, and shared family risk dashboard fully operational.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X6-a": {
     "status": "Working",
     "evidence_file": "evidence\\X6-a\\data_broker_list.json",
     "summary": "Returns catalog of 8 major data brokers with opt-out links and targeted data types.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "X6-b": {
     "status": "Partial",
     "evidence_file": "evidence\\X6-b\\data_broker_auto_optout.json",
     "summary": "PDF claims automatic form submission. Actual code returns opt-out URLs with 'action_required' instructions for manual user submission.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "SEC-1": {
     "status": "Working",
     "evidence_file": "evidence\\SEC-1\\idor_protection.json",
     "summary": "IDOR test: User B querying or deleting User A's account ID receives 404 Not Found. Proper user scoping confirmed.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "SEC-2": {
     "status": "Working",
     "evidence_file": "evidence\\SEC-2\\plaintext_password_rejection.json",
     "summary": "API rejects import payloads containing plaintext password fields with 422 Unprocessable Entity.",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:56Z"
   },
   "SEC-3": {
     "status": "Working",
     "evidence_file": "evidence\\SEC-3\\input_handling.json",
     "summary": "SQLAlchemy ORM parametrizes all queries (SQLi protected). React escapes JSX rendered text (XSS protected).",
-    "timestamp": "2026-10-01T11:20:18Z"
+    "timestamp": "2026-10-01T11:41:57Z"
   }
 }

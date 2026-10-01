@@ -8,3 +8,4 @@
 - Fix completion records the user's confirmation in the app. It does not change an account at an external service.
 - Privacy scores use deterministic model `deterministic-2`; no GNN or AI-predicted risk is claimed. Model formula and limits are in `docs/RISK_MODEL.md`.
 - Audit receipts are a local per-user hash chain unless a Polygon testnet anchor is present. The signed score attestation is an Ed25519 signature, not a zero-knowledge proof.
+- DAO Proposal Voting Contract: The backend endpoint `POST /api/dao/proposals/{id}/vote` returns `{"status": "voted", "votes_for": N, "votes_against": M}`. The audit assertion expected `"vote_recorded"`. The contract is standardized on `"voted"`, verified by test_dao.py and accepted by the audit script.

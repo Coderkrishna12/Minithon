@@ -1,5 +1,30 @@
 {
-  "summary": "HTTP 500: Timeline endpoint crashes with TypeError: can't compare offset-naive and offset-aware datetimes in timeline.py line 103/129 when completed fixes exist.",
-  "status_code": 500,
-  "response_text": "Internal Server Error"
+  "summary": "Timeline endpoint /api/timeline/events aggregates account additions, audit entries, and breaches chronologically.",
+  "timeline_events_count": 4,
+  "timeline_events": [
+    {
+      "type": "fix_completed",
+      "title": "Fix completed: Enable two-factor authentication on Keystone Master Email",
+      "severity": "info",
+      "date": "2026-10-01T06:11:52.911802+00:00"
+    },
+    {
+      "type": "breach",
+      "title": "Breach detected: Dropbox",
+      "severity": "critical",
+      "date": "2026-10-01T06:11:52+00:00"
+    },
+    {
+      "type": "audit",
+      "title": "User confirmed enable_2fa for Keystone Master Email",
+      "severity": "info",
+      "date": "2026-10-01T06:11:52+00:00"
+    },
+    {
+      "type": "audit",
+      "title": "Snapshot recorded",
+      "severity": "info",
+      "date": "2026-10-01T06:11:51+00:00"
+    }
+  ]
 }

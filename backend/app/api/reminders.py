@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from datetime import datetime, timezone, timedelta
+from datetime import timedelta
 
+from app.core.time import utcnow, ensure_aware
 from app.db.session import get_db
 from app.models.user import User
 from app.models.account import ReviewReminder, Notification
@@ -40,7 +41,7 @@ async def list_reminders(
     reminders = result.scalars().all()
 
     if not reminders:
-        now = datetime.now(timezone.utc)
+        now = utcnow()
         for r in DEFAULT_REMINDERS:
             reminder = ReviewReminder(
                 user_id=user.id,
@@ -59,7 +60,7 @@ async def list_reminders(
         )
         reminders = result.scalars().all()
 
-    now = datetime.now(timezone.utc)
+    now = utcnow()
     return [
         {
             "id": r.id,
@@ -68,7 +69,7 @@ async def list_reminders(
             "description": r.description,
             "frequency_days": r.frequency_days,
             "is_active": r.is_active,
-            "is_due": r.next_trigger <= now if r.next_trigger else False,
+            "is_due": ensure_aware(r.next_trigger) <= now if r.next_trigger else False,
             "last_triggered": r.last_triggered.isoformat() if r.last_triggered else None,
             "next_trigger": r.next_trigger.isoformat() if r.next_trigger else None,
         }
@@ -88,7 +89,7 @@ async def create_reminder(
         title=data.title,
         description=data.description,
         frequency_days=data.frequency_days,
-        next_trigger=datetime.now(timezone.utc) + timedelta(days=data.frequency_days),
+        next_trigger=utcnow() + timedelta(days=data.frequency_days),
     )
     db.add(reminder)
     await db.commit()
@@ -109,7 +110,7 @@ async def complete_reminder(
     if not reminder:
         raise HTTPException(status_code=404, detail="Reminder not found")
 
-    now = datetime.now(timezone.utc)
+    now = utcnow()
     reminder.last_triggered = now
     reminder.next_trigger = now + timedelta(days=reminder.frequency_days)
     await db.commit()

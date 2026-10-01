@@ -1,24 +1,24 @@
 {
   "summary": "Derived SSO connection between Google Workspace and Slack Enterprise. Verified edge in graph API.",
-  "google_id": 72,
-  "slack_id": 73,
+  "google_id": 102,
+  "slack_id": 103,
   "edges_found": [
     {
-      "id": "49",
-      "source": "69",
-      "target": "73",
+      "id": "71",
+      "source": "99",
+      "target": "103",
       "type": "password_reuse"
     },
     {
-      "id": "50",
-      "source": "72",
-      "target": "73",
+      "id": "72",
+      "source": "102",
+      "target": "103",
       "type": "recovery_email"
     },
     {
-      "id": "51",
-      "source": "72",
-      "target": "73",
+      "id": "73",
+      "source": "102",
+      "target": "103",
       "type": "sso"
     }
   ]

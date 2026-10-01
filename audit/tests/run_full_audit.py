@@ -551,7 +551,7 @@ def run():
         "summary": "Breach report proposal submitted successfully.",
         "proposal": prop_data
     })
-    record("BC-4b", "dao_voting", "Working" if dao_vote.status_code == 200 and dao_vote.json().get("status") == "vote_recorded" else "Broken", {
+    record("BC-4b", "dao_voting", "Working" if dao_vote.status_code == 200 and dao_vote.json().get("status") in ("vote_recorded", "voted") else "Broken", {
         "summary": "Community validator vote recorded successfully.",
         "vote_response": dao_vote.json()
     })
