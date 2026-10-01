@@ -1,6 +1,9 @@
+import html
 import json
+import re
 
 import anthropic
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,7 +30,7 @@ def _get_client() -> anthropic.AsyncAnthropic:
     return _client
 
 
-async def _ask_claude(system: str, messages: list[dict], effort: str = "low", output_format: dict | None = None) -> str:
+async def _create_message(system: str, messages: list[dict], effort: str = "low", output_format: dict | None = None):
     output_config: dict = {"effort": effort}
     if output_format:
         output_config["format"] = output_format
@@ -52,6 +55,11 @@ async def _ask_claude(system: str, messages: list[dict], effort: str = "low", ou
 
     if response.stop_reason == "refusal":
         raise AIUnavailable("Claude declined this request.")
+    return response
+
+
+async def _ask_claude(system: str, messages: list[dict], effort: str = "low", output_format: dict | None = None) -> str:
+    response = await _create_message(system, messages, effort, output_format)
     return next((b.text for b in response.content if b.type == "text"), "")
 
 
@@ -102,42 +110,6 @@ async def get_user_context(user_id: int, db: AsyncSession) -> str:
     return "\n".join(context_parts)
 
 
-SYSTEM_PROMPT = """You are PrivacyBot, the AI security assistant for PrivacyShield — a Digital Footprint & Privacy Risk Auditor.
-
-Your role:
-- Analyze the user's digital account network and identify risks
-- Explain security concepts in simple terms
-- Recommend specific actions to improve their privacy score
-- Simulate attack scenarios when asked ("what if X gets hacked?")
-- Provide personalized advice based on their actual accounts, not generic tips
-
-Guidelines:
-- Be concise and actionable
-- Prioritize fixes by risk reduction impact
-- Flag single points of failure (accounts connected to many others)
-- Warn about password reuse and missing 2FA
-- Consider cascading risk (one compromised account can unlock others)
-- Never ask for actual passwords or sensitive credentials
-"""
-
-
-async def chat_with_ai(
-    user_id: int,
-    message: str,
-    conversation_history: list[dict],
-    db: AsyncSession,
-) -> str:
-    """Chat with PrivacyBot, grounded in the user's real account data."""
-    user_context = await get_user_context(user_id, db)
-    messages = [
-        {"role": m["role"], "content": m["content"]}
-        for m in conversation_history[-10:]
-        if m.get("role") in ("user", "assistant") and m.get("content")
-    ]
-    messages.append({"role": "user", "content": message})
-    return await _ask_claude(f"{SYSTEM_PROMPT}\n\nCurrent user's digital footprint:\n{user_context}", messages)
-
-
 POLICY_SCHEMA = {
     "type": "object",
     "properties": {
@@ -151,7 +123,20 @@ POLICY_SCHEMA = {
 }
 
 
-async def analyze_privacy_policy(url: str) -> dict:
+async def fetch_policy_text(url: str) -> str:
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+            resp = await client.get(url, headers={"User-Agent": "PrivacyShield-Analyzer/1.0"})
+    except httpx.HTTPError:
+        return ""
+    if resp.status_code != 200:
+        return ""
+    text = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", resp.text, flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    return re.sub(r"\s+", " ", html.unescape(text)).strip()
+
+
+async def analyze_privacy_policy(url: str, policy_text: str | None = None) -> dict:
     """Analyze a service's privacy policy using NLP with keyword fallback."""
     risk_flags = {
         "data_selling": {"found": False, "keywords": ["sell your data", "share with third parties", "advertising partners", "monetize", "third-party advertisers"]},

@@ -14,6 +14,8 @@ class AiChatScreen extends StatefulWidget {
 class _ChatMessage {
   final String text;
   final bool isUser;
+  final bool isError;
+  final List<Map<String, dynamic>> sources;
   final DateTime time;
 
   _ChatMessage({required this.text, required this.isUser})
@@ -57,6 +59,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
+    final history = _messages
+        .skip(1)
+        .where((m) => !m.isError && m.text.isNotEmpty)
+        .map((m) => {'role': m.isUser ? 'user' : 'assistant', 'content': m.text})
+        .toList();
     setState(() {
       _messages.add(_ChatMessage(text: text.trim(), isUser: true));
       _isTyping = true;
@@ -82,6 +89,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
         },
       );
 
+      final answer = data['response'] as String?;
       setState(() {
         _messages.add(
           _ChatMessage(
@@ -268,22 +276,50 @@ class _AiChatScreenState extends State<AiChatScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: msg.isUser ? AppColors.blue : AppColors.surface,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
-                  bottomRight: Radius.circular(msg.isUser ? 4 : 16),
-                ),
+                color: msg.isUser ? AppColors.ink : AppColors.surface,
+                borderRadius: BorderRadius.circular(4),
                 border: msg.isUser ? null : Border.all(color: AppColors.border),
               ),
-              child: Text(
-                msg.text,
-                style: TextStyle(
-                  color: msg.isUser ? Colors.white : AppColors.textPrimary,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    msg.text.replaceAll('**', ''),
+                    style: TextStyle(
+                      color: msg.isUser ? AppColors.surface : (msg.isError ? AppColors.red : AppColors.textPrimary),
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
+                  if (msg.sources.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text('RETRIEVED RECORDS', style: AppText.eyebrow()),
+                    const SizedBox(height: 6),
+                    for (final s in msg.sources)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(width: 20, child: Text('${s['n']}', style: AppText.mono(size: 11, color: AppColors.textMuted))),
+                            Expanded(
+                              child: Text.rich(TextSpan(children: [
+                                TextSpan(
+                                  text: '${s['title']}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.5,
+                                    color: s['cited'] == true || msg.isError ? AppColors.textPrimary : AppColors.textMuted,
+                                  ),
+                                ),
+                                TextSpan(text: '  ${s['label']}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                              ])),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ],
               ),
             ),
           ),

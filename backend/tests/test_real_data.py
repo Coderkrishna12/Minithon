@@ -115,13 +115,6 @@ def test_import_discovers_services_from_email_domains(client, auth, mock_http):
     assert found["notion.so"]["breached"] is False
 
 
-def test_chat_without_key_explains_instead_of_faking_answers(client, auth):
-    headers, _ = auth
-    r = client.post("/api/ai/chat", headers=headers, json={"message": "What is my biggest risk?"})
-    assert r.status_code == 503
-    assert "ANTHROPIC_API_KEY" in r.json()["detail"]
-
-
 def test_live_socket_requires_token_and_pushes_new_breaches(client, auth, mock_http):
     import pytest
     from starlette.websockets import WebSocketDisconnect

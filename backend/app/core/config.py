@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     polygon_private_key: str = ""
     polygon_explorer_tx_url: str = "https://amoy.polygonscan.com/tx/"
     anthropic_api_key: str = ""
-    demo_mode: bool = False
+    voyage_api_key: str = ""
+    voyage_model: str = "voyage-3.5"
 
     model_config = {"env_file": ".env", "extra": "ignore", "env_ignore_empty": True}
 
