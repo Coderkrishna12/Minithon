@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../services/auth_provider.dart';
+import '../widgets/server_settings_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,14 +46,24 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 24),
-                Row(children: [
-                  Container(width: 12, height: 12, color: AppColors.red),
-                  const SizedBox(width: 10),
-                  Text.rich(TextSpan(children: [
-                    TextSpan(text: 'Privacy', style: AppText.serif(size: 26)),
-                    TextSpan(text: 'Shield', style: AppText.serif(size: 26, style: FontStyle.italic)),
-                  ])),
-                ]),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(children: [
+                      Container(width: 12, height: 12, color: AppColors.red),
+                      const SizedBox(width: 10),
+                      Text.rich(TextSpan(children: [
+                        TextSpan(text: 'Privacy', style: AppText.serif(size: 26)),
+                        TextSpan(text: 'Shield', style: AppText.serif(size: 26, style: FontStyle.italic)),
+                      ])),
+                    ]),
+                    IconButton(
+                      icon: const Icon(Icons.settings_ethernet, color: AppColors.textSecondary, size: 22),
+                      tooltip: 'Backend Server Settings',
+                      onPressed: () => ServerSettingsDialog.show(context, onSaved: () => auth.clearError()),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 36),
                 Text('Welcome back.', style: AppText.serif(size: 44)),
                 const SizedBox(height: 8),
@@ -98,18 +109,44 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 if (auth.error != null) ...[
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.red.withAlpha(30),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.red.withAlpha(80)),
+                      color: AppColors.red.withAlpha(25),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.red.withAlpha(90)),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.error_outline, color: AppColors.red, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(auth.error!, style: const TextStyle(color: AppColors.red, fontSize: 13)),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.error_outline, color: AppColors.red, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                auth.error!,
+                                style: const TextStyle(color: AppColors.red, fontSize: 13, height: 1.35),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.red,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            icon: const Icon(Icons.settings_ethernet, size: 16),
+                            label: const Text(
+                              'Change Server URL',
+                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                            ),
+                            onPressed: () => ServerSettingsDialog.show(context, onSaved: () => auth.clearError()),
+                          ),
                         ),
                       ],
                     ),

@@ -19,9 +19,11 @@ import 'screens/smart_import_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/device_audit_screen.dart';
 import 'screens/leak_check_screen.dart';
+import 'services/api_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ApiService().init();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,

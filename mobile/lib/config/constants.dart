@@ -7,4 +7,6 @@ class ApiConstants {
 
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
+  static const String customBaseUrlKey = 'custom_api_base_url';
 }
+
