@@ -12,7 +12,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{tmp_path}/test.db"
-    os.environ["ANTHROPIC_API_KEY"] = ""
     os.environ["HIBP_API_KEY"] = ""
     os.environ["MONITOR_INTERVAL_MINUTES"] = "0"
     for name in list(sys.modules):
@@ -21,6 +20,10 @@ def client(tmp_path, monkeypatch):
 
     from fastapi.testclient import TestClient
     from app.main import app
+    from app.core.config import get_settings
+
+    # Empty env vars are ignored, so a real key in backend/.env would leak into tests.
+    monkeypatch.setattr(get_settings(), "gemini_api_key", "")
 
     with TestClient(app) as c:
         yield c

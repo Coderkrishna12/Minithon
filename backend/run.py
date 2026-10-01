@@ -46,7 +46,6 @@ REQUIRED = {
     "multipart": "python-multipart",
     "httpx": "httpx",
     "cryptography": "cryptography",
-    "anthropic": "anthropic",
     "web3": "web3",
 }
 

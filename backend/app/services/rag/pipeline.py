@@ -1,3 +1,5 @@
+import re
+
 import httpx
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.models.account import RagChunk
 from app.services import breach_checker
-from app.services.ai_engine import AIUnavailable, _create_message
+from app.services.ai_engine import AIUnavailable, _ask_gemini
 from app.services.rag.search import retrieve
 from app.services.rag.sources import (
     CATALOG_SOURCE_TYPE,
@@ -24,7 +26,7 @@ SYSTEM = """You are PrivacyBot, the assistant inside PrivacyShield, a personal e
 
 Each question arrives with documents retrieved for it: the user's own PrivacyShield records (risk overview, accounts, breaches, dark web exposures, recommended fixes, analysed privacy policies) and entries from the Have I Been Pwned breach catalog.
 
-Answer from those documents and cite them. When they don't cover the question, say what is missing and which PrivacyShield scan or page would produce it, rather than filling the gap from general knowledge about the user.
+Answer from those documents and cite them by writing the document's number in square brackets, like [2], right after the claim it supports. When they don't cover the question, say what is missing and which PrivacyShield scan or page would produce it, rather than filling the gap from general knowledge about the user.
 
 Lead with what the user should do, ordered by how much risk it removes, and point out chains where one account unlocks others. Keep answers short and plain. Never ask for a password."""
 
@@ -70,7 +72,7 @@ async def index_status(user_id: int, db: AsyncSession) -> dict:
     return {
         "retrieval": "hybrid" if settings.voyage_api_key else "keyword",
         "embedding_model": settings.voyage_model if settings.voyage_api_key else None,
-        "generation": "claude" if settings.anthropic_api_key else None,
+        "generation": "gemini" if settings.gemini_api_key else None,
         "chunks": {t: {"total": total, "embedded": embedded} for t, total, embedded in rows},
     }
 
@@ -98,37 +100,26 @@ async def answer(user_id: int, message: str, history: list[dict], db: AsyncSessi
     ]
     result = {"response": None, "error": None, "sources": sources, "retrieval": {**retrieval, "warnings": warnings}}
 
-    documents = [
-        {
-            "type": "document",
-            "source": {"type": "text", "media_type": "text/plain", "data": h.chunk.text},
-            "title": h.chunk.title,
-            "context": SOURCE_LABELS.get(h.chunk.source_type, h.chunk.source_type),
-            "citations": {"enabled": True},
-        }
-        for h in hits
-    ]
+    documents = "\n\n".join(
+        f'<document index="{i + 1}" title="{h.chunk.title}" source="{SOURCE_LABELS.get(h.chunk.source_type, h.chunk.source_type)}">\n'
+        f"{h.chunk.text}\n</document>"
+        for i, h in enumerate(hits)
+    )
     messages = [
         {"role": m["role"], "content": m["content"]}
         for m in history[-10:]
         if m.get("role") in ("user", "assistant") and m.get("content")
     ]
-    messages.append({"role": "user", "content": [*documents, {"type": "text", "text": message}]})
+    messages.append({"role": "user", "content": f"<documents>\n{documents}\n</documents>\n\n{message}"})
 
     try:
-        response = await _create_message(SYSTEM, messages)
+        text = await _ask_gemini(SYSTEM, messages)
     except AIUnavailable as e:
         result["error"] = f"{e} The most relevant records are listed below."
         return result
 
-    parts = []
-    for block in response.content:
-        if block.type != "text":
-            continue
-        cited = sorted({c.document_index + 1 for c in (block.citations or []) if hasattr(c, "document_index")})
-        for n in cited:
-            if 0 < n <= len(sources):
-                sources[n - 1]["cited"] = True
-        parts.append(block.text + "".join(f" [{n}]" for n in cited))
-    result["response"] = "".join(parts).strip()
+    for n in {int(n) for n in re.findall(r"\[(\d+)\]", text)}:
+        if 0 < n <= len(sources):
+            sources[n - 1]["cited"] = True
+    result["response"] = text.strip()
     return result

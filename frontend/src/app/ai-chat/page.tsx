@@ -137,7 +137,7 @@ export default function AIChatPage() {
           <p className="eyebrow text-right leading-relaxed shrink-0">
             {totalChunks.toLocaleString()} indexed passages
             <br />
-            {status.retrieval} retrieval &middot; {status.generation ? "Claude" : "no generator"}
+            {status.retrieval} retrieval &middot; {status.generation ? "Gemini" : "no generator"}
           </p>
         )}
       </div>

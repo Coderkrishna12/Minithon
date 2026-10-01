@@ -1,5 +1,5 @@
+import re
 import hashlib
-from types import SimpleNamespace
 
 from tests.test_real_data import CATALOG, add, handler_for, xon_analytics
 
@@ -37,14 +37,14 @@ def _seed(client, headers, email, mock_http):
     client.post("/api/breaches/scan-all", headers=headers)
 
 
-def test_without_claude_key_returns_retrieved_records_and_says_why(client, auth, mock_http):
+def test_without_gemini_key_returns_retrieved_records_and_says_why(client, auth, mock_http):
     headers, email = auth
     _seed(client, headers, email, mock_http)
 
     body = client.post("/api/ai/chat", headers=headers, json={"message": "What leaked in the Adobe breach?"}).json()
 
     assert body["response"] is None
-    assert "ANTHROPIC_API_KEY" in body["error"]
+    assert "GEMINI_API_KEY" in body["error"]
     titles = [s["title"] for s in body["sources"]]
     assert "Adobe breach" in titles
     assert any(t.startswith("Breach: Adobe") for t in titles)
@@ -58,24 +58,20 @@ def test_answer_cites_retrieved_documents(client, auth, mock_http, monkeypatch):
     import app.services.rag.pipeline as pipeline
     seen = {}
 
-    async def fake_create(system, messages, effort="low", output_format=None):
+    async def fake_ask(system, messages, output_schema=None):
         seen["messages"] = messages
-        docs = [b for b in messages[-1]["content"] if b["type"] == "document"]
-        reuse = next(i for i, d in enumerate(docs) if d["title"] == "Your risk overview")
-        return SimpleNamespace(content=[
-            SimpleNamespace(type="text", text="Change the password you reuse on Adobe and Dropbox.",
-                            citations=[SimpleNamespace(document_index=reuse, cited_text="Password reused")]),
-            SimpleNamespace(type="text", text=" Then turn on 2FA for Gmail.", citations=None),
-        ])
+        prompt = messages[-1]["content"]
+        reuse = re.search(r'<document index="(\d+)" title="Your risk overview"', prompt).group(1)
+        return f"Change the password you reuse on Adobe and Dropbox. [{reuse}] Then turn on 2FA for Gmail."
 
-    monkeypatch.setattr(pipeline, "_create_message", fake_create)
+    monkeypatch.setattr(pipeline, "_ask_gemini", fake_ask)
     body = client.post("/api/ai/chat", headers=headers, json={"message": "What is my biggest risk?"}).json()
 
     overview = next(s for s in body["sources"] if s["title"] == "Your risk overview")
     assert body["response"].startswith(f"Change the password you reuse on Adobe and Dropbox. [{overview['n']}]")
     assert overview["cited"] is True
-    assert "Password reused across: Adobe, Dropbox" in seen["messages"][-1]["content"][overview["n"] - 1]["source"]["data"]
-    assert seen["messages"][-1]["content"][-1] == {"type": "text", "text": "What is my biggest risk?"}
+    assert "Password reused across: Adobe, Dropbox" in seen["messages"][-1]["content"]
+    assert seen["messages"][-1]["content"].endswith("What is my biggest risk?")
 
 
 def test_hybrid_retrieval_uses_embeddings_when_voyage_is_configured(client, auth, mock_http, monkeypatch):

@@ -16,14 +16,14 @@ async def integration_status():
         "xon": True,  # The current XON public endpoint does not require an API key.
         # Credentials alone cannot make an unfinished OAuth flow operational.
         "gmail": False,
-        "claude": bool(settings.anthropic_api_key),
+        "gemini": bool(settings.gemini_api_key),
         "blockchain": bool(settings.polygon_private_key),
     }
     modes = {
         "hibp": settings.hibp_mode,
         "xon": settings.xon_mode,
         "gmail": "unavailable_not_implemented",
-        "claude": "live" if configured["claude"] else "unconfigured",
+        "gemini": "live" if configured["gemini"] else "unconfigured",
         "blockchain": "testnet" if configured["blockchain"] else "local_hash_chain",
     }
     result = {}

@@ -24,7 +24,9 @@ class Settings(BaseSettings):
     polygon_rpc_url: str = "https://rpc-amoy.polygon.technology"
     polygon_private_key: str = ""
     polygon_explorer_tx_url: str = "https://amoy.polygonscan.com/tx/"
-    anthropic_api_key: str = ""
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-flash-latest"
+    gemini_fallback_model: str = "gemini-2.5-flash"
     voyage_api_key: str = ""
     voyage_model: str = "voyage-3.5"
 
