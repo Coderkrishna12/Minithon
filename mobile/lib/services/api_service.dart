@@ -18,6 +18,29 @@ class ApiService {
 
   String get baseUrl => ServerDiscovery.baseUrl;
 
+  /// Checks that a PrivacyShield server answers at [url] (a bare IP or an https tunnel address is fine).
+  Future<Map<String, dynamic>> testConnection(String url) async {
+    final base = ServerDiscovery.normalize(url);
+    final ok = await ServerDiscovery.probe(base, timeout: const Duration(seconds: 5));
+    return {
+      'success': ok,
+      'message': ok
+          ? 'Connected to PrivacyShield at $base'
+          : "No PrivacyShield server answered at $base. Open $base/health in the phone's browser; "
+              "if that fails too, run 'python run.py --public' on the PC and use the https address it prints.",
+    };
+  }
+
+  /// Saves [url] as the server to use; null or empty goes back to automatic discovery.
+  Future<void> setCustomBaseUrl(String? url) async {
+    if (url == null || url.trim().isEmpty) {
+      await ServerDiscovery.clear();
+      await ServerDiscovery.discover(includeSaved: false);
+      return;
+    }
+    await ServerDiscovery.use(ServerDiscovery.normalize(url));
+  }
+
   Future<String?> get _token async {
     if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)) {
       return _secureStorage.invokeMethod<String>('read', {'key': ApiConstants.tokenKey});

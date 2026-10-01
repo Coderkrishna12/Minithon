@@ -55,6 +55,12 @@ class ServerDiscovery {
     await prefs.setString(prefsKey, base);
   }
 
+  static Future<void> clear() async {
+    _current = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(prefsKey);
+  }
+
   static Future<String?> discover({bool includeSaved = true}) async {
     final prefs = await SharedPreferences.getInstance();
     final saved = includeSaved ? prefs.getString(prefsKey) : null;
