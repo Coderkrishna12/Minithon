@@ -54,9 +54,9 @@ python -m venv .venv
 # Activate environment (Windows: .venv\Scripts\activate, Unix: source .venv/bin/activate)
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python run.py
 ```
-API Documentation will be available at `http://localhost:8000/docs`.
+`run.py` installs anything missing, opens port 8000 in Windows Firewall (or prints the one Administrator command to do it), sets up `adb reverse` for a USB-connected phone, prints the addresses a phone can use, and serves on all interfaces. API docs: `http://localhost:8000/docs`.
 
 ### 2. Frontend Setup
 
@@ -74,6 +74,9 @@ cd mobile
 flutter pub get
 flutter run
 ```
+On launch the app finds the backend by itself: the last server that worked, USB (`adb reverse`), the emulator, then a sweep of the phone's Wi-Fi subnet. If nothing answers it opens a setup screen where you can type the PC's IP. To pin an address at build time: `flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8000/api`.
+
+If a phone on the same Wi-Fi still can't connect, the network is probably isolating devices (common on college and public Wi-Fi): connect by USB, or put the PC on the phone's hotspot.
 
 ---
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../services/auth_provider.dart';
+import '../services/server_discovery.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -33,8 +34,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 2));
+    final results = await Future.wait([
+      ServerDiscovery.discover(),
+      Future.delayed(const Duration(milliseconds: 1200)),
+    ]);
     if (!mounted) return;
+    if (results[0] == null) {
+      Navigator.pushReplacementNamed(context, '/server');
+      return;
+    }
     final auth = context.read<AuthProvider>();
     final isAuth = await auth.checkAuth();
     if (!mounted) return;
@@ -74,6 +82,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ),
               const SizedBox(height: 14),
               Text('EXPOSURE AUDIT', style: AppText.eyebrow()),
+              const SizedBox(height: 28),
+              Text('FINDING YOUR SERVER…', style: AppText.eyebrow(color: AppColors.textMuted)),
             ],
           ),
         ),

@@ -2,7 +2,6 @@ import html
 import json
 import re
 
-import anthropic
 import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,19 +9,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.models.account import Account, AccountConnection, BreachRecord
 
+try:
+    import anthropic
+except ImportError:  # the rest of the API should still start; PrivacyBot reports what to install
+    anthropic = None
+
 settings = get_settings()
 
 MODEL = "claude-opus-5-5"
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
-_client: anthropic.AsyncAnthropic | None = None
+_client = None
 
 
 class AIUnavailable(Exception):
     """Raised when no Anthropic key is configured or the API call fails."""
 
 
-def _get_client() -> anthropic.AsyncAnthropic:
+def _get_client():
     global _client
+    if anthropic is None:
+        raise AIUnavailable("The anthropic package isn't installed. Run: pip install -r requirements.txt")
     if not settings.anthropic_api_key:
         raise AIUnavailable("PrivacyBot needs an Anthropic API key. Set ANTHROPIC_API_KEY in backend/.env.")
     if _client is None:
@@ -34,8 +40,9 @@ async def _create_message(system: str, messages: list[dict], effort: str = "low"
     output_config: dict = {"effort": effort}
     if output_format:
         output_config["format"] = output_format
+    client = _get_client()
     try:
-        response = await _get_client().beta.messages.create(
+        response = await client.beta.messages.create(
             model=MODEL,
             max_tokens=16000,
             system=system,

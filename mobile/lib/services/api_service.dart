@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/constants.dart';
+import 'server_discovery.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -11,11 +11,7 @@ class ApiService {
 
   static final Map<String, dynamic> _cache = {};
 
-  String get baseUrl {
-    if (ApiConstants.configuredBaseUrl.isNotEmpty) return ApiConstants.configuredBaseUrl;
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) return ApiConstants.emulatorBaseUrl;
-    return ApiConstants.localBaseUrl;
-  }
+  String get baseUrl => ServerDiscovery.baseUrl;
 
   Future<String?> get _token async {
     final prefs = await SharedPreferences.getInstance();

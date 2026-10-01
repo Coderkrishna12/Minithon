@@ -19,6 +19,7 @@ import 'screens/smart_import_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/device_audit_screen.dart';
 import 'screens/leak_check_screen.dart';
+import 'screens/server_setup_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +61,7 @@ class PrivacyShieldApp extends StatelessWidget {
           '/reminders': (_) => const RemindersScreen(),
           '/device-audit': (_) => const DeviceAuditScreen(),
           '/leak-check': (_) => const LeakCheckScreen(),
+          '/server': (_) => const ServerSetupScreen(),
         },
       ),
     );
