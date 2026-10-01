@@ -27,6 +27,12 @@ async def get_score_history(
         .order_by(ScoreHistory.created_at.asc())
     )
     history = result.scalars().all()
+    if not history:
+        await record_score_snapshot("baseline", "First score on record", user, db)
+        result = await db.execute(
+            select(ScoreHistory).where(ScoreHistory.user_id == user.id).order_by(ScoreHistory.created_at.asc())
+        )
+        history = result.scalars().all()
     return [
         {
             "id": h.id,
@@ -68,6 +74,13 @@ async def record_score_snapshot(
     return {"id": snapshot.id, "privacy_score": score}
 
 
+def _aware(dt: datetime | None) -> datetime | None:
+    """SQLite hands datetimes back without a timezone; treat them as UTC."""
+    if dt is None:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
 @router.get("/events")
 async def get_events_timeline(
     days: int = 90,
@@ -77,49 +90,49 @@ async def get_events_timeline(
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     events = []
 
-    account_ids_result = await db.execute(select(Account.id).where(Account.user_id == user.id))
-    account_ids = [r[0] for r in account_ids_result.fetchall()]
+    def add(kind: str, title: str, severity: str, when: datetime | None, description: str | None = None):
+        when = _aware(when)
+        if when and when >= cutoff:
+            events.append({"type": kind, "title": title, "description": description,
+                           "severity": severity, "date": when.isoformat()})
 
-    if account_ids:
-        breach_result = await db.execute(
-            select(BreachRecord)
-            .where(BreachRecord.account_id.in_(account_ids), BreachRecord.created_at >= cutoff)
-            .order_by(BreachRecord.created_at.desc())
-        )
-        for b in breach_result.scalars().all():
-            events.append({
-                "type": "breach",
-                "title": f"Breach detected: {b.breach_name}",
-                "severity": "critical",
-                "date": b.created_at.isoformat() if b.created_at else None,
-            })
+    accounts = (await db.execute(select(Account).where(Account.user_id == user.id))).scalars().all()
+    names = {a.id: a.service_name for a in accounts}
+    for a in accounts:
+        add("account_added", f"Started tracking {a.service_name}", "info", a.created_at,
+            f"Added via {a.added_via.replace('_', ' ')}" if a.added_via else None)
 
-    fix_result = await db.execute(
-        select(FixAction)
-        .where(FixAction.user_id == user.id, FixAction.status == "completed")
-        .order_by(FixAction.completed_at.desc())
-    )
-    for f in fix_result.scalars().all():
-        if f.completed_at and f.completed_at >= cutoff:
-            events.append({
-                "type": "fix_completed",
-                "title": f"Fix completed: {f.description}",
-                "severity": "info",
-                "date": f.completed_at.isoformat(),
-            })
+    if names:
+        breaches = (await db.execute(select(BreachRecord).where(BreachRecord.account_id.in_(list(names))))).scalars().all()
+        for b in breaches:
+            exposed = ", ".join(b.data_exposed or []) or None
+            add("breach", f"{names.get(b.account_id, 'Account')} found in the {b.breach_name} breach", "critical",
+                b.created_at, f"Exposed: {exposed}" if exposed else None)
 
-    audit_result = await db.execute(
-        select(AuditLog)
-        .where(AuditLog.user_id == user.id, AuditLog.created_at >= cutoff)
-        .order_by(AuditLog.created_at.desc())
-    )
-    for a in audit_result.scalars().all():
-        events.append({
-            "type": "audit",
-            "title": a.details or a.action,
-            "severity": "info",
-            "date": a.created_at.isoformat() if a.created_at else None,
-        })
+    fixes = (await db.execute(
+        select(FixAction).where(FixAction.user_id == user.id, FixAction.status == "completed")
+    )).scalars().all()
+    for f in fixes:
+        add("fix_completed", f"Fixed: {f.description}", "success", f.completed_at,
+            f"Score +{f.risk_reduction:.0f}" if f.risk_reduction else None)
 
-    events.sort(key=lambda e: e["date"] or "", reverse=True)
+    history = (await db.execute(
+        select(ScoreHistory).where(ScoreHistory.user_id == user.id).order_by(ScoreHistory.created_at.asc())
+    )).scalars().all()
+    previous = None
+    for h in history:
+        if previous is not None and h.privacy_score != previous:
+            delta = h.privacy_score - previous
+            add("score_change", f"Privacy score {'rose' if delta > 0 else 'fell'} to {h.privacy_score}",
+                "success" if delta > 0 else "warning", h.created_at, f"{delta:+d} points")
+        previous = h.privacy_score
+
+    audits = (await db.execute(select(AuditLog).where(AuditLog.user_id == user.id))).scalars().all()
+    for a in audits:
+        if a.action == "fix_completed":
+            continue  # already shown as a fix event
+        add("audit", a.details or a.action.replace("_", " "), "info", a.created_at,
+            f"Receipt {a.blockchain_tx_hash[:14]}…" if a.blockchain_tx_hash else None)
+
+    events.sort(key=lambda e: e["date"], reverse=True)
     return events[:100]

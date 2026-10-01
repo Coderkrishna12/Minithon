@@ -2,7 +2,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.account import Account, AccountConnection
-from app.services.risk_engine import calculate_account_risk
+from app.services.risk_engine import _load_network, score_network
 
 DERIVED_TYPES = ("sso", "recovery_email", "password_reuse")
 
@@ -62,15 +62,25 @@ async def refresh_user_graph(user_id: int, db: AsyncSession) -> None:
     accounts = list(result.scalars().all())
     ids = [a.id for a in accounts]
     if ids:
-        await db.execute(
-            delete(AccountConnection).where(
-                AccountConnection.connection_type.in_(DERIVED_TYPES),
-                AccountConnection.from_account_id.in_(ids) | AccountConnection.to_account_id.in_(ids),
-            )
+        # Only write the difference: most refreshes change nothing, and rewriting every edge is slow.
+        existing = (await db.execute(select(AccountConnection).where(
+            AccountConnection.connection_type.in_(DERIVED_TYPES),
+            AccountConnection.from_account_id.in_(ids) | AccountConnection.to_account_id.in_(ids),
+        ))).scalars().all()
+        wanted = derive_edges(accounts)
+        have = {(e.from_account_id, e.to_account_id, e.connection_type): e for e in existing}
+        stale = [e.id for key, e in have.items() if key not in wanted]
+        if stale:
+            await db.execute(delete(AccountConnection).where(AccountConnection.id.in_(stale)))
+        db.add_all(
+            AccountConnection(from_account_id=src, to_account_id=dst, connection_type=kind)
+            for src, dst, kind in wanted - have.keys()
         )
-        for src, dst, kind in derive_edges(accounts):
-            db.add(AccountConnection(from_account_id=src, to_account_id=dst, connection_type=kind))
         await db.flush()
+        # Score the whole network once instead of reloading it for every account.
+        _, connections, breaches = await _load_network(user_id, db)
+        scores, components, _ = score_network(accounts, connections, breaches)
         for a in accounts:
-            a.risk_score = await calculate_account_risk(a, db)
+            a.risk_score = scores.get(a.id, 0.0)
+            a.risk_components = components.get(a.id, {})
     await db.commit()

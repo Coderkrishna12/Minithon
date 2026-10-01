@@ -23,6 +23,11 @@ async def init_db():
                 for name, statement in migrations.items():
                     if name not in columns:
                         sync_conn.exec_driver_sql(statement)
+                family_columns = {row[1] for row in sync_conn.exec_driver_sql("PRAGMA table_info(family_members)").fetchall()}
+                if "share_level" not in family_columns:
+                    sync_conn.exec_driver_sql(
+                        "ALTER TABLE family_members ADD COLUMN share_level VARCHAR(20) NOT NULL DEFAULT 'summary'"
+                    )
             await conn.run_sync(additive_sqlite_migrations)
 
 

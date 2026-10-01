@@ -12,10 +12,30 @@ from app.models.account import Account
 from app.core.security import get_current_user
 from app.services.breach_checker import get_breach_catalog, http_client, normalize_domain
 from app.services.connections import refresh_user_graph
+from app.services.service_catalog import lookup
 
 router = APIRouter(prefix="/import", tags=["import"])
 
 DOMAIN_PATTERN = re.compile(r"(?:@|https?://(?:www\.)?)([a-z0-9-]+(?:\.[a-z0-9-]+)+)", re.IGNORECASE)
+# Apps that are the identity provider's own, so they always sign in with that provider's account.
+FIRST_PARTY_SSO = {
+    "Google Drive", "Google Photos", "YouTube", "Google Pay", "Messenger", "OneDrive",
+    "Microsoft Teams", "Microsoft 365",
+}
+
+
+def _known(name: str | None = None, url: str | None = None, package: str | None = None) -> dict:
+    """Name, category, domain and (only when certain) login method for an import signal."""
+    hit = lookup(name=name, url=url, package=package)
+    if not hit:
+        return {}
+    known_name, category, domain, login = hit
+    return {
+        "service_name": known_name, "category": category, "service_url": domain,
+        "login_method": login if known_name in FIRST_PARTY_SSO else "unknown",
+    }
+
+
 MAIL_INFRA = ("sendgrid", "mailchimp", "mandrillapp", "amazonses", "mailgun", "sparkpost", "list-manage", "mcsv", "rsgsv")
 
 
@@ -61,9 +81,21 @@ class BulkImportRequest(BaseModel):
 
 
 class PasswordCsvService(BaseModel):
+    # extra="forbid" means a password field can never be accepted, even by mistake.
     model_config = ConfigDict(extra="forbid")
     service_name: str
     password_group: str | None = None
+    url: str | None = None
+    username: str | None = None
+
+
+class InstalledApp(BaseModel):
+    package: str
+    label: str
+
+
+class DeviceAppsRequest(BaseModel):
+    apps: list[InstalledApp]
 
 
 class PasswordCsvImportRequest(BaseModel):
@@ -107,21 +139,28 @@ async def import_password_manager_csv(
     tracked = await _tracked_names(user.id, db)
     added, skipped = [], []
     for row in data.services:
-        name = row.service_name.strip()[:200]
-        if not name or name.lower() in tracked:
+        known = _known(name=row.service_name, url=row.url)
+        name = known.get("service_name") or row.service_name.strip()[:200]
+        domain = known.get("service_url") or (_site_domain(normalize_domain(row.url)) if row.url and "." in row.url else None)
+        if not name or name.lower() in tracked or (domain and domain in tracked):
             skipped.append(name)
             continue
+        username = (row.username or "").strip()[:255]
         account = Account(
-            user_id=user.id, service_name=name, service_url=None, email_used=None,
-            category=None, has_2fa=None, login_method="unknown", twofa_method=None,
+            user_id=user.id, service_name=name, service_url=domain,
+            email_used=username if "@" in username else None,
+            username_used=username if username and "@" not in username else None,
+            category=known.get("category"), has_2fa=None, login_method=known.get("login_method", "unknown"),
+            twofa_method=None,
             password_group=(row.password_group[:100] if row.password_group else None),
             permissions=[], added_via="local_password_manager_csv",
             import_confidence=1.0, evidence_source="password_manager_csv_processed_on_device",
         )
         db.add(account)
         await db.flush()
-        tracked.add(name.lower())
-        added.append({"id": account.id, "service_name": name, "password_group": account.password_group})
+        tracked.update({name.lower(), domain or ""})
+        added.append({"id": account.id, "service_name": name, "category": account.category,
+                      "password_group": account.password_group})
     await db.commit()
     await refresh_user_graph(user.id, db)
     return {
@@ -148,10 +187,11 @@ async def scan_email_for_accounts(
     discovered = []
     for domain in sorted(domains):
         breach = catalog.get(domain)
-        name = (breach.get("Title") if breach else None) or domain
+        known = _known(url=domain)
+        name = known.get("service_name") or (breach.get("Title") if breach else None) or domain
         discovered.append({
             "service_name": name,
-            "category": "other",
+            "category": known.get("category", "other"),
             "service_url": domain,
             "permissions": [],
             "breached": bool(breach),
@@ -190,7 +230,9 @@ async def bulk_add_accounts(
             domain, breach = _site_domain(normalize_domain(key)), catalog.get(_site_domain(normalize_domain(key)))
         else:
             domain, breach = "", None
-        name = (breach.get("Title") if breach else None) or service_key.strip()
+        known = _known(name=service_key, url=domain or None)
+        name = known.get("service_name") or (breach.get("Title") if breach else None) or service_key.strip()
+        domain = known.get("service_url") or domain
 
         if name.lower() in tracked or (domain and domain in tracked):
             skipped.append(service_key)
@@ -201,9 +243,9 @@ async def bulk_add_accounts(
             service_name=name,
             service_url=domain,
             email_used=(data.email if data.added_via == "fixture_mailbox" else (data.email or user.email)),
-            category=None,
+            category=known.get("category"),
             permissions=[],
-            login_method="unknown",
+            login_method=known.get("login_method", "unknown"),
             has_2fa=None,
             added_via=data.added_via,
             import_confidence=data.import_confidence,
@@ -248,3 +290,40 @@ async def get_import_suggestions(
         for domain, b in ranked
         if domain not in tracked and (b.get("Title") or "").lower() not in tracked
     ][:20]
+
+
+@router.post("/device-apps")
+async def match_device_apps(
+    data: DeviceAppsRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Turn the apps installed on this phone into account candidates. Unknown apps are ignored."""
+    try:
+        catalog = await _catalog_by_domain()
+    except httpx.HTTPError:
+        catalog = {}
+    tracked = await _tracked_names(user.id, db)
+    found: dict[str, dict] = {}
+    for app in data.apps:
+        known = _known(package=app.package)
+        if not known or known["service_name"] in found:
+            continue
+        breach = catalog.get(known["service_url"])
+        found[known["service_name"]] = {
+            **known,
+            "package": app.package,
+            "app_label": app.label,
+            "breached": bool(breach),
+            "breach_name": breach.get("Title") if breach else None,
+            "breach_date": breach.get("BreachDate") if breach else None,
+            "already_tracked": known["service_name"].lower() in tracked or known["service_url"] in tracked,
+        }
+    order = {"finance": 0, "email": 1, "cloud": 2, "social": 3, "work": 4, "shopping": 5}
+    discovered = sorted(found.values(), key=lambda d: (d["already_tracked"], order.get(d["category"], 9), d["service_name"]))
+    return {
+        "apps_scanned": len(data.apps),
+        "discovered": discovered,
+        "new_accounts": sum(1 for d in discovered if not d["already_tracked"]),
+        "catalog_available": bool(catalog),
+    }

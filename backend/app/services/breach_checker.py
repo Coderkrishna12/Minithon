@@ -231,6 +231,9 @@ async def _persist(account: Account, breaches: list[dict], db: AsyncSession) -> 
             severity="critical" if confirmed else "warning",
             related_account_id=account.id,
         ))
+        if confirmed:
+            from app.services.family import notify_guardians_of_breach  # avoid an import cycle at load time
+            await notify_guardians_of_breach(account.user_id, b["name"], db)
 
     account.breach_count = len(breaches)
     dates = [d for d in (_parse_date(b.get("date")) for b in breaches) if d]

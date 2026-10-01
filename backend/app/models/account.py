@@ -178,7 +178,9 @@ class FamilyMember(Base):
     id = Column(Integer, primary_key=True, index=True)
     group_id = Column(Integer, ForeignKey("family_groups.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    role = Column(String(50), default="member")
+    role = Column(String(50), default="member")  # owner, guardian, member
+    # What the rest of the group may see: "summary" (score and counts) or "detailed" (risky accounts too).
+    share_level = Column(String(20), default="summary", nullable=False)
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -247,4 +249,31 @@ class DarkWebAlert(Base):
     data_found = Column(String(500))
     severity = Column(String(20), default="warning")
     is_resolved = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AttackSimulation(Base):
+    """One 'Hack Me' run, kept so the user can compare before and after real fixes."""
+    __tablename__ = "attack_simulations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    entry_account_id = Column(Integer, ForeignKey("accounts.id", ondelete="SET NULL"))
+    entry_service = Column(String(200), nullable=False)
+    accounts_reachable = Column(Integer, nullable=False)
+    financial_at_risk = Column(Integer, nullable=False, default=0)
+    damage_score = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ZkCredential(Base):
+    """A signed Pedersen commitment to the user's score. The opening never leaves the server."""
+    __tablename__ = "zk_credentials"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    commitment = Column(String(600), nullable=False)
+    randomness = Column(String(600), nullable=False)
+    score = Column(Integer, nullable=False)
+    credential = Column(JSON, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

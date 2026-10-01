@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
     auth, accounts, dashboard, graph, blockchain, breaches, ai_chat,
-    notifications, features, search, timeline, family, did, dao,
+    notifications, features, search, timeline, family, did, dao, attack_sim, exposure,
     darkweb, reminders, reports, smart_import, websocket, status,
 )
 import asyncio
@@ -48,6 +48,8 @@ app.include_router(features.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
 app.include_router(timeline.router, prefix="/api")
 app.include_router(family.router, prefix="/api")
+app.include_router(attack_sim.router, prefix="/api")
+app.include_router(exposure.router, prefix="/api")
 app.include_router(did.router, prefix="/api")
 app.include_router(dao.router, prefix="/api")
 app.include_router(darkweb.router, prefix="/api")

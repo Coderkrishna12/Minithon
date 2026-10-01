@@ -1,3 +1,8 @@
+import asyncio
+import json
+import time
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,10 +10,12 @@ from sqlalchemy import select
 
 from app.db.session import get_db
 from app.models.user import User
-from app.models.account import AuditLog
+from app.models.account import AuditLog, ZkCredential
 from app.core.security import get_current_user
 from app.services.blockchain import record_audit, score_attestation, user_chain
-from app.services.identity import issuer_did, verify_payload
+from app.services.identity import issuer_did, sign_payload, verify_payload
+from app.services.risk_engine import calculate_privacy_score
+from app.services.zkp import new_commitment, prove_at_least, verify_at_least
 
 router = APIRouter(prefix="/blockchain", tags=["blockchain"])
 
@@ -100,3 +107,79 @@ async def verify_attestation(data: AttestationCheck):
     """Public: anyone holding an attestation can check it was signed by this server's issuer key."""
     valid = verify_payload(data.statement, data.proof) and data.statement.get("issuer") == issuer_did()
     return {"valid": valid, "issuer": issuer_did()}
+
+
+# ── Zero-knowledge proof: "my privacy score is at least T" without revealing the score ──
+
+class ZkPackage(BaseModel):
+    credential: dict
+    signature: dict
+    threshold: int
+    proof: dict
+
+
+@router.post("/zkp/prove")
+async def zkp_prove(
+    threshold: int = Query(default=70, ge=0, le=100),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Commit to the current score, sign the commitment, and prove score >= threshold in zero knowledge."""
+    score = await calculate_privacy_score(user.id, db)
+    user.privacy_score = score
+    if score < threshold:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Your score is below {threshold}, so a valid proof cannot exist. Try a lower threshold or raise your score.",
+        )
+    started = time.perf_counter()
+    commitment, randomness = new_commitment(score)
+    credential = {
+        "type": "PrivacyScoreCommitment",
+        "issuer": issuer_did(),
+        "subject": f"privacyshield:user:{user.id}",
+        "commitment": hex(commitment),
+        "scheme": "pedersen/rfc3526-modp-2048",
+        "issued_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    signature = sign_payload(credential)
+    proof = await asyncio.to_thread(prove_at_least, score, randomness, commitment, threshold, signature["proofValue"])
+    db.add(ZkCredential(user_id=user.id, commitment=hex(commitment), randomness=hex(randomness), score=score,
+                        credential=credential))
+    await record_audit(user.id, "zkp_proof_issued", f"Zero-knowledge proof issued: score >= {threshold}",
+                       {"commitment": hex(commitment), "threshold": threshold}, db)
+    package = {"credential": credential, "signature": signature, "threshold": threshold, "proof": proof}
+    return {
+        "claim": f"Privacy score is at least {threshold}",
+        "package": package,
+        "proof_bytes": len(json.dumps(package)),
+        "generated_ms": round((time.perf_counter() - started) * 1000),
+        "reveals": ["that the score is at least the threshold"],
+        "hides": ["the score itself", "the commitment randomness"],
+    }
+
+
+@router.post("/zkp/verify")
+async def zkp_verify(data: ZkPackage):
+    """Public: anyone can check a proof. They learn only whether the score meets the threshold."""
+    started = time.perf_counter()
+    checks = []
+    signed = verify_payload(data.credential, data.signature) and data.credential.get("issuer") == issuer_did()
+    checks.append({"check": "Commitment signed by the PrivacyShield issuer (Ed25519)", "ok": signed})
+    try:
+        commitment = int(str(data.credential.get("commitment", "")), 16)
+    except ValueError:
+        commitment = 0
+    valid, reason = (False, "Skipped: the credential signature is not valid")
+    if signed and commitment:
+        valid, reason = await asyncio.to_thread(
+            verify_at_least, commitment, data.threshold, data.proof, data.signature.get("proofValue", ""))
+    checks.append({"check": f"Range proof: committed score - {data.threshold} is in [0, 127]", "ok": valid})
+    return {
+        "valid": signed and valid,
+        "claim": f"Privacy score is at least {data.threshold}",
+        "reason": reason if signed else "The credential was not signed by this issuer, or it was altered",
+        "checks": checks,
+        "issuer": issuer_did(),
+        "verified_ms": round((time.perf_counter() - started) * 1000),
+    }

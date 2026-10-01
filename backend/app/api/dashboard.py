@@ -34,6 +34,20 @@ async def get_dashboard(
     accounts_at_risk = sum(1 for a in accounts if a.risk_score >= 50)
     breaches_found = sum(a.breach_count for a in accounts)
 
+    # Keep the timeline current: record the score whenever it has moved since the last entry.
+    last = (await db.execute(
+        select(ScoreHistory).where(ScoreHistory.user_id == user.id)
+        .order_by(ScoreHistory.created_at.desc(), ScoreHistory.id.desc()).limit(1)
+    )).scalar_one_or_none()
+    if accounts and (last is None or last.privacy_score != privacy_score):
+        db.add(ScoreHistory(
+            user_id=user.id, privacy_score=privacy_score, total_accounts=total_accounts,
+            accounts_at_risk=accounts_at_risk, breaches_total=breaches_found,
+            event_type="score_change" if last else "baseline",
+            event_description="Score changed" if last else "First score on record",
+        ))
+        await db.commit()
+
     fixes_result = await db.execute(select(FixAction).where(FixAction.user_id == user.id))
     fixes = fixes_result.scalars().all()
     fixes_completed = sum(1 for f in fixes if f.status == "completed")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -6,7 +6,9 @@ from app.db.session import get_db
 from app.models.user import User
 from app.models.account import Account, AccountConnection
 from app.core.security import get_current_user
+from app.services.attack_simulator import report, simulate
 from app.services.connections import refresh_user_graph
+from app.services.risk_engine import _load_network
 
 router = APIRouter(prefix="/graph", tags=["graph"])
 
@@ -65,54 +67,25 @@ async def simulate_attack(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """Older response shape for the web graph; the full simulator lives at /attack-sim/run."""
     await refresh_user_graph(user.id, db)
-    accounts_result = await db.execute(select(Account).where(Account.user_id == user.id))
-    accounts = {a.id: a for a in accounts_result.scalars().all()}
-
-    if entry_account_id not in accounts:
-        from fastapi import HTTPException
+    accounts, connections, breaches = await _load_network(user.id, db)
+    if entry_account_id not in {a.id for a in accounts}:
         raise HTTPException(status_code=404, detail="Account not found")
-
-    account_ids = list(accounts.keys())
-    connections_result = await db.execute(
-        select(AccountConnection).where(AccountConnection.from_account_id.in_(account_ids))
-    )
-    connections = connections_result.scalars().all()
-
-    adjacency: dict[int, list[int]] = {aid: [] for aid in account_ids}
-    for c in connections:
-        adjacency[c.from_account_id].append(c.to_account_id)
-        adjacency[c.to_account_id].append(c.from_account_id)
-
-    compromised = set()
-    attack_path = []
-    queue = [entry_account_id]
-    compromised.add(entry_account_id)
-    step = 0
-
-    while queue:
-        current = queue.pop(0)
-        account = accounts[current]
-        attack_path.append({
-            "step": step,
-            "accountId": current,
-            "serviceName": account.service_name,
-            "category": account.category,
-            "riskScore": account.risk_score,
-        })
-        step += 1
-        for neighbor in adjacency.get(current, []):
-            if neighbor not in compromised:
-                compromised.add(neighbor)
-                queue.append(neighbor)
-
-    finance_at_risk = sum(1 for aid in compromised if accounts[aid].category == "finance")
-
+    result = report(accounts, simulate(accounts, connections, entry_account_id), breaches)
+    entry = result["entry"]
+    path = [{"step": 0, "accountId": entry["id"], "serviceName": entry["service"], "category": entry["category"]}]
+    path += [
+        {"step": s["order"], "accountId": s["to_id"], "serviceName": s["to"], "via": s["via"],
+         "probability": s["probability"]}
+        for s in result["steps"]
+    ]
+    reached = [n["id"] for n in result["nodes"] if n["status"] in ("entry", "compromised", "data_exposed")]
     return {
-        "entryPoint": accounts[entry_account_id].service_name,
-        "totalCompromised": len(compromised),
+        "entryPoint": entry["service"],
+        "totalCompromised": len(reached),
         "totalAccounts": len(accounts),
-        "attackPath": attack_path,
-        "financialAccountsAtRisk": finance_at_risk,
-        "compromisedIds": [str(aid) for aid in compromised],
+        "attackPath": path,
+        "financialAccountsAtRisk": len(result["damage"]["financial_accounts_at_risk"]),
+        "compromisedIds": [str(i) for i in reached],
     }
