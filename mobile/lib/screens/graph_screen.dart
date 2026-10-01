@@ -42,8 +42,6 @@ class _GraphScreenState extends State<GraphScreen>
   List<_GraphEdge> _edges = [];
   bool _loading = true;
   int? _selectedNode;
-  List<dynamic>? _attackResult;
-  int _reachableCount = 0;
   late AnimationController _animController;
   String _selectedFilter = 'All';
   final _filterTypes = [
@@ -157,28 +155,6 @@ class _GraphScreenState extends State<GraphScreen>
       node.position += node.velocity;
     }
     setState(() {});
-  }
-
-  Future<void> _simulateAttack() async {
-    if (_selectedNode == null) return;
-    try {
-      final data = await _api.post(
-        '/graph/simulate-attack?entry_account_id=$_selectedNode',
-      );
-      setState(() {
-        _attackResult = data['attackPath'] as List? ?? [];
-        _reachableCount = data['totalCompromised'] as int? ?? 0;
-        final compromisedIds =
-            (data['compromisedIds'] as List?)
-                ?.map((id) => int.tryParse(id.toString()))
-                .whereType<int>()
-                .toSet() ??
-            <int>{};
-        for (final node in _nodes) {
-          node.compromised = compromisedIds.contains(node.id);
-        }
-      });
-    } catch (_) {}
   }
 
   Future<void> _addDataSharingConnection() async {
@@ -329,9 +305,9 @@ class _GraphScreenState extends State<GraphScreen>
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _simulateAttack,
+                  onPressed: () => Navigator.pushNamed(context, '/hack-me', arguments: _selectedNode),
                   icon: const Icon(Icons.bug_report, size: 18),
-                  label: const Text('Simulate Attack'),
+                  label: const Text('Hack Me'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.red,
                   ),
@@ -428,41 +404,6 @@ class _GraphScreenState extends State<GraphScreen>
           ),
         ),
         _buildLegend(),
-        if (_attackResult != null && _attackResult!.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.red.withAlpha(30),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.red.withAlpha(80)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Attack Chain: $_reachableCount accounts reachable',
-                  style: const TextStyle(
-                    color: AppColors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _attackResult!
-                      .map(
-                        (a) =>
-                            a['serviceName'] ?? a['service_name'] ?? 'Unknown',
-                      )
-                      .join(' → '),
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }

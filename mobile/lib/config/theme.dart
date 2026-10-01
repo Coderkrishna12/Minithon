@@ -11,13 +11,16 @@ class AppColors {
   static const textSecondary = Color(0xFF5B544A);
   static const textMuted = Color(0xFF8A8274);
   static const ink = Color(0xFF17150F);
-  static const blue = Color(0xFF23408E);
-  static const purple = Color(0xFF6B3A6E);
-  static const green = Color(0xFF2E6B4E);
-  static const orange = Color(0xFFA8660F);
-  static const red = Color(0xFFC8321A);
-  static const pink = Color(0xFFA8436A);
-  static const cyan = Color(0xFF1F6E78);
+  // Print palette: ink, signal red and earth tones. The old names are kept so every screen
+  // picks the new tones up, but none of them is a blue or purple any more.
+  static const blue = Color(0xFF3A3630); // graphite
+  static const purple = Color(0xFF7A4B2A); // umber
+  static const green = Color(0xFF2E6B4E); // forest
+  static const orange = Color(0xFFA8660F); // ochre
+  static const red = Color(0xFFC8321A); // signal red
+  static const pink = Color(0xFFB4532A); // rust
+  static const cyan = Color(0xFF5E6B2E); // olive
+  static const paperDark = Color(0xFFE6DFD0);
 }
 
 class AppText {
@@ -41,7 +44,7 @@ class AppTheme {
       bodyColor: AppColors.textPrimary,
       displayColor: AppColors.textPrimary,
     );
-    final radius = BorderRadius.circular(4);
+    final radius = BorderRadius.circular(2);
     return ThemeData(
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
@@ -68,7 +71,7 @@ class AppTheme {
         centerTitle: false,
         titleTextStyle: AppText.serif(size: 26),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        shape: const Border(bottom: BorderSide(color: AppColors.border)),
+        shape: const Border(bottom: BorderSide(color: AppColors.ink, width: 1.5)),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surface,
@@ -108,7 +111,7 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.ink,
+        selectedItemColor: AppColors.red,
         unselectedItemColor: AppColors.textMuted,
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,

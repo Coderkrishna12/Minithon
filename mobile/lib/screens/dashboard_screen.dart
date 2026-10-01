@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../config/theme.dart';
-import '../services/api_service.dart';
-import '../widgets/score_ring.dart';
-import '../widgets/stat_card.dart';
 import '../models/account.dart';
+import '../services/api_service.dart';
+import '../services/auth_provider.dart';
+import '../widgets/cyber.dart';
+import '../widgets/dossier.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,6 +20,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, dynamic>? _dashboard;
   List<FixAction> _fixes = [];
   int _accountsWith2fa = 0;
+  List<dynamic> _accounts = [];
+  // The boot scan plays once per app session, the first time the overview loads.
+  static bool _bootScanPlayed = false;
+  bool _showBootScan = false;
   bool _loading = true;
 
   @override
@@ -38,9 +45,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _fixes = (results[1] as List)
             .map((e) => FixAction.fromJson(e))
             .toList();
-        _accountsWith2fa = (results[2] as List)
-            .where((account) => account['has_2fa'] == true)
-            .length;
+        _accounts = results[2] as List;
+        if (!_bootScanPlayed && _accounts.isNotEmpty) {
+          _bootScanPlayed = true;
+          _showBootScan = true;
+        }
+        _accountsWith2fa = _accounts.where((account) => account['has_2fa'] == true).length;
         _loading = false;
       });
     } catch (e) {
@@ -96,9 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.blue),
-      );
+      return const Center(child: CircularProgressIndicator(color: AppColors.red));
     }
 
     final d = _dashboard;
@@ -107,12 +115,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off, size: 48, color: AppColors.textMuted),
-            const SizedBox(height: 12),
-            const Text(
-              'Could not load dashboard',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+            const RubberStamp('File unavailable', delay: Duration.zero),
+            const SizedBox(height: 20),
+            const Text("Couldn't reach your PrivacyShield server.", style: TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: 12),
             ElevatedButton(onPressed: _loadData, child: const Text('Retry')),
           ],
@@ -120,262 +125,365 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    final score = (d['privacy_score'] ?? 0).toDouble();
-    final totalAccounts = d['total_accounts'] ?? 0;
-    final accountsAt2fa = _accountsWith2fa;
-    final totalBreaches = d['total_breaches'] ?? d['breaches_found'] ?? 0;
-    final riskDistribution =
-        d['risk_distribution'] as Map<String, dynamic>? ?? {};
+    final user = context.watch<AuthProvider>().user;
+    final score = ((d['privacy_score'] ?? 0) as num).round();
+    final totalAccounts = (d['total_accounts'] ?? 0) as int;
+    final totalBreaches = (d['total_breaches'] ?? d['breaches_found'] ?? 0) as int;
+    final atRisk = (d['accounts_at_risk'] ?? 0) as int;
+    final riskDistribution = d['risk_distribution'] as Map<String, dynamic>? ?? {};
     final spofs = (d['single_points_of_failure'] as List?) ?? [];
     final pendingFixes = _fixes.where((f) => f.status == 'pending').toList();
+    final done = _fixes.where((f) => f.status == 'completed').length;
+    final no2fa = totalAccounts - _accountsWith2fa;
+    final verdict = score >= 80
+        ? ('Secured', AppColors.green)
+        : score >= 60
+        ? ('Under watch', AppColors.ink)
+        : score >= 40
+        ? ('Exposed', AppColors.orange)
+        : ('At risk', AppColors.red);
+
+    final ticker = <String>[
+      'Privacy score $score/100',
+      '$totalBreaches breach${totalBreaches == 1 ? '' : 'es'} on record',
+      '$no2fa account${no2fa == 1 ? '' : 's'} without 2FA',
+      for (final s in spofs.take(2))
+        '${s['service_name']} unlocks ${(s['risk_components']?['reachable_accounts'] ?? 0)} accounts',
+      '${pendingFixes.length} fixes waiting',
+      'Monitoring live',
+    ];
+
+    final accounts = _accounts.cast<Map<String, dynamic>>();
+    if (_showBootScan) {
+      return BootScan(accounts: accounts, onDone: () => setState(() => _showBootScan = false));
+    }
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: AppColors.blue,
+      color: AppColors.red,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         children: [
-          Center(child: ScoreRing(score: score, size: 180, strokeWidth: 14)),
-          const SizedBox(height: 8),
-          const Center(
-            child: Text(
-              'Privacy Score',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          TickerTape(items: ticker),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            child: ShieldStatus(accounts: totalAccounts),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Eyebrow('Subject file № PS-${(user?.id ?? 0).toString().padLeft(4, '0')}'),
+                    const Spacer(),
+                    Flexible(child: Eyebrow(DateFormat('dd MMM yyyy').format(DateTime.now()))),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  user?.fullName?.isNotEmpty == true ? '${user!.fullName},\non the record.' : 'Your exposure,\non the record.',
+                  style: AppText.serif(size: 40),
+                ),
+                const SizedBox(height: 18),
+                _scoreFile(score, verdict, totalAccounts),
+                const SizedBox(height: 14),
+                _exhibits(totalAccounts, atRisk, totalBreaches, no2fa),
+                if (accounts.isNotEmpty) ...[
+                  const CaseHeading(code: 'Section 01 · Live', title: 'Surveillance'),
+                  ThreatRadar(accounts: accounts),
+                  const SizedBox(height: 8),
+                  LiveConsole(accounts: accounts),
+                ],
+                const CaseHeading(code: 'Section 02', title: 'Operations'),
+                _operations(),
+                const CaseHeading(code: 'Section 03', title: 'Risk profile'),
+                _riskStrip(riskDistribution),
+                if (spofs.isNotEmpty) ...[
+                  const CaseHeading(code: 'Section 04', title: 'Keystone accounts'),
+                  const Text(
+                    'Lose one of these and the rest follow.',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 10),
+                  ...spofs.map(_buildSpofCard),
+                ],
+                CaseHeading(
+                  code: spofs.isEmpty ? 'Section 04' : 'Section 05',
+                  title: 'Orders',
+                  trailing: Eyebrow('$done done · ${pendingFixes.length} open'),
+                ),
+                if (pendingFixes.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Align(alignment: Alignment.centerLeft, child: RubberStamp('All clear', color: AppColors.green)),
+                  )
+                else
+                  ...pendingFixes.take(6).toList().asMap().entries.map((e) => _buildFixCard(e.value, e.key + 1)),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.4,
-            children: [
-              StatCard(
-                label: 'Accounts',
-                value: '$totalAccounts',
-                icon: Icons.apps,
-                color: AppColors.blue,
-              ),
-              StatCard(
-                label: '2FA Enabled',
-                value: '$accountsAt2fa/$totalAccounts',
-                icon: Icons.verified_user,
-                color: AppColors.green,
-              ),
-              StatCard(
-                label: 'Breaches',
-                value: '$totalBreaches',
-                icon: Icons.warning_amber,
-                color: AppColors.red,
-              ),
-              StatCard(
-                label: 'Fixes Pending',
-                value: '${pendingFixes.length}',
-                icon: Icons.build,
-                color: AppColors.orange,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildRiskDistribution(riskDistribution),
-          const SizedBox(height: 24),
-          if (spofs.isNotEmpty) ...[
-            _buildSectionTitle(
-              'Single Points of Failure',
-              Icons.error,
-              AppColors.red,
-            ),
-            const SizedBox(height: 8),
-            ...spofs.map((s) => _buildSpofCard(s)),
-            const SizedBox(height: 24),
-          ],
-          if (pendingFixes.isNotEmpty) ...[
-            _buildSectionTitle(
-              'Fix Checklist',
-              Icons.checklist,
-              AppColors.green,
-            ),
-            const SizedBox(height: 8),
-            ...pendingFixes.take(5).map((f) => _buildFixCard(f)),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon, Color color) {
-    return Row(
+  Widget _scoreFile(int score, (String, Color) verdict, int accounts) {
+    return FilePanel(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+      child: ScanLine(
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Eyebrow('Exhibit 01 · Score', color: AppColors.textSecondary),
+                const Spacer(),
+                Flexible(child: Eyebrow('$accounts assessed')),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                ScoreDial(score: score),
+                Positioned(
+                  right: 0,
+                  bottom: 16,
+                  child: RubberStamp(verdict.$1, color: verdict.$2, delay: const Duration(milliseconds: 1500)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _exhibits(int accounts, int atRisk, int breaches, int no2fa) {
+    Widget cell(String code, String value, String label, Color color) => Expanded(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+        decoration: BoxDecoration(color: AppColors.surface, border: Border.all(color: AppColors.border)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Eyebrow(code),
+            const SizedBox(height: 6),
+            Redacted(
+              delay: const Duration(milliseconds: 500),
+              child: Text(value, style: AppText.serif(size: 40, color: color)),
+            ),
+            Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+          ],
+        ),
+      ),
+    );
+    return Column(
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              cell('Exhibit 02', '$accounts', 'accounts on file', AppColors.ink),
+              const SizedBox(width: 8),
+              cell('Exhibit 03', '$atRisk', 'at high risk', atRisk > 0 ? AppColors.red : AppColors.green),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              cell('Exhibit 04', '$breaches', 'breaches found', breaches > 0 ? AppColors.red : AppColors.green),
+              const SizedBox(width: 8),
+              cell('Exhibit 05', '$no2fa', 'without 2FA', no2fa > 0 ? AppColors.orange : AppColors.green),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildRiskDistribution(Map<String, dynamic> dist) {
-    final levels = ['critical', 'high', 'medium', 'low'];
-    final colors = [
-      AppColors.red,
-      AppColors.orange,
-      AppColors.blue,
-      AppColors.green,
+  Widget _operations() {
+    const ops = [
+      ('OP-01', 'Hack Me', 'Stage a break-in on your own accounts', Icons.bug_report_outlined, '/hack-me'),
+      ('OP-02', 'Exposure scan', 'What a hacker already knows about any email', Icons.radar, '/exposure'),
+      ('OP-03', 'Family Shield', 'Watch over the people you love', Icons.shield_outlined, '/family'),
+      ('OP-04', 'Dark web sweep', 'Find where your data is traded', Icons.travel_explore, '/darkweb'),
+      ('OP-05', 'Leak check', 'Test a password against known leaks', Icons.password, '/leak-check'),
+      ('OP-06', 'QR inspection', 'Scan a code before you trust it', Icons.qr_code_scanner, '/qr-scanner'),
+      ('OP-07', 'AI insights', 'Ask what to fix first', Icons.auto_awesome_outlined, '/ai-insights'),
     ];
-    final total = levels.fold<int>(
-      0,
-      (sum, l) => sum + ((dist[l] ?? 0) as int),
-    );
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Risk Distribution',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    return Column(
+      children: [
+        // The flagship operation gets the full width, in ink.
+        _opTile(ops.first, featured: true),
+        const SizedBox(height: 8),
+        for (var i = 1; i < ops.length; i += 2) ...[
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _opTile(ops[i])),
+                const SizedBox(width: 8),
+                Expanded(child: i + 1 < ops.length ? _opTile(ops[i + 1]) : const SizedBox()),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          ...List.generate(levels.length, (i) {
-            final count = (dist[levels[i]] ?? 0) as int;
-            final pct = total > 0 ? count / total : 0.0;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        levels[i][0].toUpperCase() + levels[i].substring(1),
-                        style: TextStyle(
-                          color: colors[i],
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13,
-                        ),
-                      ),
-                      Text(
-                        '$count',
-                        style: TextStyle(
-                          color: colors[i],
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: pct,
-                      backgroundColor: AppColors.surfaceLight,
-                      valueColor: AlwaysStoppedAnimation(colors[i]),
-                      minHeight: 6,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
+          const SizedBox(height: 8),
         ],
+      ],
+    );
+  }
+
+  Widget _opTile((String, String, String, IconData, String) op, {bool featured = false}) {
+    final (code, title, line, icon, route) = op;
+    final fg = featured ? AppColors.background : AppColors.textPrimary;
+    return Material(
+      color: featured ? AppColors.ink : AppColors.surface,
+      shape: const RoundedRectangleBorder(side: BorderSide(color: AppColors.ink, width: 1.2)),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, route),
+        child: Padding(
+          padding: EdgeInsets.all(featured ? 18 : 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Eyebrow(code, color: featured ? AppColors.red : AppColors.textMuted),
+                    const SizedBox(height: 6),
+                    Text(title, style: AppText.serif(size: featured ? 30 : 22, color: fg)),
+                    const SizedBox(height: 4),
+                    Text(
+                      line,
+                      style: TextStyle(color: featured ? AppColors.paperDark : AppColors.textSecondary, fontSize: 12.5),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(icon, color: featured ? AppColors.red : AppColors.ink, size: featured ? 34 : 22),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _riskStrip(Map<String, dynamic> dist) {
+    const levels = [
+      ('critical', 'Critical', AppColors.red),
+      ('high', 'High', AppColors.orange),
+      ('medium', 'Medium', AppColors.textSecondary),
+      ('low', 'Low', AppColors.green),
+    ];
+    final total = levels.fold<int>(0, (sum, l) => sum + ((dist[l.$1] ?? 0) as int));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // One printed bar: each account is a stripe, coloured by its risk.
+        SizedBox(
+          height: 44,
+          child: total == 0
+              ? Container(color: AppColors.paperDark)
+              : Row(
+                  children: [
+                    for (final (key, _, color) in levels)
+                      for (var i = 0; i < ((dist[key] ?? 0) as int); i++)
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 1),
+                            color: color,
+                          ),
+                        ),
+                  ],
+                ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            for (final (key, label, color) in levels)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${dist[key] ?? 0}', style: AppText.serif(size: 26, color: color)),
+                    Eyebrow(label),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
   Widget _buildSpofCard(dynamic spof) {
     final name = spof['service_name'] ?? 'Unknown';
-    final impact = spof['cascading_impact'] ?? 0;
+    final reach = spof['risk_components']?['reachable_accounts'] ?? 0;
+    final protected = spof['has_2fa'] == true;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.red.withAlpha(80)),
+        border: Border(
+          left: const BorderSide(color: AppColors.red, width: 4),
+          top: const BorderSide(color: AppColors.border),
+          right: const BorderSide(color: AppColors.border),
+          bottom: const BorderSide(color: AppColors.border),
+        ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning, color: AppColors.red, size: 20),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(name, style: AppText.serif(size: 24)),
                 Text(
-                  'Could cascade to $impact accounts',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
+                  'Unlocks $reach other account${reach == 1 ? '' : 's'}${protected ? ' · 2FA on' : ' · no 2FA'}',
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.red.withAlpha(30),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              '$impact',
-              style: const TextStyle(
-                color: AppColors.red,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
+          RubberStamp('Keystone', fontSize: 12, delay: const Duration(milliseconds: 200), color: protected ? AppColors.orange : AppColors.red),
         ],
       ),
     );
   }
 
-  Widget _buildFixCard(FixAction fix) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(fix.description, style: const TextStyle(fontSize: 13)),
-                const SizedBox(height: 4),
-                Text(
-                  'Risk reduction: -${fix.riskReduction.toStringAsFixed(0)} pts',
-                  style: const TextStyle(color: AppColors.green, fontSize: 12),
-                ),
-              ],
+  Widget _buildFixCard(FixAction fix, int number) {
+    return InkWell(
+      onTap: () => _previewFix(fix),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 34,
+              child: Text(number.toString().padLeft(2, '0'), style: AppText.mono(size: 13, color: AppColors.red, weight: FontWeight.w700)),
             ),
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.visibility_outlined,
-              color: AppColors.blue,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(fix.description, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 3),
+                  Eyebrow('Raises score by ${fix.riskReduction.toStringAsFixed(0)} pts · tap to review', color: AppColors.green),
+                ],
+              ),
             ),
-            tooltip: 'Preview fix',
-            onPressed: () => _previewFix(fix),
-          ),
-        ],
+            const Icon(Icons.arrow_forward, size: 18, color: AppColors.ink),
+          ],
+        ),
       ),
     );
   }

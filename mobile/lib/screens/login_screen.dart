@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../widgets/server_settings_dialog.dart';
 import '../services/auth_provider.dart';
+import '../services/biometric_service.dart';
 import '../services/server_discovery.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,13 +19,96 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
+  final _biometric = BiometricService();
+  String? _savedEmail;
+  bool _biometricBusy = false;
+  // Auto-prompt once per app launch, not again after a deliberate logout.
+  static bool _autoPrompted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedLogin();
+  }
+
+  Future<void> _loadSavedLogin() async {
+    final email = await _biometric.savedLoginEmail;
+    if (!mounted || email == null) return;
+    setState(() => _savedEmail = email);
+    // Open the prompt straight away so no typing is needed.
+    if (!_autoPrompted) {
+      _autoPrompted = true;
+      _biometricLogin();
+    }
+  }
+
+  Future<void> _biometricLogin() async {
+    if (_biometricBusy) return;
+    if (_savedEmail == null) return _setUpBiometricLogin();
+    setState(() => _biometricBusy = true);
+    final auth = context.read<AuthProvider>();
+    try {
+      final login = await _biometric.unlockLogin();
+      if (login == null || !mounted) return;
+      final (email, password) = login;
+      if (await auth.login(email, password)) {
+        if (mounted) Navigator.pushReplacementNamed(context, '/home');
+      } else if (auth.error?.toLowerCase().contains('invalid') ?? false) {
+        // The saved password no longer works (e.g. it was changed); forget it.
+        await _biometric.clearLogin();
+        if (mounted) setState(() => _savedEmail = null);
+      }
+    } on PlatformException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Fingerprint sign-in is unavailable.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _biometricBusy = false);
+    }
+  }
+
+  /// First use: confirm the fingerprint, sign in with the typed details, and remember them.
+  Future<void> _setUpBiometricLogin() async {
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter your email and password once to set up fingerprint sign-in.'),
+        ),
+      );
+      return;
+    }
+    setState(() => _biometricBusy = true);
+    final auth = context.read<AuthProvider>();
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text;
+    try {
+      if (!await _biometric.authenticate() || !mounted) return;
+      if (await auth.login(email, password)) {
+        await _biometric.saveLogin(email, password);
+        if (mounted) Navigator.pushReplacementNamed(context, '/home');
+      }
+    } on PlatformException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Fingerprint sign-in is unavailable.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _biometricBusy = false);
+    }
+  }
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
-    final success = await auth.login(_emailCtrl.text.trim(), _passwordCtrl.text);
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text;
+    final success = await auth.login(email, password);
     if (success && mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
+      await _biometric.offerLogin(context, email, password);
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -187,6 +272,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text('Sign In'),
                 ),
+                if (BiometricService.supported) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: auth.isLoading || _biometricBusy ? null : _biometricLogin,
+                    icon: const Icon(Icons.fingerprint),
+                    label: Text(
+                      _savedEmail != null ? 'Sign in with fingerprint as $_savedEmail' : 'Sign in with fingerprint',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

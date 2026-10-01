@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../services/auth_provider.dart';
+import '../services/biometric_service.dart';
 import '../widgets/server_settings_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
+  bool _useFingerprint = BiometricService.supported;
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
@@ -29,7 +31,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _passwordCtrl.text,
     );
     if (success && mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
+      if (_useFingerprint) {
+        await BiometricService().enableLogin(context, _emailCtrl.text.trim(), _passwordCtrl.text);
+      }
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -171,6 +176,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 characters',
                 ),
+                if (BiometricService.supported) ...[
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: const Icon(Icons.fingerprint, color: AppColors.blue),
+                    title: const Text('Use fingerprint to sign in'),
+                    subtitle: const Text('Skip typing your email and password next time'),
+                    value: _useFingerprint,
+                    onChanged: (v) => setState(() => _useFingerprint = v),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: auth.isLoading ? null : _register,

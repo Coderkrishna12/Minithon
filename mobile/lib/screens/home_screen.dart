@@ -147,8 +147,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _connectBreachMonitor();
     }
     if (!_biometricEnabled || _authInProgress) return;
-    if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused) {
+    // Lock only when the app actually leaves the screen; "inactive" also fires
+    // for the notification shade and system dialogs.
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
       if (mounted) setState(() => _locked = true);
     } else if (state == AppLifecycleState.resumed && _locked) {
       _unlock();
@@ -245,7 +247,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_titles[_currentIndex]),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('PRIVACYSHIELD · ${(_currentIndex + 1).toString().padLeft(2, '0')}', style: AppText.eyebrow(color: AppColors.red)),
+            Text(_titles[_currentIndex]),
+          ],
+        ),
+        toolbarHeight: 64,
         leadingWidth: 36,
         leading: Center(
           child: Container(
@@ -308,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: Row(
                   children: [
                     Icon(
-                      _biometricEnabled ? Icons.fingerprint : Icons.fingerprint,
+                      _biometricEnabled ? Icons.lock_open : Icons.fingerprint,
                       color: AppColors.blue,
                       size: 18,
                     ),
@@ -401,6 +410,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: AppColors.ink,
+        selectedItemColor: AppColors.background,
+        unselectedItemColor: AppColors.textMuted,
         currentIndex: _currentIndex > 4 ? 4 : _currentIndex,
         onTap: (i) {
           if (i == 4) {
@@ -453,28 +465,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: ListView(
                   controller: scrollCtrl,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.textMuted,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
+                    Builder(builder: (_) {
+                      _indexNo = 0;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('INDEX OF OPERATIONS', style: AppText.eyebrow(color: AppColors.red)),
+                          const SizedBox(height: 4),
+                          Text('The full file', style: AppText.serif(size: 32)),
+                          Container(height: 2, color: AppColors.ink, margin: const EdgeInsets.only(top: 8)),
+                        ],
+                      );
+                    }),
                     _moreNavItem(
                       Icons.password,
                       'Password Leak Check',
                       AppColors.red,
                       '/leak-check',
                     ),
+                    _moreNavItem(
+                      Icons.radar,
+                      'Exposure scan (any email)',
+                      AppColors.red,
+                      '/exposure',
+                    ),
+                    _moreNavItem(
+                      Icons.bug_report,
+                      'Hack Me simulator',
+                      AppColors.red,
+                      '/hack-me',
+                    ),
                     _moreItem(Icons.hub, 'Risk graph', AppColors.red, 7),
                     _moreItem(Icons.smart_toy, 'PrivacyBot', AppColors.blue, 4),
                     _moreItem(Icons.link, 'Audit log', AppColors.purple, 5),
                     _moreItem(Icons.military_tech, 'Badges', AppColors.pink, 6),
-                    const Divider(color: AppColors.border, height: 24),
                     _moreNavItem(
                       Icons.timeline,
                       'Timeline',
@@ -552,41 +576,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _moreItem(IconData icon, String label, Color color, int index) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withAlpha(30),
-          borderRadius: BorderRadius.circular(10),
+  int _indexNo = 0;
+
+  Widget _indexRow(IconData icon, String label, VoidCallback onTap) {
+    _indexNo++;
+    final no = _indexNo.toString().padLeft(2, '0');
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
+        child: Row(
+          children: [
+            SizedBox(width: 36, child: Text(no, style: AppText.mono(size: 12, color: AppColors.red, weight: FontWeight.w700))),
+            Expanded(child: Text(label, style: AppText.serif(size: 22))),
+            Icon(icon, size: 20, color: AppColors.textSecondary),
+          ],
         ),
-        child: Icon(icon, color: color, size: 22),
       ),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
-      onTap: () {
-        Navigator.pop(context);
-        setState(() => _currentIndex = index);
-      },
     );
   }
 
+  Widget _moreItem(IconData icon, String label, Color color, int index) {
+    return _indexRow(icon, label, () {
+      Navigator.pop(context);
+      setState(() => _currentIndex = index);
+    });
+  }
+
   Widget _moreNavItem(IconData icon, String label, Color color, String route) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withAlpha(30),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: color, size: 22),
-      ),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
-      onTap: () {
-        Navigator.pop(context);
-        Navigator.pushNamed(context, route);
-      },
-    );
+    return _indexRow(icon, label, () {
+      Navigator.pop(context);
+      Navigator.pushNamed(context, route);
+    });
   }
 }

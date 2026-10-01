@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../config/theme.dart';
+import '../widgets/dossier.dart';
 import '../services/api_service.dart';
 
 class BlockchainScreen extends StatefulWidget {
@@ -19,6 +21,9 @@ class _BlockchainScreenState extends State<BlockchainScreen> with SingleTickerPr
   double _zkpThreshold = 70;
   Map<String, dynamic>? _zkpCert;
   bool _generatingZkp = false;
+  String? _zkpError;
+  Map<String, dynamic>? _zkpVerdict;
+  bool _verifying = false;
 
   @override
   void initState() {
@@ -59,15 +64,41 @@ class _BlockchainScreenState extends State<BlockchainScreen> with SingleTickerPr
   }
 
   Future<void> _generateZkp() async {
-    setState(() => _generatingZkp = true);
+    setState(() {
+      _generatingZkp = true;
+      _zkpError = null;
+      _zkpVerdict = null;
+    });
     try {
-      final data = await _api.post('/blockchain/zkp-certificate?threshold=${_zkpThreshold.toInt()}');
+      final data = await _api.post('/blockchain/zkp/prove?threshold=${_zkpThreshold.toInt()}');
+      setState(() => _zkpCert = data);
+    } catch (e) {
       setState(() {
-        _zkpCert = data;
-        _generatingZkp = false;
+        _zkpCert = null;
+        _zkpError = e is ApiException ? e.message : e.toString();
       });
-    } catch (_) {
-      setState(() => _generatingZkp = false);
+    } finally {
+      if (mounted) setState(() => _generatingZkp = false);
+    }
+  }
+
+  /// Sends the proof to the public verifier, optionally after corrupting it to show it gets rejected.
+  Future<void> _verifyZkp({bool tamper = false, bool claimHigher = false}) async {
+    final package = jsonDecode(jsonEncode(_zkpCert!['package'])) as Map<String, dynamic>;
+    if (tamper) {
+      final bit = (package['proof']['bit_proofs'] as List).first as Map<String, dynamic>;
+      final z = BigInt.parse((bit['z0'] as String).substring(2), radix: 16) + BigInt.one;
+      bit['z0'] = '0x${z.toRadixString(16)}';
+    }
+    if (claimHigher) package['threshold'] = (package['threshold'] as int) + 10;
+    setState(() => _verifying = true);
+    try {
+      final res = await _api.post('/blockchain/zkp/verify', body: package);
+      setState(() => _zkpVerdict = {...res, 'mode': tamper ? 'tampered' : claimHigher ? 'inflated' : 'original'});
+    } catch (e) {
+      setState(() => _zkpError = e is ApiException ? e.message : e.toString());
+    } finally {
+      if (mounted) setState(() => _verifying = false);
     }
   }
 
@@ -209,112 +240,175 @@ class _BlockchainScreenState extends State<BlockchainScreen> with SingleTickerPr
   }
 
   Widget _buildZkpTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
+    final cert = _zkpCert;
+    final verdict = _zkpVerdict;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+      children: [
+        Text('ZERO-KNOWLEDGE PROOF', style: AppText.eyebrow(color: AppColors.red)),
+        const SizedBox(height: 4),
+        Text('Prove it. Reveal nothing.', style: AppText.serif(size: 32)),
+        const SizedBox(height: 6),
+        const Text(
+          'Show an employer, insurer or bank that your privacy score is above a bar without telling them the score. '
+          'Your score is locked in a cryptographic commitment; the proof shows only that it clears the threshold.',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5, height: 1.4),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            const Text('Claim: score is at least', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Spacer(),
+            Text('${_zkpThreshold.toInt()}', style: AppText.serif(size: 34, color: AppColors.red)),
+          ],
+        ),
+        Slider(
+          value: _zkpThreshold,
+          min: 0,
+          max: 100,
+          divisions: 20,
+          activeColor: AppColors.ink,
+          inactiveColor: AppColors.border,
+          onChanged: (v) => setState(() => _zkpThreshold = v),
+        ),
+        ElevatedButton.icon(
+          onPressed: _generatingZkp ? null : _generateZkp,
+          icon: _generatingZkp
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.background))
+              : const Icon(Icons.enhanced_encryption_outlined),
+          label: Text(_generatingZkp ? 'Computing proof (2048-bit)…' : 'Generate proof'),
+        ),
+        if (_zkpError != null) ...[
+          const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.purple.withAlpha(30),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(border: Border.all(color: AppColors.red, width: 1.5)),
+            child: Text(_zkpError!, style: const TextStyle(color: AppColors.red)),
+          ),
+        ],
+        if (cert != null) ...[
+          const SizedBox(height: 22),
+          Container(
+            color: AppColors.ink,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('PROOF PACKAGE', style: AppText.mono(size: 11, color: AppColors.red, weight: FontWeight.w700).copyWith(letterSpacing: 1.5)),
+                const SizedBox(height: 8),
+                Text(cert['claim'], style: AppText.serif(size: 24, color: AppColors.background)),
+                const SizedBox(height: 12),
+                _proofLine('scheme', cert['package']['proof']['scheme']),
+                _proofLine('group', '${cert['package']['proof']['group']} (2048-bit)'),
+                _proofLine('commitment', cert['package']['credential']['commitment']),
+                _proofLine('bit proofs', '${(cert['package']['proof']['bit_proofs'] as List).length} OR-proofs (Fiat–Shamir)'),
+                _proofLine('issuer', cert['package']['credential']['issuer']),
+                _proofLine('size', '${(cert['proof_bytes'] / 1024).toStringAsFixed(1)} KB · built in ${cert['generated_ms']} ms'),
+                const SizedBox(height: 10),
+                Text('REVEALS  ${(cert['reveals'] as List).join(', ')}', style: AppText.mono(size: 10.5, color: const Color(0xFF8BC79B))),
+                Text('HIDES    ${(cert['hides'] as List).join(', ')}', style: AppText.mono(size: 10.5, color: const Color(0xFFE5583F))),
+              ],
             ),
-            child: const Icon(Icons.verified, size: 56, color: AppColors.purple),
           ),
-          const SizedBox(height: 20),
-          const Text('Zero-Knowledge Proof', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
+          Text('Act as the verifier', style: AppText.serif(size: 22)),
           const Text(
-            'Prove your privacy score exceeds a threshold without revealing your accounts',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            'The verifier endpoint is public: no login, no access to your data. Try it honestly, then try to cheat.',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
           ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              const Text('Threshold', style: TextStyle(fontWeight: FontWeight.w500)),
-              Text('${_zkpThreshold.toInt()}', style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.bold)),
+              OutlinedButton.icon(
+                onPressed: _verifying ? null : () => _verifyZkp(),
+                icon: const Icon(Icons.verified_outlined, size: 18),
+                label: const Text('Verify proof'),
+              ),
+              OutlinedButton.icon(
+                onPressed: _verifying ? null : () => _verifyZkp(tamper: true),
+                icon: const Icon(Icons.edit_off_outlined, size: 18),
+                label: const Text('Tamper 1 byte'),
+              ),
+              OutlinedButton.icon(
+                onPressed: _verifying ? null : () => _verifyZkp(claimHigher: true),
+                icon: const Icon(Icons.trending_up, size: 18),
+                label: const Text('Claim +10'),
+              ),
             ],
           ),
-          Slider(
-            value: _zkpThreshold,
-            min: 10,
-            max: 100,
-            divisions: 9,
-            activeColor: AppColors.purple,
-            inactiveColor: AppColors.surfaceLight,
-            onChanged: (v) => setState(() => _zkpThreshold = v),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _generatingZkp ? null : _generateZkp,
-            icon: _generatingZkp
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.key),
-            label: Text(_generatingZkp ? 'Generating...' : 'Generate Proof'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.purple,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-            ),
-          ),
-          if (_zkpCert != null) ...[
-            const SizedBox(height: 24),
+          if (_verifying)
+            const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator(color: AppColors.red))),
+          if (verdict != null && !_verifying) ...[
+            const SizedBox(height: 16),
             Container(
-              width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.purple.withAlpha(80)),
+                border: Border.all(color: verdict['valid'] == true ? AppColors.green : AppColors.red, width: 2),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        _zkpCert!['verified'] == true ? Icons.check_circle : Icons.cancel,
-                        color: _zkpCert!['verified'] == true ? AppColors.green : AppColors.red,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _zkpCert!['verified'] == true ? 'Threshold met' : 'Score below threshold',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: _zkpCert!['verified'] == true ? AppColors.green : AppColors.red,
-                        ),
-                      ),
-                    ],
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: RubberStamp(
+                      verdict['valid'] == true ? 'Verified' : 'Rejected',
+                      color: verdict['valid'] == true ? AppColors.green : AppColors.red,
+                      delay: Duration.zero,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  _zkpField('Issuer', _zkpCert!['statement']?['issuer']),
-                  _zkpField('Ed25519 signature', _zkpCert!['proof']?['proofValue']),
+                  Text(
+                    verdict['mode'] == 'tampered'
+                        ? 'One byte of the proof was changed before sending.'
+                        : verdict['mode'] == 'inflated'
+                        ? 'The same proof was submitted claiming a threshold 10 points higher.'
+                        : 'The untouched proof was submitted.',
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  ),
+                  const SizedBox(height: 8),
+                  for (final c in (verdict['checks'] as List))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(c['ok'] == true ? Icons.check : Icons.close, size: 16, color: c['ok'] == true ? AppColors.green : AppColors.red),
+                          const SizedBox(width: 6),
+                          Expanded(child: Text(c['check'], style: const TextStyle(fontSize: 13))),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 4),
+                  Text('${verdict['reason']} · ${verdict['verified_ms']} ms', style: AppText.mono(size: 10.5, color: AppColors.textMuted)),
                 ],
               ),
             ),
           ],
         ],
-      ),
+      ],
     );
   }
 
-  Widget _zkpField(String label, dynamic value) {
-    final v = value?.toString() ?? 'N/A';
+  Widget _proofLine(String label, dynamic value) {
+    final v = value?.toString() ?? '';
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
+      padding: const EdgeInsets.only(bottom: 3),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
-          const SizedBox(height: 2),
-          Text(
-            v.length > 32 ? '${v.substring(0, 32)}...' : v,
-            style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: AppColors.textSecondary),
+          SizedBox(width: 92, child: Text(label.toUpperCase(), style: AppText.mono(size: 10, color: const Color(0xFF8E897E)))),
+          Expanded(
+            child: Text(
+              v.length > 40 ? '${v.substring(0, 22)}…${v.substring(v.length - 10)}' : v,
+              style: AppText.mono(size: 10.5, color: AppColors.background),
+            ),
           ),
         ],
       ),
     );
   }
+
+
 }

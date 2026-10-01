@@ -105,7 +105,20 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                 }
-                "authenticateBiometric" -> authenticateBiometric(result)
+                "shareText" -> {
+                    val text = call.argument<String>("text")
+                    if (text.isNullOrBlank()) {
+                        result.error("BAD_ARGS", "text is required", null)
+                    } else {
+                        val send = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, text)
+                            call.argument<String>("subject")?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
+                        }
+                        startActivity(Intent.createChooser(send, "Share invite"))
+                        result.success(true)
+                    }
+                }
                 "openSettings" -> {
                     val action = when (call.argument<String>("screen")) {
                         "security" -> Settings.ACTION_SECURITY_SETTINGS
@@ -120,6 +133,9 @@ class MainActivity : FlutterActivity() {
                 }
                 else -> result.notImplemented()
             }
+        }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privacyshield/biometric").setMethodCallHandler { call, result ->
+            if (call.method == "authenticate") authenticateBiometric(result) else result.notImplemented()
         }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privacyshield/voice").setMethodCallHandler { call, result ->
             if (call.method != "listen") {
@@ -184,7 +200,32 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun authenticateBiometric(result: MethodChannel.Result) {
+        if (biometricResult != null) {
+            result.error("BIOMETRIC_BUSY", "Authentication is already in progress.", null)
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val authenticators = android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                android.hardware.biometrics.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            val manager = getSystemService(android.hardware.biometrics.BiometricManager::class.java)
+            when (manager.canAuthenticate(authenticators)) {
+                android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS -> {}
+                android.hardware.biometrics.BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                    result.error("BIOMETRIC_UNAVAILABLE", "Set up a fingerprint or screen lock in your phone's settings first.", null)
+                    return
+                }
+                else -> {
+                    result.error("BIOMETRIC_UNAVAILABLE", "This phone can't do biometric or screen-lock authentication right now.", null)
+                    return
+                }
+            }
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // The prompt can report more than once (e.g. error after cancel); reply to Flutter only once.
+            var replied = false
+            fun reply(value: Boolean) {
+                if (!replied) { replied = true; result.success(value) }
+            }
             try {
                 val builder = BiometricPrompt.Builder(this)
                     .setTitle("Unlock PrivacyShield")
@@ -200,7 +241,7 @@ class MainActivity : FlutterActivity() {
                     builder.setDeviceCredentialAllowed(true)
                 } else {
                     builder.setNegativeButton("Cancel", executor) { dialog, _ ->
-                        result.success(false)
+                        reply(false)
                         dialog.dismiss()
                     }
                 }
@@ -209,16 +250,16 @@ class MainActivity : FlutterActivity() {
                     executor,
                     object : BiometricPrompt.AuthenticationCallback() {
                         override fun onAuthenticationSucceeded(authenticationResult: BiometricPrompt.AuthenticationResult?) {
-                            result.success(true)
+                            reply(true)
                         }
 
                         override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
-                            result.success(false)
+                            reply(false)
                         }
                     },
                 )
             } catch (e: Exception) {
-                result.error("BIOMETRIC_FAILED", e.message, null)
+                if (!replied) { replied = true; result.error("BIOMETRIC_FAILED", e.message, null) }
             }
             return
         }

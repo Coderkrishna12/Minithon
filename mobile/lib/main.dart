@@ -10,6 +10,8 @@ import 'screens/home_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/timeline_screen.dart';
 import 'screens/family_screen.dart';
+import 'screens/hack_me_screen.dart';
+import 'screens/exposure_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/reports_screen.dart';
 import 'screens/did_screen.dart';
@@ -57,6 +59,8 @@ class PrivacyShieldApp extends StatelessWidget {
           '/notifications': (_) => const NotificationsScreen(),
           '/timeline': (_) => const TimelineScreen(),
           '/family': (_) => const FamilyScreen(),
+          '/exposure': (_) => const ExposureScreen(),
+          '/hack-me': (ctx) => HackMeScreen(entryAccountId: ModalRoute.of(ctx)?.settings.arguments as int?),
           '/search': (_) => const SearchScreen(),
           '/reports': (_) => const ReportsScreen(),
           '/did': (_) => const DIDScreen(),

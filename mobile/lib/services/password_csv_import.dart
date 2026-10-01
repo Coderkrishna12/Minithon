@@ -1,11 +1,16 @@
 class CsvImportService {
   final String serviceName;
   final String? passwordGroup;
-  const CsvImportService(this.serviceName, this.passwordGroup);
+  final String? url;
+  final String? username;
+  const CsvImportService(this.serviceName, this.passwordGroup, {this.url, this.username});
 
+  /// Only the site, login name and a locally generated reuse label leave the phone. Never the password.
   Map<String, dynamic> toApiJson() => {
         'service_name': serviceName,
         if (passwordGroup != null) 'password_group': passwordGroup,
+        if (url != null && url!.isNotEmpty) 'url': url,
+        if (username != null && username!.isNotEmpty) 'username': username,
       };
 }
 
@@ -16,21 +21,30 @@ List<CsvImportService> parsePasswordManagerCsv(String contents) {
   if (rows.length < 2) return const [];
   final headers = rows.first.map((v) => v.trim().toLowerCase()).toList();
   int find(Set<String> names) => headers.indexWhere(names.contains);
-  var serviceColumn = find({'name', 'service', 'service name', 'title', 'website', 'url', 'login'});
-  var passwordColumn = find({'password', 'passphrase'});
+  // Header names used by Google/Chrome, Bitwarden, 1Password, LastPass, Dashlane and Firefox exports.
+  var serviceColumn = find({'name', 'service', 'service name', 'title', 'website', 'url', 'login_uri', 'login'});
+  var passwordColumn = find({'password', 'passphrase', 'login_password'});
+  final urlColumn = find({'url', 'website', 'login_uri', 'uri', 'origin_url'});
+  final userColumn = find({'username', 'login_username', 'user', 'email', 'login name'});
   final hasHeader = serviceColumn >= 0 && passwordColumn >= 0;
   if (!hasHeader) {
     serviceColumn = 0;
     passwordColumn = 1;
   }
   final dataRows = hasHeader ? rows.skip(1) : rows;
-  final entries = <({String service, String password})>[];
+  final entries = <({String service, String password, String? url, String? user})>[];
+  String? cell(List<String> row, int column) => column >= 0 && column < row.length ? row[column].trim() : null;
   for (final row in dataRows) {
     if (serviceColumn >= row.length || passwordColumn >= row.length) continue;
     final service = row[serviceColumn].trim();
     final password = row[passwordColumn];
     if (service.isNotEmpty && password.isNotEmpty) {
-      entries.add((service: service, password: password));
+      entries.add((
+        service: service,
+        password: password,
+        url: hasHeader ? cell(row, urlColumn) : null,
+        user: hasHeader ? cell(row, userColumn) : null,
+      ));
     }
   }
 
@@ -51,6 +65,8 @@ List<CsvImportService> parsePasswordManagerCsv(String contents) {
       .map((entry) => CsvImportService(
             entry.service,
             groupByPassword[entry.password],
+            url: entry.url,
+            username: entry.user,
           ))
       .toList();
 }
