@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import ScoreRing from "@/components/ScoreRing";
-import StatCard from "@/components/StatCard";
+import { Chip, Empty, Headline, Row, SectionTitle, Spinner, StatGrid, StatTile, riskTone } from "@/components/editorial";
 
 interface DashboardData {
   privacy_score: number;
@@ -26,19 +25,35 @@ interface FixAction {
   status: string;
 }
 
+const LEVELS = ["critical", "high", "medium", "low"] as const;
+const LEVEL_BAR: Record<string, string> = { critical: "bg-signal", high: "bg-warn", medium: "bg-ink-2", low: "bg-ok" };
+
+function headline(d: DashboardData): { lead: string; rest: string } {
+  if (d.total_accounts === 0) return { lead: "Nothing on file yet.", rest: "Add the accounts you use to start the audit." };
+  const hub = d.single_points_of_failure[0];
+  if (hub) return { lead: hub.service_name, rest: "is a single point of failure: one break-in there reaches your other accounts." };
+  if (d.breaches_found > 0) {
+    return { lead: `${d.breaches_found} ${d.breaches_found === 1 ? "breach" : "breaches"}`, rest: "touch the accounts you use." };
+  }
+  if (d.accounts_at_risk > 0) {
+    return { lead: `${d.accounts_at_risk} of your ${d.total_accounts} accounts`, rest: "are at serious risk." };
+  }
+  return { lead: "No account", rest: "is at serious risk right now." };
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [fixes, setFixes] = useState<FixAction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      api.get("/dashboard/"),
-      api.get("/dashboard/fixes"),
-    ]).then(([dashRes, fixRes]) => {
-      setData(dashRes.data);
-      setFixes(fixRes.data);
-    }).catch(() => {}).finally(() => setLoading(false));
+    Promise.all([api.get("/dashboard/"), api.get("/dashboard/fixes")])
+      .then(([dashRes, fixRes]) => {
+        setData(dashRes.data);
+        setFixes(fixRes.data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const completeFix = async (fixId: number) => {
@@ -46,173 +61,110 @@ export default function DashboardPage() {
     setFixes((prev) => prev.map((f) => (f.id === fixId ? { ...f, status: "completed" } : f)));
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="w-10 h-10 border-2 border-[#17150F] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <Spinner />;
+  if (!data) return <Empty>Couldn&apos;t load your overview. Check that the backend is running.</Empty>;
 
-  if (!data) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-[#5B544A]">No data yet. Add some accounts to get started.</p>
-      </div>
-    );
-  }
-
-  const riskColors: Record<string, string> = {
-    critical: "#C8321A",
-    high: "#A8660F",
-    medium: "#23408E",
-    low: "#2E6B4E",
-  };
+  const { lead, rest } = headline(data);
+  const pending = fixes.filter((f) => f.status !== "completed");
+  const done = fixes.length - pending.length;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <p className="eyebrow mb-3">Audit &middot; 01</p>
-        <h1 className="page-title">Privacy Dashboard</h1>
-        <p className="text-[#5B544A] text-sm mt-1">Your digital footprint at a glance</p>
-      </div>
+    <div className="space-y-14">
+      <Headline
+        eyebrow="Audit · 01 · Overview"
+        lead={lead}
+        rest={rest}
+        sub={`Privacy score ${data.privacy_score}/100 · ${data.total_accounts} accounts on file · ${pending.length} fixes waiting`}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-6 flex flex-col items-center justify-center">
-          <p className="eyebrow self-start mb-4">Privacy score</p>
-          <ScoreRing score={data.privacy_score} />
-        </div>
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard label="Total Accounts" value={data.total_accounts} icon="@" color="#23408E" />
-          <StatCard label="At Risk" value={data.accounts_at_risk} icon="!" color="#C8321A" subtitle="Score >= 50" />
-          <StatCard label="Breaches Found" value={data.breaches_found} icon="B" color="#A8660F" />
-          <StatCard label="Fixes Done" value={data.fixes_completed} icon="Y" color="#2E6B4E" />
-          <StatCard label="Fixes Pending" value={data.fixes_pending} icon="?" color="#6B3A6E" />
-          <StatCard
-            label="Risk Breakdown"
-            value={`${data.risk_distribution.critical || 0}C / ${data.risk_distribution.high || 0}H`}
-            icon="#"
-            color="#A8436A"
-            subtitle={`${data.risk_distribution.medium || 0} Medium, ${data.risk_distribution.low || 0} Low`}
-          />
-        </div>
-      </div>
+      <StatGrid>
+        <StatTile value={data.privacy_score} label="Privacy score" active />
+        <StatTile value={data.total_accounts} label="Accounts" href="/accounts" />
+        <StatTile value={data.accounts_at_risk} label="At risk" dim={!data.accounts_at_risk} href="/accounts" />
+        <StatTile value={data.breaches_found} label="Breaches" dim={!data.breaches_found} href="/breaches" />
+        <StatTile value={pending.length} label="Fixes waiting" dim={!pending.length} />
+        <StatTile value={done} label="Fixes done" dim={!done} />
+      </StatGrid>
 
       {data.single_points_of_failure.length > 0 && (
-        <div className="bg-[#FBF9F4] border border-[#C8321A]/30 rounded-sm p-6">
-          <h2 className="section-title text-[#C8321A] mb-4">Single Points of Failure</h2>
-          <p className="text-sm text-[#5B544A] mb-4">
-            These accounts connect to 3+ others. If compromised, they could unlock your entire network.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {data.single_points_of_failure.map((a) => (
-              <div key={a.id} className="bg-[#F2EEE5] border border-[#DCD4C4] rounded-sm p-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{a.service_name}</span>
-                  <span
-                    className="text-xs px-2 py-1 rounded-full"
-                    style={{
-                      backgroundColor: `${a.risk_score >= 75 ? "#C8321A" : "#A8660F"}20`,
-                      color: a.risk_score >= 75 ? "#C8321A" : "#A8660F",
-                    }}
-                  >
-                    {a.risk_score.toFixed(0)} risk
-                  </span>
-                </div>
-                <p className="text-xs text-[#8A8274] mt-1">{a.category}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <section>
+          <SectionTitle title="Single points of failure" meta={`${data.single_points_of_failure.length} found`} />
+          {data.single_points_of_failure.map((a, i) => (
+            <Row
+              key={a.id}
+              lead={<span className={`num text-3xl ${riskTone(a.risk_score)}`}>{a.risk_score.toFixed(0)}</span>}
+              title={a.service_name}
+              meta={a.category}
+              note={i === 0 ? "Connects to three or more of your accounts. Lock this one down first." : "Connects to three or more of your accounts."}
+              noteTone={i === 0 ? "warn" : "default"}
+            />
+          ))}
+        </section>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-6">
-          <h2 className="section-title mb-4">Risk Distribution</h2>
-          <div className="space-y-3">
-            {Object.entries(data.risk_distribution).map(([level, count]) => (
-              <div key={level} className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: riskColors[level] }} />
-                <span className="text-sm text-[#5B544A] capitalize w-20">{level}</span>
-                <div className="flex-1 bg-[#F2EEE5] rounded-full h-3">
-                  <div
-                    className="h-3 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${data.total_accounts ? (count / data.total_accounts) * 100 : 0}%`,
-                      backgroundColor: riskColors[level],
-                    }}
-                  />
-                </div>
-                <span className="text-sm font-medium w-8 text-right">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-6">
-          <h2 className="section-title mb-4">Categories</h2>
-          <div className="space-y-3">
-            {Object.entries(data.category_breakdown).map(([cat, count]) => (
-              <div key={cat} className="flex items-center justify-between">
-                <span className="text-sm text-[#5B544A] capitalize">{cat}</span>
-                <span className="text-sm font-medium bg-[#F2EEE5] px-3 py-1 rounded-sm">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-6">
-        <h2 className="section-title mb-4">Fix Checklist</h2>
-        <p className="text-sm text-[#5B544A] mb-4">Ranked by how much overall risk each fix removes</p>
-        <div className="space-y-3">
-          {fixes.slice(0, 10).map((fix) => (
-            <div
+      <section>
+        <SectionTitle title="Fix checklist" meta="Ranked by risk removed" />
+        {fixes.slice(0, 10).map((fix) => {
+          const completed = fix.status === "completed";
+          return (
+            <Row
               key={fix.id}
-              className={`flex items-center gap-4 p-4 rounded-sm border transition-all ${
-                fix.status === "completed"
-                  ? "bg-[#2E6B4E]/5 border-[#2E6B4E]/20"
-                  : "bg-[#F2EEE5] border-[#DCD4C4] hover:border-[#B8AE9A]"
-              }`}
-            >
-              <button
-                onClick={() => fix.status !== "completed" && completeFix(fix.id)}
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                  fix.status === "completed"
-                    ? "bg-[#2E6B4E] border-[#2E6B4E]"
-                    : "border-[#B8AE9A] hover:border-[#23408E]"
-                }`}
-              >
-                {fix.status === "completed" && (
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                )}
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm ${fix.status === "completed" ? "line-through text-[#8A8274]" : ""}`}>
-                  {fix.description}
-                </p>
-                <div className="flex gap-3 mt-1">
-                  <span className="text-xs text-[#6B3A6E]">-{fix.risk_reduction.toFixed(0)} risk</span>
-                  <span className="text-xs text-[#8A8274]">{fix.action_type.replace(/_/g, " ")}</span>
+              muted={completed}
+              lead={<span className="num text-3xl text-ok">&minus;{fix.risk_reduction.toFixed(0)}</span>}
+              title={<span className={completed ? "line-through" : ""}>{fix.description}</span>}
+              chips={
+                <>
+                  <Chip>{fix.action_type.replace(/_/g, " ")}</Chip>
+                  <Chip tone={fix.priority >= 80 ? "warn" : "default"}>Priority {fix.priority}</Chip>
+                </>
+              }
+              aside={
+                completed ? (
+                  <span className="eyebrow text-ok">Done</span>
+                ) : (
+                  <button
+                    onClick={() => completeFix(fix.id)}
+                    className="text-sm px-3 py-1.5 border border-ink rounded-sm hover:bg-ink hover:text-card transition-colors"
+                  >
+                    Mark done
+                  </button>
+                )
+              }
+            />
+          );
+        })}
+        {fixes.length === 0 && <Empty>No fixes needed yet. Add accounts to generate recommendations.</Empty>}
+      </section>
+
+      <div className="grid lg:grid-cols-2 gap-14">
+        <section>
+          <SectionTitle title="Risk distribution" meta={`${data.total_accounts} accounts`} />
+          {LEVELS.map((level) => {
+            const count = data.risk_distribution[level] || 0;
+            const pct = data.total_accounts ? (count / data.total_accounts) * 100 : 0;
+            return (
+              <div key={level} className="flex items-center gap-4 py-3 border-b border-rule">
+                <span className="eyebrow w-20">{level}</span>
+                <div className="flex-1 h-2 bg-rule/60">
+                  <div className={`h-2 ${LEVEL_BAR[level]} transition-all duration-700`} style={{ width: `${pct}%` }} />
                 </div>
+                <span className="num text-2xl w-8 text-right">{count}</span>
               </div>
-              <span
-                className="text-xs px-2 py-1 rounded-full"
-                style={{
-                  backgroundColor: fix.priority >= 80 ? "#C8321A20" : fix.priority >= 50 ? "#A8660F20" : "#23408E20",
-                  color: fix.priority >= 80 ? "#C8321A" : fix.priority >= 50 ? "#A8660F" : "#23408E",
-                }}
-              >
-                P{fix.priority}
-              </span>
-            </div>
-          ))}
-          {fixes.length === 0 && (
-            <p className="text-center text-[#8A8274] py-8">No fixes needed yet. Add accounts to generate recommendations.</p>
-          )}
-        </div>
+            );
+          })}
+        </section>
+
+        <section>
+          <SectionTitle title="Categories" meta={`${Object.keys(data.category_breakdown).length} kinds`} />
+          {Object.entries(data.category_breakdown)
+            .sort((a, b) => b[1] - a[1])
+            .map(([cat, count]) => (
+              <div key={cat} className="flex items-center justify-between py-3 border-b border-rule">
+                <span className="capitalize">{cat}</span>
+                <span className="num text-2xl">{count}</span>
+              </div>
+            ))}
+        </section>
       </div>
     </div>
   );

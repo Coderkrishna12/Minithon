@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import { Chip, Empty, Headline, Row, SectionTitle, Spinner, StatGrid, StatTile, riskTone } from "@/components/editorial";
 
 interface Account {
   id: number;
@@ -61,38 +62,65 @@ export default function AccountsPage() {
     }));
   };
 
-  const getRiskColor = (score: number) => {
-    if (score >= 75) return "#C8321A";
-    if (score >= 50) return "#A8660F";
-    if (score >= 25) return "#23408E";
-    return "#2E6B4E";
+  const groupSize = (a: Account) => (a.password_group ? accounts.filter((o) => o.password_group === a.password_group).length : 0);
+
+  const issues: Record<string, { label: string; test: (a: Account) => boolean }> = {
+    no2fa: { label: "No 2FA", test: (a) => !a.has_2fa },
+    reused: { label: "Reused password", test: (a) => groupSize(a) > 1 },
+    sso: { label: "Signs in with SSO", test: (a) => a.login_method.endsWith("_sso") },
+    breached: { label: "Breached", test: (a) => a.breach_count > 0 },
+    permissions: { label: "3+ permissions", test: (a) => a.permissions.length >= 3 },
   };
 
-  const filtered = filter ? accounts.filter((a) => a.category === filter) : accounts;
+  const worstIssue = (a: Account): { text: string; warn: boolean } | null => {
+    if (a.breach_count > 0) return { text: `Found in ${a.breach_count} breach${a.breach_count > 1 ? "es" : ""}.`, warn: true };
+    const shared = accounts.filter((o) => o.id !== a.id && a.password_group && o.password_group === a.password_group);
+    if (shared.length) return { text: `Shares a password with ${shared.map((o) => o.service_name).join(", ")}.`, warn: true };
+    if (!a.has_2fa) return { text: "No second factor: a leaked password is enough to get in.", warn: false };
+    return null;
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="w-10 h-10 border-2 border-[#17150F] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const filtered = accounts
+    .filter((a) => (!filter ? true : filter in issues ? issues[filter].test(a) : a.category === filter))
+    .sort((a, b) => b.risk_score - a.risk_score);
+
+  const no2fa = accounts.filter(issues.no2fa.test).length;
+  const head =
+    accounts.length === 0
+      ? { lead: "No accounts yet.", rest: "Add the services you use to see how they connect." }
+      : no2fa === 0
+        ? { lead: "Every account", rest: "has two-factor authentication." }
+        : { lead: `${no2fa} of your ${accounts.length} accounts`, rest: "have no two-factor authentication." };
+
+  if (loading) return <Spinner />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="eyebrow mb-3">Audit &middot; 02</p>
-          <h1 className="page-title">Accounts Inventory</h1>
-          <p className="text-[#5B544A] text-sm mt-1">{accounts.length} accounts tracked</p>
-        </div>
+    <div className="space-y-12">
+      <div className="flex items-start justify-between gap-6">
+        <Headline eyebrow="Audit · 02 · Accounts" lead={head.lead} rest={head.rest} sub={`${accounts.length} accounts on file`} />
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-5 py-2.5 bg-[#17150F] hover:bg-[#C8321A] text-white rounded-sm text-sm font-medium transition-all"
+          className="shrink-0 mt-8 px-5 py-2.5 bg-ink hover:bg-signal text-card rounded-sm text-sm font-medium transition-colors"
         >
-          {showForm ? "Cancel" : "+ Add Account"}
+          {showForm ? "Cancel" : "Add account"}
         </button>
       </div>
+
+      <StatGrid cols={5}>
+        {Object.entries(issues).map(([key, issue]) => {
+          const count = accounts.filter(issue.test).length;
+          return (
+            <StatTile
+              key={key}
+              value={count}
+              label={issue.label}
+              dim={!count}
+              active={filter === key}
+              onClick={() => setFilter(filter === key ? "" : key)}
+            />
+          );
+        })}
+      </StatGrid>
 
       {showForm && (
         <form onSubmit={addAccount} className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-6 space-y-4 animate-slide-up">
@@ -188,100 +216,61 @@ export default function AccountsPage() {
         </form>
       )}
 
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={() => setFilter("")}
-          className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-all ${
-            !filter ? "bg-[#17150F] text-white" : "bg-[#FBF9F4] text-[#5B544A] border border-[#DCD4C4]"
-          }`}
-        >
-          All
-        </button>
-        {categories.map((c) => (
-          <button
-            key={c}
-            onClick={() => setFilter(c)}
-            className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-all capitalize ${
-              filter === c ? "bg-[#17150F] text-white" : "bg-[#FBF9F4] text-[#5B544A] border border-[#DCD4C4]"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((account) => (
-          <div key={account.id} className="bg-[#FBF9F4] border border-[#DCD4C4] rounded-sm p-5 hover:border-[#B8AE9A] transition-all group">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-semibold">{account.service_name}</h3>
-                <p className="text-xs text-[#8A8274] capitalize">{account.category}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span
-                  className="text-xs px-2.5 py-1 rounded-full font-medium"
-                  style={{
-                    backgroundColor: `${getRiskColor(account.risk_score)}20`,
-                    color: getRiskColor(account.risk_score),
-                  }}
-                >
-                  {account.risk_score.toFixed(0)}
-                </span>
+      <section>
+        <SectionTitle
+          title={filter && filter in issues ? issues[filter].label : filter ? `${filter.charAt(0).toUpperCase()}${filter.slice(1)} accounts` : "Accounts by risk"}
+          meta={`${filtered.length} shown`}
+          action={
+            <select
+              value={filter in issues ? "" : filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="bg-transparent text-sm text-ink-2 border-b border-rule-strong focus:outline-none focus:border-ink"
+              aria-label="Filter by category"
+            >
+              <option value="">All categories</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+              ))}
+            </select>
+          }
+        />
+        {filtered.map((account) => {
+          const issue = worstIssue(account);
+          return (
+            <Row
+              key={account.id}
+              lead={<span className={`num text-3xl ${riskTone(account.risk_score)}`}>{account.risk_score.toFixed(0)}</span>}
+              title={account.service_name}
+              meta={[account.category, account.email_used].filter(Boolean).join(" · ")}
+              chips={
+                <>
+                  <Chip tone={account.has_2fa ? "ok" : "warn"}>{account.has_2fa ? "2FA on" : "No 2FA"}</Chip>
+                  <Chip>Login {account.login_method.replace(/_/g, " ")}</Chip>
+                  {account.password_group && (
+                    <Chip tone={groupSize(account) > 1 ? "warn" : "default"}>
+                      {groupSize(account) > 1 ? "Reused password" : "Password group"} {account.password_group}
+                    </Chip>
+                  )}
+                  {account.permissions.map((p) => (
+                    <Chip key={p} tone="muted">{p}</Chip>
+                  ))}
+                </>
+              }
+              note={issue?.text}
+              noteTone={issue?.warn ? "warn" : "default"}
+              aside={
                 <button
                   onClick={() => deleteAccount(account.id)}
-                  className="opacity-0 group-hover:opacity-100 text-[#8A8274] hover:text-[#C8321A] transition-all"
+                  className="text-sm text-ink-3 opacity-0 group-hover:opacity-100 hover:text-signal transition-opacity"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                  </svg>
+                  Remove
                 </button>
-              </div>
-            </div>
-
-            {account.email_used && (
-              <p className="text-xs text-[#5B544A] mb-2 truncate">{account.email_used}</p>
-            )}
-
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              <span className={`text-xs px-2 py-0.5 rounded ${account.has_2fa ? "bg-[#2E6B4E]/15 text-[#2E6B4E]" : "bg-[#C8321A]/15 text-[#C8321A]"}`}>
-                {account.has_2fa ? "2FA On" : "No 2FA"}
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded bg-[#6B3A6E]/15 text-[#6B3A6E]">
-                {account.login_method.replace(/_/g, " ")}
-              </span>
-              {account.password_group && (
-                <span className="text-xs px-2 py-0.5 rounded bg-[#A8660F]/15 text-[#A8660F]">
-                  PW: {account.password_group}
-                </span>
-              )}
-            </div>
-
-            {account.permissions.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {account.permissions.map((p) => (
-                  <span key={p} className="text-[10px] px-1.5 py-0.5 rounded bg-[#F2EEE5] text-[#8A8274]">{p}</span>
-                ))}
-              </div>
-            )}
-
-            {account.breach_count > 0 && (
-              <div className="mt-3 text-xs text-[#C8321A] flex items-center gap-1">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                </svg>
-                {account.breach_count} breach{account.breach_count > 1 ? "es" : ""}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="text-center py-16">
-          <p className="text-[#8A8274]">{filter ? "No accounts in this category" : "No accounts yet. Click '+ Add Account' to start."}</p>
-        </div>
-      )}
+              }
+            />
+          );
+        })}
+        {filtered.length === 0 && <Empty>{filter ? "No accounts match this filter." : "No accounts yet. Use Add account to start."}</Empty>}
+      </section>
     </div>
   );
 }
