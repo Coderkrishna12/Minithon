@@ -23,8 +23,8 @@ class _GraphNode {
     required this.riskScore,
     required this.id,
     required this.position,
-  })  : velocity = Offset.zero,
-        compromised = false;
+  }) : velocity = Offset.zero,
+       compromised = false;
 }
 
 class _GraphEdge {
@@ -35,20 +35,28 @@ class _GraphEdge {
   _GraphEdge({required this.from, required this.to, required this.type});
 }
 
-class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStateMixin {
+class _GraphScreenState extends State<GraphScreen>
+    with SingleTickerProviderStateMixin {
   final _api = ApiService();
   List<_GraphNode> _nodes = [];
   List<_GraphEdge> _edges = [];
   bool _loading = true;
   int? _selectedNode;
   List<dynamic>? _attackResult;
+  int _reachableCount = 0;
   late AnimationController _animController;
   String _selectedFilter = 'All';
-  final _filterTypes = ['All', 'SSO', 'Recovery', 'Password Reuse', 'Data Sharing'];
+  final _filterTypes = [
+    'All',
+    'SSO',
+    'Recovery',
+    'Password Reuse',
+    'Data Sharing',
+  ];
   final _filterTypeKeys = {
     'All': null,
     'SSO': 'sso',
-    'Recovery': 'recovery',
+    'Recovery': 'recovery_email',
     'Password Reuse': 'password_reuse',
     'Data Sharing': 'data_sharing',
   };
@@ -76,18 +84,33 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
       final edges = (data['edges'] as List?) ?? [];
       final rng = Random(42);
       setState(() {
-        _nodes = nodes.map((n) {
+        _nodes = nodes.asMap().entries.map((entry) {
+          final n = entry.value;
           return _GraphNode(
-            id: n['id'],
+            id: int.tryParse(n['id'].toString()) ?? entry.key,
             label: n['label'] ?? n['service_name'] ?? 'Unknown',
-            riskScore: (n['risk_score'] ?? 0).toDouble(),
-            position: Offset(100 + rng.nextDouble() * 200, 100 + rng.nextDouble() * 300),
+            riskScore: ((n['riskScore'] ?? n['risk_score'] ?? 0) as num)
+                .toDouble(),
+            position: Offset(
+              100 + rng.nextDouble() * 200,
+              100 + rng.nextDouble() * 300,
+            ),
           );
         }).toList();
         _edges = edges.map((e) {
           return _GraphEdge(
-            from: e['from'] ?? e['source'] ?? e['from_account_id'] ?? 0,
-            to: e['to'] ?? e['target'] ?? e['to_account_id'] ?? 0,
+            from:
+                int.tryParse(
+                  (e['from'] ?? e['source'] ?? e['from_account_id'] ?? '0')
+                      .toString(),
+                ) ??
+                0,
+            to:
+                int.tryParse(
+                  (e['to'] ?? e['target'] ?? e['to_account_id'] ?? '0')
+                      .toString(),
+                ) ??
+                0,
             type: e['type'] ?? e['connection_type'] ?? 'unknown',
           );
         }).toList();
@@ -118,8 +141,12 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
       }
       for (final edge in _edges) {
         _GraphNode? other;
-        if (edge.from == node.id) other = _nodes.where((n) => n.id == edge.to).firstOrNull;
-        if (edge.to == node.id) other = _nodes.where((n) => n.id == edge.from).firstOrNull;
+        if (edge.from == node.id) {
+          other = _nodes.where((n) => n.id == edge.to).firstOrNull;
+        }
+        if (edge.to == node.id) {
+          other = _nodes.where((n) => n.id == edge.from).firstOrNull;
+        }
         if (other == null) continue;
         final d = other.position - node.position;
         final dist = max(d.distance, 1.0);
@@ -135,15 +162,109 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
   Future<void> _simulateAttack() async {
     if (_selectedNode == null) return;
     try {
-      final data = await _api.post('/graph/simulate-attack?entry_account_id=$_selectedNode');
+      final data = await _api.post(
+        '/graph/simulate-attack?entry_account_id=$_selectedNode',
+      );
       setState(() {
-        _attackResult = data['attack_chain'] as List? ?? [];
-        final compromisedIds = (data['compromised_accounts'] as List?)?.map((a) => a['id'] as int).toSet() ?? {};
+        _attackResult = data['attackPath'] as List? ?? [];
+        _reachableCount = data['totalCompromised'] as int? ?? 0;
+        final compromisedIds =
+            (data['compromisedIds'] as List?)
+                ?.map((id) => int.tryParse(id.toString()))
+                .whereType<int>()
+                .toSet() ??
+            <int>{};
         for (final node in _nodes) {
           node.compromised = compromisedIds.contains(node.id);
         }
       });
     } catch (_) {}
+  }
+
+  Future<void> _addDataSharingConnection() async {
+    if (_nodes.length < 2) return;
+    int fromId = _nodes.first.id;
+    int toId = _nodes[1].id;
+    final created = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Map a data-sharing link'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<int>(
+                initialValue: fromId,
+                decoration: const InputDecoration(labelText: 'Source account'),
+                items: _nodes
+                    .map(
+                      (node) => DropdownMenuItem(
+                        value: node.id,
+                        child: Text(node.label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) =>
+                    setDialogState(() => fromId = value ?? fromId),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                initialValue: toId,
+                decoration: const InputDecoration(
+                  labelText: 'Connected account',
+                ),
+                items: _nodes
+                    .where((node) => node.id != fromId)
+                    .map(
+                      (node) => DropdownMenuItem(
+                        value: node.id,
+                        child: Text(node.label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) =>
+                    setDialogState(() => toId = value ?? toId),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: fromId == toId
+                  ? null
+                  : () => Navigator.pop(dialogContext, true),
+              child: const Text('Add link'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (created != true) return;
+    try {
+      await _api.post(
+        '/accounts/connections',
+        body: {
+          'from_account_id': fromId,
+          'to_account_id': toId,
+          'connection_type': 'data_sharing',
+        },
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Connection added to your risk graph.')),
+        );
+        await _loadGraph();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not add connection: $e')));
+      }
+    }
   }
 
   Color _nodeColor(_GraphNode node) {
@@ -157,30 +278,42 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
 
   Color _edgeColor(String type) {
     switch (type) {
-      case 'sso': return AppColors.purple;
-      case 'recovery': return AppColors.orange;
-      case 'password_reuse': return AppColors.red;
-      case 'data_sharing': return AppColors.cyan;
-      default: return AppColors.textMuted;
+      case 'sso':
+        return AppColors.purple;
+      case 'recovery':
+        return AppColors.orange;
+      case 'password_reuse':
+        return AppColors.red;
+      case 'data_sharing':
+        return AppColors.cyan;
+      default:
+        return AppColors.textMuted;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.blue));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.blue),
+      );
     }
 
     if (_nodes.isEmpty) {
       return const Center(
-        child: Text('Add accounts and connections to see the graph', style: TextStyle(color: AppColors.textMuted)),
+        child: Text(
+          'Add accounts and connections to see the graph',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
       );
     }
 
     // Filter edges based on selected filter
     final filteredEdges = _selectedFilter == 'All'
         ? _edges
-        : _edges.where((e) => e.type == _filterTypeKeys[_selectedFilter]).toList();
+        : _edges
+              .where((e) => e.type == _filterTypeKeys[_selectedFilter])
+              .toList();
 
     return Column(
       children: [
@@ -199,10 +332,25 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
                   onPressed: _simulateAttack,
                   icon: const Icon(Icons.bug_report, size: 18),
                   label: const Text('Simulate Attack'),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.red,
+                  ),
                 ),
-              ] else
-                const Expanded(child: Text('Tap a node to select it', style: TextStyle(color: AppColors.textSecondary))),
+              ] else ...[
+                const Expanded(
+                  child: Text(
+                    'Tap a node to select it',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Map data-sharing connection',
+                  onPressed: _nodes.length < 2
+                      ? null
+                      : _addDataSharingConnection,
+                  icon: const Icon(Icons.add_link, color: AppColors.blue),
+                ),
+              ],
             ],
           ),
         ),
@@ -225,7 +373,8 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
                   color: isSelected ? Colors.white : AppColors.textSecondary,
                   fontSize: 12,
                 ),
-                onSelected: (_) => setState(() => _selectedFilter = _filterTypes[i]),
+                onSelected: (_) =>
+                    setState(() => _selectedFilter = _filterTypes[i]),
               );
             },
           ),
@@ -245,7 +394,12 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
                   setState(() => _selectedNode = null);
                 },
                 child: CustomPaint(
-                  painter: _GraphPainter(nodes: _nodes, edges: filteredEdges, nodeColor: _nodeColor, edgeColor: _edgeColor),
+                  painter: _GraphPainter(
+                    nodes: _nodes,
+                    edges: filteredEdges,
+                    nodeColor: _nodeColor,
+                    edgeColor: _edgeColor,
+                  ),
                   size: Size.infinite,
                 ),
               ),
@@ -262,7 +416,10 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
                     border: Border.all(color: AppColors.border),
                   ),
                   child: CustomPaint(
-                    painter: _MiniMapPainter(nodes: _nodes, nodeColor: _nodeColor),
+                    painter: _MiniMapPainter(
+                      nodes: _nodes,
+                      nodeColor: _nodeColor,
+                    ),
                     size: const Size(100, 100),
                   ),
                 ),
@@ -284,13 +441,24 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Attack Chain: ${_nodes.where((n) => n.compromised).length} accounts compromised',
-                  style: const TextStyle(color: AppColors.red, fontWeight: FontWeight.bold),
+                  'Attack Chain: $_reachableCount accounts reachable',
+                  style: const TextStyle(
+                    color: AppColors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _attackResult!.map((a) => a['service_name'] ?? 'Unknown').join(' -> '),
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  _attackResult!
+                      .map(
+                        (a) =>
+                            a['serviceName'] ?? a['service_name'] ?? 'Unknown',
+                      )
+                      .join(' → '),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -321,7 +489,10 @@ class _GraphScreenState extends State<GraphScreen> with SingleTickerProviderStat
       children: [
         Container(width: 12, height: 3, color: color),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
       ],
     );
   }
@@ -356,12 +527,22 @@ class _GraphPainter extends CustomPainter {
     }
     for (final node in nodes) {
       final color = nodeColor(node);
-      canvas.drawCircle(node.position, 20, Paint()..color = color.withAlpha(50));
+      canvas.drawCircle(
+        node.position,
+        20,
+        Paint()..color = color.withAlpha(50),
+      );
       canvas.drawCircle(node.position, 14, Paint()..color = color);
       final tp = TextPainter(
         text: TextSpan(
-          text: node.label.length > 8 ? '${node.label.substring(0, 8)}..' : node.label,
-          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500),
+          text: node.label.length > 8
+              ? '${node.label.substring(0, 8)}..'
+              : node.label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 9,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();

@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import time
 from datetime import datetime, timezone
 from urllib.parse import quote, urlparse
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.models.account import Account, BreachRecord, Notification
 from app.services.connections import refresh_user_graph
+from app.services.integration_status import record_call
 
 settings = get_settings()
 
@@ -18,6 +20,12 @@ XON_API = "https://api.xposedornot.com/v1"
 USER_AGENT = "PrivacyShield/1.0"
 CATALOG_TTL_SECONDS = 6 * 3600
 ACCOUNT_SOURCES = {"hibp_account", "xposedornot"}
+MOCK_CATALOG = [
+    {"Name": "ExampleForum", "Title": "Example Forum (Demo)", "Domain": "example.invalid",
+     "BreachDate": "2024-01-15", "PwnCount": 12000,
+     "DataClasses": ["Email addresses", "Passwords"], "IsFabricated": False},
+]
+MOCK_EMAIL = "demo@privacyshield.test"
 
 _catalog: list[dict] = []
 _catalog_fetched_at = 0.0
@@ -78,11 +86,21 @@ async def _hibp_keyed_get(client: httpx.AsyncClient, path: str, **params) -> htt
 async def get_breach_catalog(client: httpx.AsyncClient) -> list[dict]:
     """Every public breach HIBP knows about. Free, no key required."""
     global _catalog, _catalog_fetched_at
+    if settings.hibp_mode.lower() == "mock":
+        record_call("hibp", healthy=True, detail="Deterministic demo fixture")
+        return copy.deepcopy(MOCK_CATALOG)
     async with _catalog_lock:
         if _catalog and time.monotonic() - _catalog_fetched_at < CATALOG_TTL_SECONDS:
             return _catalog
-        resp = await client.get(f"{HIBP_API}/breaches")
-        resp.raise_for_status()
+        started = time.monotonic()
+        try:
+            resp = await client.get(f"{HIBP_API}/breaches")
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            record_call("hibp", healthy=False, latency_ms=(time.monotonic() - started) * 1000,
+                        detail=type(exc).__name__)
+            raise
+        record_call("hibp", healthy=True, latency_ms=(time.monotonic() - started) * 1000)
         _catalog = [b for b in resp.json() if not b.get("IsFabricated") and not b.get("IsSpamList")]
         _catalog_fetched_at = time.monotonic()
         return _catalog
@@ -101,17 +119,38 @@ def service_breaches(catalog: list[dict], account: Account) -> list[dict]:
 
 async def email_breaches(client: httpx.AsyncClient, email: str) -> tuple[list[dict], str]:
     """Breaches this exact email appears in. HIBP when a key is configured, otherwise XposedOrNot."""
+    if settings.xon_mode.lower() == "mock" or settings.hibp_mode.lower() == "mock":
+        record_call("xon", healthy=True, detail="Deterministic demo fixture")
+        if email.strip().lower() == MOCK_EMAIL:
+            return ([{"name": "Example Forum (Demo)", "domain": "example.invalid",
+                      "date": "2024-01-15", "data": ["email addresses", "passwords"],
+                      "records": 12000, "source": "xposedornot"}], "mock")
+        return [], "mock"
     if settings.hibp_api_key:
-        resp = await _hibp_keyed_get(client, f"/breachedaccount/{quote(email)}", truncateResponse="false")
+        started = time.monotonic()
+        try:
+            resp = await _hibp_keyed_get(client, f"/breachedaccount/{quote(email)}", truncateResponse="false")
+            resp.raise_for_status() if resp.status_code != 404 else None
+        except httpx.HTTPError as exc:
+            record_call("hibp", healthy=False, latency_ms=(time.monotonic() - started) * 1000,
+                        detail=type(exc).__name__)
+            raise
+        record_call("hibp", healthy=True, latency_ms=(time.monotonic() - started) * 1000)
         if resp.status_code == 404:
             return [], "hibp"
-        resp.raise_for_status()
         return [_from_hibp(b, "hibp_account") for b in resp.json()], "hibp"
 
-    resp = await client.get(f"{XON_API}/breach-analytics", params={"email": email})
+    started = time.monotonic()
+    try:
+        resp = await client.get(f"{XON_API}/breach-analytics", params={"email": email})
+        resp.raise_for_status() if resp.status_code != 404 else None
+    except httpx.HTTPError as exc:
+        record_call("xon", healthy=False, latency_ms=(time.monotonic() - started) * 1000,
+                    detail=type(exc).__name__)
+        raise
+    record_call("xon", healthy=True, latency_ms=(time.monotonic() - started) * 1000)
     if resp.status_code == 404:
         return [], "xposedornot"
-    resp.raise_for_status()
     details = ((resp.json().get("ExposedBreaches") or {}).get("breaches_details")) or []
     return [
         {
@@ -129,6 +168,10 @@ async def email_breaches(client: httpx.AsyncClient, email: str) -> tuple[list[di
 
 async def email_pastes(client: httpx.AsyncClient, email: str) -> list[dict]:
     """Public paste dumps (Pastebin and similar) containing this email."""
+    if settings.hibp_mode.lower() == "mock" or settings.xon_mode.lower() == "mock":
+        record_call("xon", healthy=True, detail="Deterministic demo fixture")
+        return ([{"source": "Demo paste fixture", "id": "demo-1", "title": "Example forum dump (DEMO DATA)",
+                  "date": "2024-01-15", "emails": 1}] if email.strip().lower() == MOCK_EMAIL else [])
     if settings.hibp_api_key:
         resp = await _hibp_keyed_get(client, f"/pasteaccount/{quote(email)}")
         if resp.status_code == 404:

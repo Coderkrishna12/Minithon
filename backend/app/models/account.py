@@ -13,13 +13,19 @@ class Account(Base):
     email_used = Column(String(255))
     username_used = Column(String(200))
     category = Column(String(50))  # social, finance, email, cloud, shopping, gaming, etc.
-    has_2fa = Column(Boolean, default=False)
+    # None means the user/import has not established the account's 2FA state.
+    has_2fa = Column(Boolean, default=None, nullable=True)
     password_group = Column(String(100))  # label for password reuse group
-    login_method = Column(String(50))  # password, google_sso, apple_sso, facebook_sso, github_sso
+    login_method = Column(String(50), default="unknown")  # unknown until discovered/confirmed
+    twofa_method = Column(String(30), nullable=True)
+    added_via = Column(String(40), default="manual", nullable=False)
+    import_confidence = Column(Float, nullable=True)
+    evidence_source = Column(String(100), nullable=True)
     recovery_email = Column(String(255))
     recovery_phone = Column(String(50))
     permissions = Column(JSON, default=list)  # ["location", "contacts", "camera", ...]
     risk_score = Column(Float, default=0.0)
+    risk_components = Column(JSON, default=dict)
     breach_count = Column(Integer, default=0)
     last_breach_date = Column(DateTime(timezone=True))
     is_active = Column(Boolean, default=True)

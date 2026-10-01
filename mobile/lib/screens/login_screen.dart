@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../services/auth_provider.dart';
-import '../widgets/server_settings_dialog.dart';
+import '../services/server_discovery.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -196,6 +196,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text('Sign Up', style: TextStyle(color: AppColors.blue, fontWeight: FontWeight.w600)),
                     ),
                   ],
+                ),
+                const SizedBox(height: 28),
+                Center(
+                  child: TextButton(
+                    onPressed: () async {
+                      await Navigator.pushNamed(context, '/server');
+                      if (mounted) setState(() {});
+                    },
+                    child: Text(
+                      'SERVER ${Uri.tryParse(ServerDiscovery.baseUrl)?.authority ?? ServerDiscovery.baseUrl} · CHANGE',
+                      style: AppText.eyebrow(),
+                    ),
+                  ),
                 ),
               ],
             ),

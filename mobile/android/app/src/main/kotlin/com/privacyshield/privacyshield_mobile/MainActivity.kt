@@ -2,6 +2,7 @@ package com.privacyshield.privacyshield_mobile
 
 import android.app.KeyguardManager
 import android.app.admin.DevicePolicyManager
+import android.hardware.biometrics.BiometricPrompt
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -9,7 +10,11 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.net.Uri
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -18,13 +23,54 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.util.concurrent.Executors
+import java.util.Locale
+import java.security.KeyStore
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
+import android.util.Base64
 
 class MainActivity : FlutterActivity() {
+    private val speechRequestCode = 9104
+    private val biometricRequestCode = 9105
+    private var speechResult: MethodChannel.Result? = null
+    private var biometricResult: MethodChannel.Result? = null
     private val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privacyshield/secure_storage").setMethodCallHandler { call, result ->
+            try {
+                val key = call.argument<String>("key") ?: "access_token"
+                val prefs = getSharedPreferences("privacyshield_secure_values", Context.MODE_PRIVATE)
+                when (call.method) {
+                    "read" -> {
+                        val packed = prefs.getString(key, null)
+                        if (packed == null) result.success(null) else {
+                            val bytes = Base64.decode(packed, Base64.NO_WRAP)
+                            val iv = bytes.copyOfRange(0, 12)
+                            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                            cipher.init(Cipher.DECRYPT_MODE, getOrCreateStorageKey(), GCMParameterSpec(128, iv))
+                            result.success(String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8))
+                        }
+                    }
+                    "write" -> {
+                        val value = call.argument<String>("value") ?: throw IllegalArgumentException("value is required")
+                        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateStorageKey())
+                        val packed = cipher.iv + cipher.doFinal(value.toByteArray(Charsets.UTF_8))
+                        prefs.edit().putString(key, Base64.encodeToString(packed, Base64.NO_WRAP)).apply()
+                        result.success(null)
+                    }
+                    "delete" -> { prefs.edit().remove(key).apply(); result.success(null) }
+                    else -> result.notImplemented()
+                }
+            } catch (e: Exception) {
+                result.error("SECURE_STORAGE_FAILED", e.message, null)
+            }
+        }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privacyshield/device").setMethodCallHandler { call, result ->
             when (call.method) {
                 "scanApps" -> worker.execute {
@@ -45,6 +91,21 @@ class MainActivity : FlutterActivity() {
                         result.success(true)
                     }
                 }
+                "openUrl" -> {
+                    val rawUrl = call.argument<String>("url")
+                    val uri = rawUrl?.let { Uri.parse(it) }
+                    if (uri == null || uri.scheme !in listOf("http", "https")) {
+                        result.error("BAD_URL", "A valid http or https URL is required.", null)
+                    } else {
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW, uri))
+                            result.success(true)
+                        } catch (e: Exception) {
+                            result.error("OPEN_URL_FAILED", e.message, null)
+                        }
+                    }
+                }
+                "authenticateBiometric" -> authenticateBiometric(result)
                 "openSettings" -> {
                     val action = when (call.argument<String>("screen")) {
                         "security" -> Settings.ACTION_SECURITY_SETTINGS
@@ -60,6 +121,119 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privacyshield/voice").setMethodCallHandler { call, result ->
+            if (call.method != "listen") {
+                result.notImplemented()
+                return@setMethodCallHandler
+            }
+            if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+                result.error("VOICE_UNAVAILABLE", "No speech recognition service is available on this phone.", null)
+                return@setMethodCallHandler
+            }
+            if (speechResult != null) {
+                result.error("VOICE_BUSY", "Speech recognition is already active.", null)
+                return@setMethodCallHandler
+            }
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Ask PrivacyBot")
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            }
+            try {
+                speechResult = result
+                startActivityForResult(intent, speechRequestCode)
+            } catch (e: Exception) {
+                speechResult = null
+                result.error("VOICE_START_FAILED", e.message, null)
+            }
+        }
+    }
+
+    private fun getOrCreateStorageKey(): SecretKey {
+        val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        val alias = "privacyshield_access_token_v1"
+        (store.getKey(alias, null) as? SecretKey)?.let { return it }
+        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+        generator.init(KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setRandomizedEncryptionRequired(true)
+            .build())
+        return generator.generateKey()
+    }
+
+    @Deprecated("Deprecated in Android, retained for the system speech-recognition activity result")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == biometricRequestCode) {
+            val pending = biometricResult ?: return
+            biometricResult = null
+            pending.success(resultCode == RESULT_OK)
+            return
+        }
+        if (requestCode != speechRequestCode) return
+        val pending = speechResult ?: return
+        speechResult = null
+        if (resultCode == RESULT_OK) {
+            val phrases = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            pending.success(phrases?.firstOrNull())
+        } else {
+            pending.success(null)
+        }
+    }
+
+    private fun authenticateBiometric(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                val builder = BiometricPrompt.Builder(this)
+                    .setTitle("Unlock PrivacyShield")
+                    .setSubtitle("Confirm it is you to view your privacy data")
+                val executor = java.util.concurrent.Executor { command -> runOnUiThread(command) }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    builder.setAllowedAuthenticators(
+                        android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                            android.hardware.biometrics.BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+                    )
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    @Suppress("DEPRECATION")
+                    builder.setDeviceCredentialAllowed(true)
+                } else {
+                    builder.setNegativeButton("Cancel", executor) { dialog, _ ->
+                        result.success(false)
+                        dialog.dismiss()
+                    }
+                }
+                builder.build().authenticate(
+                    android.os.CancellationSignal(),
+                    executor,
+                    object : BiometricPrompt.AuthenticationCallback() {
+                        override fun onAuthenticationSucceeded(authenticationResult: BiometricPrompt.AuthenticationResult?) {
+                            result.success(true)
+                        }
+
+                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
+                            result.success(false)
+                        }
+                    },
+                )
+            } catch (e: Exception) {
+                result.error("BIOMETRIC_FAILED", e.message, null)
+            }
+            return
+        }
+        val keyguard = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        if (!keyguard.isKeyguardSecure) {
+            result.error("BIOMETRIC_UNAVAILABLE", "Set up a secure screen lock on this phone first.", null)
+            return
+        }
+        val intent = keyguard.createConfirmDeviceCredentialIntent("Unlock PrivacyShield", "Confirm your screen lock")
+        if (intent == null) {
+            result.error("BIOMETRIC_UNAVAILABLE", "Device authentication is unavailable.", null)
+            return
+        }
+        biometricResult = result
+        startActivityForResult(intent, biometricRequestCode)
     }
 
     override fun onDestroy() {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
 import '../config/theme.dart';
 import '../services/api_service.dart';
 
@@ -39,8 +40,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
     setState(() => _exporting = true);
     try {
       final data = await _api.get('/reports/export');
-      final reportText = data['report'] ?? data.toString();
-      await Clipboard.setData(ClipboardData(text: reportText.toString()));
+      await Clipboard.setData(
+        ClipboardData(text: const JsonEncoder.withIndent('  ').convert(data)),
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Report copied to clipboard')),
@@ -48,9 +50,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
       }
     }
     setState(() => _exporting = false);
@@ -83,9 +85,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
             onPressed: () async {
               if (_summary != null) {
                 final messenger = ScaffoldMessenger.of(context);
-                await Clipboard.setData(ClipboardData(
-                  text: 'Privacy Score: ${_summary!['score'] ?? 'N/A'} | Grade: ${_summary!['grade'] ?? 'N/A'}',
-                ));
+                await Clipboard.setData(
+                  ClipboardData(
+                    text:
+                        'Privacy Score: ${_summary!['privacy_score'] ?? 'N/A'} | Grade: ${_summary!['grade'] ?? 'N/A'}',
+                  ),
+                );
                 if (mounted) {
                   messenger.showSnackBar(
                     const SnackBar(content: Text('Report copied to clipboard')),
@@ -97,27 +102,39 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.blue))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.blue),
+            )
           : _summary == null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.cloud_off, size: 48, color: AppColors.textMuted),
-                      const SizedBox(height: 12),
-                      const Text('Could not load report', style: TextStyle(color: AppColors.textSecondary)),
-                      const SizedBox(height: 12),
-                      ElevatedButton(onPressed: _loadSummary, child: const Text('Retry')),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.cloud_off,
+                    size: 48,
+                    color: AppColors.textMuted,
                   ),
-                )
-              : _buildReport(),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Could not load report',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _loadSummary,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          : _buildReport(),
     );
   }
 
   Widget _buildReport() {
     final grade = (_summary!['grade'] ?? 'N/A').toString();
-    final score = (_summary!['score'] ?? 0).toDouble();
+    final score = (_summary!['privacy_score'] as num? ?? 0).toDouble();
     final strengths = (_summary!['strengths'] as List?) ?? [];
     final weaknesses = (_summary!['weaknesses'] as List?) ?? [];
 
@@ -158,7 +175,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 const SizedBox(height: 16),
                 Text(
                   'Privacy Score: ${score.toInt()}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -167,13 +187,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
           if (strengths.isNotEmpty) ...[
             Row(
               children: [
-                const Icon(Icons.check_circle, color: AppColors.green, size: 20),
+                const Icon(
+                  Icons.check_circle,
+                  color: AppColors.green,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
-                const Text('Strengths', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                const Text(
+                  'Strengths',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ],
             ),
             const SizedBox(height: 8),
-            ...strengths.map((s) => _buildListItem(s.toString(), AppColors.green)),
+            ...strengths.map(
+              (s) => _buildListItem(s.toString(), AppColors.green),
+            ),
             const SizedBox(height: 20),
           ],
           if (weaknesses.isNotEmpty) ...[
@@ -181,11 +210,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
               children: [
                 const Icon(Icons.error, color: AppColors.red, size: 20),
                 const SizedBox(width: 8),
-                const Text('Weaknesses', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                const Text(
+                  'Weaknesses',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ],
             ),
             const SizedBox(height: 8),
-            ...weaknesses.map((w) => _buildListItem(w.toString(), AppColors.red)),
+            ...weaknesses.map(
+              (w) => _buildListItem(w.toString(), AppColors.red),
+            ),
             const SizedBox(height: 20),
           ],
           SizedBox(
@@ -196,7 +230,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.download),
               label: Text(_exporting ? 'Exporting...' : 'Export Report'),
@@ -221,10 +258,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           ),
           const SizedBox(width: 12),
           Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/theme.dart';
 import '../services/api_service.dart';
+import '../services/password_csv_import.dart';
 
 class SmartImportScreen extends StatefulWidget {
   const SmartImportScreen({super.key});
@@ -11,38 +12,49 @@ class SmartImportScreen extends StatefulWidget {
 
 class _SmartImportScreenState extends State<SmartImportScreen> {
   final _api = ApiService();
-  final _emailCtrl = TextEditingController();
-  final _emailContentCtrl = TextEditingController();
-  List<dynamic> _suggestions = [];
+  final _csvController = TextEditingController();
   final Set<String> _selectedServices = {};
   bool _loading = true;
   bool _importing = false;
   bool _scanningEmail = false;
+  bool _importingCsv = false;
   Map<String, dynamic>? _importResult;
 
   @override
   void initState() {
     super.initState();
-    _loadSuggestions();
+    _loading = false;
   }
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
-    _emailContentCtrl.dispose();
+    _csvController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadSuggestions() async {
-    setState(() => _loading = true);
+  Future<void> _importPasswordCsv() async {
+    final parsed = parsePasswordManagerCsv(_csvController.text);
+    if (parsed.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not find service and password columns in this CSV.')));
+      return;
+    }
+    setState(() => _importingCsv = true);
     try {
-      final data = await _api.get('/import/suggestions');
-      setState(() {
-        _suggestions = (data['suggestions'] as List?) ?? [];
-        _loading = false;
+      // The request is intentionally built from the reduced record type. Password cells are never serialized.
+      final result = await _api.post('/import/password-manager-csv', body: {
+        'services': parsed.map((row) => row.toApiJson()).toList(),
       });
-    } catch (_) {
-      setState(() => _loading = false);
+      _csvController.clear(); // Drop the raw export from the screen immediately after local analysis.
+      if (mounted) {
+        setState(() { _importResult = result; _importingCsv = false; });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${(result['added'] as List?)?.length ?? 0} accounts. Passwords stayed on this device.')));
+      }
+    } catch (e) {
+      _csvController.clear();
+      if (mounted) {
+        setState(() => _importingCsv = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('CSV import failed: $e')));
+      }
     }
   }
 
@@ -55,10 +67,16 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
     }
     setState(() => _importing = true);
     try {
-      final data = await _api.post('/import/bulk-add', body: {
-        'services': _selectedServices.toList(),
-        'email': _emailCtrl.text.trim(),
-      });
+      final fixture = _importResult?['mode'] == 'fixture';
+      final data = await _api.post(
+        '/import/bulk-add',
+        body: {
+          'services': _selectedServices.toList(),
+          'added_via': fixture ? 'fixture_mailbox' : 'manual_review',
+          'import_confidence': fixture ? 0.9 : null,
+          'evidence_source': fixture ? 'DEMO DATA · signup/security signal reviewed by user' : 'user_confirmed',
+        },
+      );
       setState(() {
         _importResult = data;
         _importing = false;
@@ -67,7 +85,7 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Added: ${data['added'] ?? 0}, Skipped: ${data['skipped'] ?? 0}',
+              'Added: ${(data['added'] as List?)?.length ?? 0}, Skipped: ${(data['skipped'] as List?)?.length ?? 0}',
             ),
           ),
         );
@@ -75,38 +93,38 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
     } catch (e) {
       setState(() => _importing = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Import failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Import failed: $e')));
       }
     }
   }
 
   Future<void> _scanEmail() async {
-    if (_emailContentCtrl.text.trim().isEmpty) return;
     setState(() => _scanningEmail = true);
     try {
-      final data = await _api.post('/import/scan-email', body: {
-        'content': _emailContentCtrl.text.trim(),
-      });
-      final found = (data['services'] as List?) ?? [];
+      final data = await _api.post('/import/fixture-mailbox/scan');
+      final found = (data['discovered'] as List?) ?? [];
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Found ${found.length} services in email')),
+          SnackBar(content: Text('Reviewed ${found.length} demo mailbox signals')),
         );
       }
       if (found.isNotEmpty) {
         setState(() {
           for (final s in found) {
-            _selectedServices.add(s['name'] ?? s.toString());
+            if (s['importable'] == true) {
+              _selectedServices.add(s['service_name'] ?? s.toString());
+            }
           }
+          _importResult = data;
         });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Scan failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Scan failed: $e')));
       }
     }
     setState(() => _scanningEmail = false);
@@ -117,21 +135,33 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Smart Import')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.blue))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.blue),
+            )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
-                  'Suggested Services',
+                  'Account discovery',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Common services not yet tracked in your account',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  'Only confirmed signup and security signals are candidates. Breach catalogs do not prove you have an account.',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                if (_suggestions.isEmpty)
+                if (_importResult?['mode'] == 'fixture')
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: AppColors.orange.withAlpha(20), borderRadius: BorderRadius.circular(12)),
+                    child: const Text('DEMO DATA · Fixture mailbox only. No real mailbox was connected.', style: TextStyle(color: AppColors.orange, fontSize: 12)),
+                  ),
+                if ((_importResult?['discovered'] as List?) == null)
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -140,13 +170,17 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
                       border: Border.all(color: AppColors.border),
                     ),
                     child: const Center(
-                      child: Text('No suggestions available', style: TextStyle(color: AppColors.textMuted)),
+                      child: Text(
+                        'Run the fixture scan below to review discovered account signals.',
+                        style: TextStyle(color: AppColors.textMuted),
+                      ),
                     ),
                   )
                 else
-                  ..._suggestions.map((s) {
+                  ...((_importResult?['discovered'] as List?) ?? const []).map((s) {
                     final name = s['name'] ?? s['service_name'] ?? s.toString();
                     final isSelected = _selectedServices.contains(name);
+                    final importable = s['importable'] != false && s['already_tracked'] != true;
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
@@ -158,12 +192,26 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
                       ),
                       child: CheckboxListTile(
                         value: isSelected,
+                        enabled: importable,
                         activeColor: AppColors.blue,
-                        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w500)),
-                        subtitle: s['category'] != null
-                            ? Text(s['category'], style: const TextStyle(color: AppColors.textMuted, fontSize: 12))
+                        title: Text(
+                          name,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        subtitle: s['reason'] != null
+                            ? Text('${s['reason']} · ${((s['confidence'] ?? 0) * 100).round()}% confidence', style: const TextStyle(color: AppColors.textMuted, fontSize: 12))
+                            : s['category'] != null
+                            ? Text(
+                                s['category'],
+                                style: const TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 12,
+                                ),
+                              )
                             : null,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         onChanged: (v) {
                           setState(() {
                             if (v == true) {
@@ -177,16 +225,6 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
                     );
                   }),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _emailCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Your Email',
-                    prefixIcon: Icon(Icons.email, color: AppColors.textMuted),
-                    hintText: 'email@example.com',
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -195,12 +233,17 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : const Icon(Icons.download),
-                    label: Text(_importing
-                        ? 'Importing...'
-                        : 'Import Selected (${_selectedServices.length})'),
+                    label: Text(
+                      _importing
+                          ? 'Importing...'
+                          : 'Import Selected (${_selectedServices.length})',
+                    ),
                   ),
                 ),
                 if (_importResult != null) ...[
@@ -218,27 +261,39 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
                         Column(
                           children: [
                             Text(
-                              '${_importResult!['added'] ?? 0}',
+                              '${(_importResult!['added'] as List?)?.length ?? 0}',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.green,
                               ),
                             ),
-                            const Text('Added', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                            const Text(
+                              'Added',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
                         Column(
                           children: [
                             Text(
-                              '${_importResult!['skipped'] ?? 0}',
+                              '${(_importResult!['skipped'] as List?)?.length ?? 0}',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.orange,
                               ),
                             ),
-                            const Text('Skipped', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                            const Text(
+                              'Skipped',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -246,25 +301,30 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
                   ),
                 ],
                 const SizedBox(height: 24),
+                const Text('Password-manager CSV', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Text('Paste an exported CSV. Reuse is detected on this device; only service names and reuse-group labels are sent.', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                const SizedBox(height: 12),
+                TextField(controller: _csvController, maxLines: 6, autocorrect: false, enableSuggestions: false,
+                  decoration: const InputDecoration(labelText: 'CSV export', hintText: 'name,url,username,password\\nExample,example.com,user,password…', alignLabelWithHint: true)),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(onPressed: _importingCsv ? null : _importPasswordCsv,
+                  icon: _importingCsv ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.lock_outline),
+                  label: Text(_importingCsv ? 'Checking locally…' : 'Analyze and import CSV')),
+                const SizedBox(height: 24),
                 const Text(
-                  'Scan Email Content',
+                  'Try the fixture mailbox',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Paste email content to detect services',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  'A reproducible demo of signup and security signals. Your inbox is never uploaded.',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _emailContentCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Email Content',
-                    alignLabelWithHint: true,
-                    hintText: 'Paste email text here...',
-                  ),
-                  maxLines: 5,
-                ),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
@@ -274,7 +334,10 @@ class _SmartImportScreenState extends State<SmartImportScreen> {
                         ? const SizedBox(
                             width: 16,
                             height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.blue),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.blue,
+                            ),
                           )
                         : const Icon(Icons.document_scanner),
                     label: Text(_scanningEmail ? 'Scanning...' : 'Scan Email'),
